@@ -139,7 +139,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T1.2 TypeScript estricto.** `strict` activado y alias de rutas. *Hecho cuando:* `pnpm typecheck` pasa y los alias funcionan.
 - [x] **T1.3 ESLint y Prettier.** Con scripts `lint` y `format`. *Hecho cuando:* `pnpm lint` pasa sobre todo el código.
 - [x] **T1.4 Vitest.** Con una prueba de ejemplo. *Hecho cuando:* `pnpm test` pasa.
-- [ ] **T1.5 Hook pre-commit.** husky y lint-staged (eslint, prettier y tipos). *Hecho cuando:* un commit con errores de lint es rechazado.
+- [x] **T1.5 Hook pre-commit.** husky y lint-staged (eslint, prettier y tipos). *Hecho cuando:* un commit con errores de lint es rechazado.
 - [ ] **T1.6 Hook commit-msg.** commitlint con tipos, scopes, máximo de 72 caracteres y rechazo de `Co-Authored-By`. *Hecho cuando:* un mensaje inválido o con `Co-Authored-By` es rechazado.
 - [ ] **T1.7 Hook pre-push.** Ejecuta `typecheck` y `test`. *Hecho cuando:* un push con una prueba fallida es rechazado.
 - [ ] **T1.8 CI.** GitHub Actions en `main`, matriz windows/macos/ubuntu, con caché de pnpm: instalar, lint, tipos, pruebas y build. *Hecho cuando:* el workflow queda verde en los tres sistemas.
