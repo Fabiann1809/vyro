@@ -132,7 +132,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 ### Fase 0 — Arranque
 - [x] **T0.1 Inicializar el repositorio.** `.gitignore`, `.gitattributes`, `.editorconfig`, `LICENSE`, `README` y autor local. *Hecho cuando:* existe el repo con un primer commit hecho por `Fabiann1809`.
 - [x] **T0.2 Spec y reglas.** `docs/PROJECT_SPEC.md` y `CLAUDE.md`. *Hecho cuando:* están en el repo y describen todas las tareas con su criterio.
-- [ ] **T0.3 Documento de UX.** `docs/UX_BRIEF.md` con el contexto para generar la interfaz con Claude Design. *Hecho cuando:* cubre producto, usuario, pantallas, estados, accesibilidad, voz y datos de ejemplo.
+- [x] **T0.3 Documento de UX.** `docs/UX_BRIEF.md` con el contexto para generar la interfaz con Claude Design. *Hecho cuando:* cubre producto, usuario, pantallas, estados, accesibilidad, voz y datos de ejemplo.
 
 ### Fase 1 — Herramientas
 - [ ] **T1.1 Proyecto base.** Crear el proyecto con electron-vite, React y TypeScript usando pnpm. *Hecho cuando:* `pnpm dev` abre una ventana vacía.
