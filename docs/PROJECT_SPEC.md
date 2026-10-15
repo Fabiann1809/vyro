@@ -163,7 +163,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T3.1 Tipos y esquema.** Tipos de habilidad y esquema zod. *Hecho cuando:* una configuración válida pasa y una inválida falla con un mensaje claro.
 - [x] **T3.2 Cargador de habilidades.** Carga y valida las configuraciones. *Hecho cuando:* las pruebas cubren casos válidos e inválidos.
 - [x] **T3.3 Cálculo de métricas.** De landmarks a ángulos e inclinaciones según la configuración. *Hecho cuando:* las pruebas con landmarks conocidos dan los valores esperados.
-- [ ] **T3.4 Detector de fases.** Con histéresis para evitar parpadeos. *Hecho cuando:* una señal ruidosa no cambia de fase de forma espuria.
+- [x] **T3.4 Detector de fases.** Con histéresis para evitar parpadeos. *Hecho cuando:* una señal ruidosa no cambia de fase de forma espuria.
 - [ ] **T3.5 Contador de repeticiones.** Máquina de estados con duración mínima. *Hecho cuando:* cuenta bien secuencias completas e ignora las incompletas.
 - [ ] **T3.6 Evaluador de reglas.** Expresiones seguras, sin `eval`. *Hecho cuando:* las pruebas cubren operadores, funciones permitidas y rechazo de código no permitido.
 - [ ] **T3.7 Evaluación por repetición.** Aplica las reglas y produce un resultado por repetición. *Hecho cuando:* una repetición buena y una mala dan resultados distintos.
