@@ -172,7 +172,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T3.10 Reproductor de secuencias.** Arnés de pruebas que reproduce fixtures por el motor. *Hecho cuando:* una prueba lo usa de principio a fin.
 
 ### Fase 4 — Habilidades del MVP
-- [ ] **T4.1 Sentadilla.** Configuración (profundidad, inclinación del torso, extensión, control de bajada) y fixtures. *Hecho cuando:* cuenta y detecta errores en los fixtures.
+- [x] **T4.1 Sentadilla.** Configuración (profundidad, inclinación del torso, extensión, control de bajada) y fixtures. *Hecho cuando:* cuenta y detecta errores en los fixtures.
 - [ ] **T4.2 Flexión.** Configuración (profundidad, alineación del cuerpo, extensión) y fixtures. *Hecho cuando:* cuenta y detecta errores en los fixtures.
 - [ ] **T4.3 Curl de bíceps.** Configuración (recorrido, extensión, codo fijo, sin balanceo) y fixtures, sin peso. *Hecho cuando:* cuenta y detecta errores en los fixtures.
 - [ ] **T4.4 Ajuste de umbrales.** Con unas 10 repeticiones buenas y 10 malas por ejercicio. *Hecho cuando:* ≥ 90 % de acierto en conteo y ≥ 80 % en errores sobre los fixtures.

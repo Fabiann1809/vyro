@@ -1,0 +1,35 @@
+{
+  "id": "squat",
+  "category": "exercise",
+  "name": { "es": "Sentadilla", "en": "Squat" },
+  "camera": { "view": "side", "fullBody": true },
+  "metrics": {
+    "knee": { "type": "angle", "points": ["hip", "knee", "ankle"] },
+    "torso": { "type": "tilt", "from": "hip", "to": "shoulder" }
+  },
+  "phases": [
+    { "id": "up", "when": { "knee": { "gt": 160 } } },
+    { "id": "down", "when": { "knee": { "lt": 110 } } }
+  ],
+  "rep": { "sequence": ["up", "down", "up"], "minDurationMs": 800 },
+  "rules": [
+    {
+      "id": "depth",
+      "severity": "high",
+      "check": "min(knee) <= 100",
+      "message": { "es": "Baja más la cadera", "en": "Go deeper" }
+    },
+    {
+      "id": "torso_lean",
+      "severity": "medium",
+      "check": "max(torso) <= 50",
+      "message": { "es": "Mantén el pecho más erguido", "en": "Keep your chest more upright" }
+    },
+    {
+      "id": "descent_control",
+      "severity": "low",
+      "check": "descentMs >= 500",
+      "message": { "es": "Baja más despacio", "en": "Lower yourself more slowly" }
+    }
+  ]
+}
