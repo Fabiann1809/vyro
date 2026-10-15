@@ -135,7 +135,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T0.3 Documento de UX.** `docs/UX_BRIEF.md` con el contexto para generar la interfaz con Claude Design. *Hecho cuando:* cubre producto, usuario, pantallas, estados, accesibilidad, voz y datos de ejemplo.
 
 ### Fase 1 — Herramientas
-- [ ] **T1.1 Proyecto base.** Crear el proyecto con electron-vite, React y TypeScript usando pnpm. *Hecho cuando:* `pnpm dev` abre una ventana vacía.
+- [x] **T1.1 Proyecto base.** Crear el proyecto con electron-vite, React y TypeScript usando pnpm. *Hecho cuando:* `pnpm dev` abre una ventana vacía.
 - [ ] **T1.2 TypeScript estricto.** `strict` activado y alias de rutas. *Hecho cuando:* `pnpm typecheck` pasa y los alias funcionan.
 - [ ] **T1.3 ESLint y Prettier.** Con scripts `lint` y `format`. *Hecho cuando:* `pnpm lint` pasa sobre todo el código.
 - [ ] **T1.4 Vitest.** Con una prueba de ejemplo. *Hecho cuando:* `pnpm test` pasa.

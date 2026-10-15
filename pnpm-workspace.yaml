@@ -1,0 +1,3 @@
+# electron-winstaller is only needed for Squirrel.Windows installers, which VYRO does not use.
+allowBuilds:
+  electron-winstaller: false
