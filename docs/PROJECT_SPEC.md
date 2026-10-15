@@ -136,7 +136,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 
 ### Fase 1 — Herramientas
 - [x] **T1.1 Proyecto base.** Crear el proyecto con electron-vite, React y TypeScript usando pnpm. *Hecho cuando:* `pnpm dev` abre una ventana vacía.
-- [ ] **T1.2 TypeScript estricto.** `strict` activado y alias de rutas. *Hecho cuando:* `pnpm typecheck` pasa y los alias funcionan.
+- [x] **T1.2 TypeScript estricto.** `strict` activado y alias de rutas. *Hecho cuando:* `pnpm typecheck` pasa y los alias funcionan.
 - [ ] **T1.3 ESLint y Prettier.** Con scripts `lint` y `format`. *Hecho cuando:* `pnpm lint` pasa sobre todo el código.
 - [ ] **T1.4 Vitest.** Con una prueba de ejemplo. *Hecho cuando:* `pnpm test` pasa.
 - [ ] **T1.5 Hook pre-commit.** husky y lint-staged (eslint, prettier y tipos). *Hecho cuando:* un commit con errores de lint es rechazado.

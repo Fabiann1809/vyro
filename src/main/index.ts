@@ -1,6 +1,7 @@
 import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { APP_NAME } from '@shared/app'
 import icon from '../../resources/icon.png?asset'
 
 function createWindow(): void {
@@ -9,7 +10,7 @@ function createWindow(): void {
     height: 720,
     show: false,
     autoHideMenuBar: true,
-    title: 'VYRO',
+    title: APP_NAME,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
