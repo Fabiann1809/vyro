@@ -1,0 +1,36 @@
+import { useEffect, useState, type RefObject } from 'react'
+import { FrameStats, type FrameStatsSnapshot } from '@renderer/core/frameStats'
+import { t } from '@renderer/i18n'
+
+const REFRESH_MS = 500
+
+// Development-only readout of how fast the camera and the pose model run.
+export function DebugPanel({ stats }: { stats: RefObject<FrameStats> }): React.JSX.Element | null {
+  const [snapshot, setSnapshot] = useState<FrameStatsSnapshot | null>(null)
+
+  useEffect(() => {
+    const timer = setInterval(
+      () => setSnapshot(stats.current.snapshot(performance.now())),
+      REFRESH_MS
+    )
+    return () => clearInterval(timer)
+  }, [stats])
+
+  if (!snapshot) return null
+
+  return (
+    <div
+      data-testid="debug-panel"
+      className="absolute top-2 left-2 rounded bg-black/60 px-2 py-1 font-mono text-xs text-emerald-300"
+    >
+      <div>{t('debug.camera', { fps: snapshot.cameraFps.toFixed(1) })}</div>
+      <div>{t('debug.detection', { fps: snapshot.detectionFps.toFixed(1) })}</div>
+      <div>
+        {t('debug.latency', {
+          avg: snapshot.averageLatencyMs.toFixed(1),
+          max: snapshot.maxLatencyMs.toFixed(1)
+        })}
+      </div>
+    </div>
+  )
+}

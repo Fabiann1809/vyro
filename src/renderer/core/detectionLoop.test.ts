@@ -10,7 +10,8 @@ interface FakeSource {
 
 // A fake video that only fires when the test says a new frame arrived.
 function createFakeSource(): FakeSource {
-  let pending: (() => void) | undefined
+  let pending: Parameters<FrameSource['requestVideoFrameCallback']>[0] | undefined
+  let presented = 0
   let nextHandle = 0
   const source: FrameSource = {
     requestVideoFrameCallback: (callback) => {
@@ -26,7 +27,7 @@ function createFakeSource(): FakeSource {
     emitFrame: () => {
       const callback = pending
       pending = undefined
-      callback?.()
+      callback?.(0, { presentedFrames: ++presented })
     },
     hasPending: () => pending !== undefined
   }
@@ -141,5 +142,22 @@ describe('startDetectionLoop', () => {
 
     expect(onError).toHaveBeenCalledWith(failure)
     expect(hasPending()).toBe(false)
+  })
+})
+
+describe('startDetectionLoop frame metadata', () => {
+  it('reports how many video frames the camera has presented', () => {
+    const { source, emitFrame } = createFakeSource()
+    const frames: PoseFrame[] = []
+
+    startDetectionLoop(
+      source,
+      { detectForVideo: () => ({ landmarks: [] }) },
+      { onFrame: (frame) => frames.push(frame), onError: vi.fn() }
+    )
+    emitFrame()
+    emitFrame()
+
+    expect(frames.map((frame) => frame.presentedFrames)).toEqual([1, 2])
   })
 })

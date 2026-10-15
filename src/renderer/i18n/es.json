@@ -13,5 +13,8 @@
   "camera.error.unknown.body": "Ocurrió un error inesperado. Vuelve a intentarlo.",
   "pose.loading": "Cargando modelo de pose…",
   "pose.ready": "Modelo de pose listo ({delegate})",
-  "pose.error": "No se pudo cargar el modelo de pose"
+  "pose.error": "No se pudo cargar el modelo de pose",
+  "debug.camera": "Cámara: {fps} fps",
+  "debug.detection": "Detección: {fps} fps",
+  "debug.latency": "Latencia: {avg} ms (máx. {max} ms)"
 }

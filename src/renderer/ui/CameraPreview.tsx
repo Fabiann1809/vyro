@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react'
+import { FrameStats } from '@renderer/core/frameStats'
 import { drawSkeleton } from '@renderer/core/skeleton'
 import { LandmarkSmoother } from '@renderer/core/smoothing'
 import { cameraSettingsUrl } from '@shared/camera'
 import { t } from '@renderer/i18n'
 import { CameraProblem } from './CameraProblem'
+import { DebugPanel } from './DebugPanel'
 import { useCamera } from './useCamera'
 import { usePoseDetection } from './usePoseDetection'
 import { usePoseLandmarker } from './usePoseLandmarker'
@@ -14,6 +16,7 @@ export function CameraPreview(): React.JSX.Element {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const smootherRef = useRef(new LandmarkSmoother())
+  const statsRef = useRef(new FrameStats())
 
   useEffect(() => {
     if (videoRef.current) videoRef.current.srcObject = stream
@@ -21,6 +24,8 @@ export function CameraPreview(): React.JSX.Element {
 
   // The canvas keeps the video's own resolution; CSS scales both to the same box.
   usePoseDetection(videoRef, pose.pose?.landmarker ?? null, status === 'ready', (frame) => {
+    if (import.meta.env.DEV) statsRef.current.add(frame)
+
     const video = videoRef.current
     const canvas = canvasRef.current
     const ctx = canvas?.getContext('2d')
@@ -38,6 +43,7 @@ export function CameraPreview(): React.JSX.Element {
   useEffect(() => {
     if (status === 'ready') return
     smootherRef.current.reset()
+    statsRef.current.reset()
     const canvas = canvasRef.current
     canvas?.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height)
   }, [status])
@@ -64,6 +70,7 @@ export function CameraPreview(): React.JSX.Element {
           muted
           className="block max-h-[70vh] rounded-lg bg-black"
         />
+        {import.meta.env.DEV && <DebugPanel stats={statsRef} />}
         <canvas
           ref={canvasRef}
           aria-hidden="true"

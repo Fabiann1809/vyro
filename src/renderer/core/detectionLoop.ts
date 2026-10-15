@@ -3,13 +3,19 @@ import type { Landmark } from './landmarks'
 export interface PoseFrame {
   timestampMs: number
   latencyMs: number
+  // Video frames the camera has shown so far. Gaps between two processed frames are skipped frames.
+  presentedFrames: number
   // Null when nobody is in view.
   landmarks: Landmark[] | null
 }
 
 // The two small interfaces below are all the loop needs, so it can be tested without a camera.
+export interface FrameMetadata {
+  presentedFrames: number
+}
+
 export interface FrameSource {
-  requestVideoFrameCallback: (callback: () => void) => number
+  requestVideoFrameCallback: (callback: (now: number, metadata: FrameMetadata) => void) => number
   cancelVideoFrameCallback: (handle: number) => void
 }
 
@@ -34,7 +40,7 @@ export function startDetectionLoop<S extends FrameSource>(
   let stopped = false
   let lastTimestamp = -1
 
-  const onVideoFrame = (): void => {
+  const onVideoFrame = (_now: number, metadata: FrameMetadata): void => {
     if (stopped) return
 
     try {
@@ -48,6 +54,7 @@ export function startDetectionLoop<S extends FrameSource>(
       handlers.onFrame({
         timestampMs,
         latencyMs: clock() - startedAt,
+        presentedFrames: metadata.presentedFrames,
         landmarks: result.landmarks[0] ?? null
       })
     } catch (error) {
