@@ -145,7 +145,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T1.8 CI.** GitHub Actions en `main`, matriz windows/macos/ubuntu, con caché de pnpm: instalar, lint, tipos, pruebas y build. *Hecho cuando:* el workflow queda verde en los tres sistemas.
 - [x] **T1.9 Seguridad de Electron.** `contextIsolation`, `sandbox`, `nodeIntegration: false` y CSP estricta. *Hecho cuando:* la ventana carga con esa configuración y sin avisos de seguridad en consola.
 - [x] **T1.10 Tailwind.** Configurado con una pantalla de prueba. *Hecho cuando:* las clases de Tailwind se aplican.
-- [ ] **T1.11 Registro de decisiones.** `docs/DECISIONS.md` con las decisiones de arquitectura. *Hecho cuando:* recoge las de la sección 2.
+- [x] **T1.11 Registro de decisiones.** `docs/DECISIONS.md` con las decisiones de arquitectura. *Hecho cuando:* recoge las de la sección 2.
 
 ### Fase 2 — Percepción
 - [ ] **T2.1 Lista de cámaras y flujo.** Enumerar dispositivos y abrir el flujo de video. *Hecho cuando:* se ve la cámara elegida en pantalla.
