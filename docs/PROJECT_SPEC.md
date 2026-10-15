@@ -143,7 +143,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T1.6 Hook commit-msg.** commitlint con tipos, scopes, máximo de 72 caracteres y rechazo de `Co-Authored-By`. *Hecho cuando:* un mensaje inválido o con `Co-Authored-By` es rechazado.
 - [x] **T1.7 Hook pre-push.** Ejecuta `typecheck` y `test`. *Hecho cuando:* un push con una prueba fallida es rechazado.
 - [x] **T1.8 CI.** GitHub Actions en `main`, matriz windows/macos/ubuntu, con caché de pnpm: instalar, lint, tipos, pruebas y build. *Hecho cuando:* el workflow queda verde en los tres sistemas.
-- [ ] **T1.9 Seguridad de Electron.** `contextIsolation`, `sandbox`, `nodeIntegration: false` y CSP estricta. *Hecho cuando:* la ventana carga con esa configuración y sin avisos de seguridad en consola.
+- [x] **T1.9 Seguridad de Electron.** `contextIsolation`, `sandbox`, `nodeIntegration: false` y CSP estricta. *Hecho cuando:* la ventana carga con esa configuración y sin avisos de seguridad en consola.
 - [ ] **T1.10 Tailwind.** Configurado con una pantalla de prueba. *Hecho cuando:* las clases de Tailwind se aplican.
 - [ ] **T1.11 Registro de decisiones.** `docs/DECISIONS.md` con las decisiones de arquitectura. *Hecho cuando:* recoge las de la sección 2.
 

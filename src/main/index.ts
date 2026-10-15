@@ -1,8 +1,11 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { APP_NAME } from '@shared/app'
 import icon from '../../resources/icon.png?asset'
+import { setupSessionSecurity, setupWindowSecurity } from './security'
+
+const devUrl = is.dev ? process.env['ELECTRON_RENDERER_URL'] : undefined
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -14,7 +17,9 @@ function createWindow(): void {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true
     }
   })
 
@@ -22,13 +27,10 @@ function createWindow(): void {
     mainWindow.show()
   })
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
-    return { action: 'deny' }
-  })
+  setupWindowSecurity(mainWindow, devUrl)
 
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  if (devUrl) {
+    mainWindow.loadURL(devUrl)
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
@@ -36,6 +38,7 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('io.github.fabiann1809.vyro')
+  setupSessionSecurity(devUrl)
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
