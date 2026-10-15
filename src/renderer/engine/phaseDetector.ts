@@ -52,6 +52,12 @@ export class PhaseDetector {
     return { phase: entered.id, previous, changed: true }
   }
 
+  // True when the metrics satisfy the conditions of the phase right now, without hysteresis.
+  isIn(phaseId: string, values: MetricValues): boolean {
+    const phase = this.skill.phases.find((candidate) => candidate.id === phaseId)
+    return phase !== undefined && this.evaluate(phase.when, values, false) === 'yes'
+  }
+
   reset(): void {
     this.current = null
   }
