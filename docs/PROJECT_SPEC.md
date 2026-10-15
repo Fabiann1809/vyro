@@ -141,7 +141,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T1.4 Vitest.** Con una prueba de ejemplo. *Hecho cuando:* `pnpm test` pasa.
 - [x] **T1.5 Hook pre-commit.** husky y lint-staged (eslint, prettier y tipos). *Hecho cuando:* un commit con errores de lint es rechazado.
 - [x] **T1.6 Hook commit-msg.** commitlint con tipos, scopes, máximo de 72 caracteres y rechazo de `Co-Authored-By`. *Hecho cuando:* un mensaje inválido o con `Co-Authored-By` es rechazado.
-- [ ] **T1.7 Hook pre-push.** Ejecuta `typecheck` y `test`. *Hecho cuando:* un push con una prueba fallida es rechazado.
+- [x] **T1.7 Hook pre-push.** Ejecuta `typecheck` y `test`. *Hecho cuando:* un push con una prueba fallida es rechazado.
 - [ ] **T1.8 CI.** GitHub Actions en `main`, matriz windows/macos/ubuntu, con caché de pnpm: instalar, lint, tipos, pruebas y build. *Hecho cuando:* el workflow queda verde en los tres sistemas.
 - [ ] **T1.9 Seguridad de Electron.** `contextIsolation`, `sandbox`, `nodeIntegration: false` y CSP estricta. *Hecho cuando:* la ventana carga con esa configuración y sin avisos de seguridad en consola.
 - [ ] **T1.10 Tailwind.** Configurado con una pantalla de prueba. *Hecho cuando:* las clases de Tailwind se aplican.
