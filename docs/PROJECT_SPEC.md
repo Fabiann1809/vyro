@@ -167,7 +167,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T3.5 Contador de repeticiones.** Máquina de estados con duración mínima. *Hecho cuando:* cuenta bien secuencias completas e ignora las incompletas.
 - [x] **T3.6 Evaluador de reglas.** Expresiones seguras, sin `eval`. *Hecho cuando:* las pruebas cubren operadores, funciones permitidas y rechazo de código no permitido.
 - [x] **T3.7 Evaluación por repetición.** Aplica las reglas y produce un resultado por repetición. *Hecho cuando:* una repetición buena y una mala dan resultados distintos.
-- [ ] **T3.8 Priorizador de feedback.** Un mensaje a la vez, por severidad y con enfriamiento. *Hecho cuando:* las pruebas verifican el orden y el enfriamiento.
+- [x] **T3.8 Priorizador de feedback.** Un mensaje a la vez, por severidad y con enfriamiento. *Hecho cuando:* las pruebas verifican el orden y el enfriamiento.
 - [ ] **T3.9 Grabador de landmarks.** Herramienta de desarrollo para guardar secuencias como fixtures. *Hecho cuando:* una sesión se exporta a JSON sin imágenes.
 - [ ] **T3.10 Reproductor de secuencias.** Arnés de pruebas que reproduce fixtures por el motor. *Hecho cuando:* una prueba lo usa de principio a fin.
 
