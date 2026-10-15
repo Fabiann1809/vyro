@@ -1,6 +1,7 @@
 import { resolve } from 'path'
 import { defineConfig } from 'electron-vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 import type { Plugin } from 'vite'
 import { buildCsp } from './src/shared/csp'
 
@@ -35,6 +36,6 @@ export default defineConfig({
         '@shared': shared
       }
     },
-    plugins: [react(), cspPlugin()]
+    plugins: [react(), tailwindcss(), cspPlugin()]
   }
 })
