@@ -1,0 +1,48 @@
+{
+  "id": "bicep_curl",
+  "category": "exercise",
+  "name": { "es": "Curl de bíceps", "en": "Bicep curl" },
+  "camera": { "view": "side", "fullBody": false },
+  "metrics": {
+    "elbow": { "type": "angle", "points": ["shoulder", "elbow", "wrist"] },
+    "elbowDrift": {
+      "type": "offset",
+      "from": "shoulder",
+      "to": "elbow",
+      "axis": "x",
+      "scale": ["shoulder", "elbow"]
+    },
+    "torso": { "type": "tilt", "from": "hip", "to": "shoulder" }
+  },
+  "phases": [
+    { "id": "extended", "when": { "elbow": { "gt": 150 } } },
+    { "id": "curled", "when": { "elbow": { "lt": 70 } } }
+  ],
+  "rep": { "sequence": ["extended", "curled", "extended"], "minDurationMs": 800 },
+  "rules": [
+    {
+      "id": "range",
+      "severity": "high",
+      "check": "min(elbow) <= 55",
+      "message": { "es": "Sube más el antebrazo", "en": "Curl a little higher" }
+    },
+    {
+      "id": "elbow_fixed",
+      "severity": "medium",
+      "check": "range(elbowDrift) <= 0.25",
+      "message": { "es": "Mantén el codo pegado al cuerpo", "en": "Keep your elbow at your side" }
+    },
+    {
+      "id": "no_swing",
+      "severity": "medium",
+      "check": "range(torso) <= 12",
+      "message": { "es": "No balancees el cuerpo", "en": "Do not swing your body" }
+    },
+    {
+      "id": "lowering_control",
+      "severity": "low",
+      "check": "ascentMs >= 600",
+      "message": { "es": "Baja más despacio", "en": "Lower the weight more slowly" }
+    }
+  ]
+}
