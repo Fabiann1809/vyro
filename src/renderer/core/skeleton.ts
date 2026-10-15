@@ -1,7 +1,5 @@
 import { POSE_LANDMARK as P, type Landmark } from './landmarks'
-
-// Points the model is less sure about than this are not drawn.
-export const MIN_DRAW_VISIBILITY = 0.5
+import { isVisible } from './visibility'
 
 const LINE_COLOR = 'rgba(52, 211, 153, 0.9)'
 const POINT_COLOR = '#f8fafc'
@@ -34,10 +32,6 @@ const POINTS: readonly number[] = [
   P.NOSE,
   ...new Set(SKELETON_CONNECTIONS.flatMap(([from, to]) => [from, to]))
 ]
-
-function isVisible(landmark: Landmark | undefined): landmark is Landmark {
-  return landmark !== undefined && landmark.visibility >= MIN_DRAW_VISIBILITY
-}
 
 // Draws the skeleton over a canvas of the same size as the video. Passing null just clears it.
 export function drawSkeleton(
