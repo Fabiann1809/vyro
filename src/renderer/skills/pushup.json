@@ -1,0 +1,35 @@
+{
+  "id": "pushup",
+  "category": "exercise",
+  "name": { "es": "Flexión", "en": "Push-up" },
+  "camera": { "view": "side", "fullBody": true },
+  "metrics": {
+    "elbow": { "type": "angle", "points": ["shoulder", "elbow", "wrist"] },
+    "bodyLine": { "type": "angle", "points": ["shoulder", "hip", "ankle"] }
+  },
+  "phases": [
+    { "id": "up", "when": { "elbow": { "gt": 160 } } },
+    { "id": "down", "when": { "elbow": { "lt": 100 } } }
+  ],
+  "rep": { "sequence": ["up", "down", "up"], "minDurationMs": 700 },
+  "rules": [
+    {
+      "id": "depth",
+      "severity": "high",
+      "check": "min(elbow) <= 90",
+      "message": { "es": "Baja más el pecho", "en": "Lower your chest more" }
+    },
+    {
+      "id": "body_line",
+      "severity": "medium",
+      "check": "min(bodyLine) >= 160",
+      "message": { "es": "Mantén el cuerpo recto", "en": "Keep your body straight" }
+    },
+    {
+      "id": "descent_control",
+      "severity": "low",
+      "check": "descentMs >= 400",
+      "message": { "es": "Baja más despacio", "en": "Lower yourself more slowly" }
+    }
+  ]
+}
