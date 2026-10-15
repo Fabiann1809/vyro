@@ -169,7 +169,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T3.7 Evaluación por repetición.** Aplica las reglas y produce un resultado por repetición. *Hecho cuando:* una repetición buena y una mala dan resultados distintos.
 - [x] **T3.8 Priorizador de feedback.** Un mensaje a la vez, por severidad y con enfriamiento. *Hecho cuando:* las pruebas verifican el orden y el enfriamiento.
 - [x] **T3.9 Grabador de landmarks.** Herramienta de desarrollo para guardar secuencias como fixtures. *Hecho cuando:* una sesión se exporta a JSON sin imágenes.
-- [ ] **T3.10 Reproductor de secuencias.** Arnés de pruebas que reproduce fixtures por el motor. *Hecho cuando:* una prueba lo usa de principio a fin.
+- [x] **T3.10 Reproductor de secuencias.** Arnés de pruebas que reproduce fixtures por el motor. *Hecho cuando:* una prueba lo usa de principio a fin.
 
 ### Fase 4 — Habilidades del MVP
 - [ ] **T4.1 Sentadilla.** Configuración (profundidad, inclinación del torso, extensión, control de bajada) y fixtures. *Hecho cuando:* cuenta y detecta errores en los fixtures.
