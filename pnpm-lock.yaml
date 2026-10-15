@@ -172,6 +172,9 @@ importers:
       '@mediapipe/tasks-vision':
         specifier: 1.1.1
         version: 1.1.1
+      zod:
+        specifier: 4.6.7
+        version: 4.6.7
     devDependencies:
       '@commitlint/cli':
         specifier: 21.2.3

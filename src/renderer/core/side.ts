@@ -4,8 +4,19 @@ import { isVisible, MIN_VISIBILITY } from './visibility'
 // In a side view the camera sees one side of the body well and the other one hidden behind it.
 export type Side = 'left' | 'right'
 
-export type JointName =
-  'shoulder' | 'elbow' | 'wrist' | 'hip' | 'knee' | 'ankle' | 'heel' | 'footIndex'
+// Side-independent names: skill configs say "knee" and the engine resolves it to the visible side.
+export const JOINT_NAMES = [
+  'shoulder',
+  'elbow',
+  'wrist',
+  'hip',
+  'knee',
+  'ankle',
+  'heel',
+  'footIndex'
+] as const
+
+export type JointName = (typeof JOINT_NAMES)[number]
 
 export const JOINT_INDEX: Record<Side, Record<JointName, number>> = {
   left: {

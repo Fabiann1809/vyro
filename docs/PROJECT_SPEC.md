@@ -160,7 +160,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T2.10 Guía de celular como webcam.** `docs/PHONE_AS_WEBCAM.md`. *Hecho cuando:* explica el paso a paso con al menos una opción por sistema.
 
 ### Fase 3 — Motor de habilidades
-- [ ] **T3.1 Tipos y esquema.** Tipos de habilidad y esquema zod. *Hecho cuando:* una configuración válida pasa y una inválida falla con un mensaje claro.
+- [x] **T3.1 Tipos y esquema.** Tipos de habilidad y esquema zod. *Hecho cuando:* una configuración válida pasa y una inválida falla con un mensaje claro.
 - [ ] **T3.2 Cargador de habilidades.** Carga y valida las configuraciones. *Hecho cuando:* las pruebas cubren casos válidos e inválidos.
 - [ ] **T3.3 Cálculo de métricas.** De landmarks a ángulos e inclinaciones según la configuración. *Hecho cuando:* las pruebas con landmarks conocidos dan los valores esperados.
 - [ ] **T3.4 Detector de fases.** Con histéresis para evitar parpadeos. *Hecho cuando:* una señal ruidosa no cambia de fase de forma espuria.
