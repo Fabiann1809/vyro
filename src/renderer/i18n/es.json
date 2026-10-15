@@ -16,5 +16,9 @@
   "pose.error": "No se pudo cargar el modelo de pose",
   "debug.camera": "Cámara: {fps} fps",
   "debug.detection": "Detección: {fps} fps",
-  "debug.latency": "Latencia: {avg} ms (máx. {max} ms)"
+  "debug.latency": "Latencia: {avg} ms (máx. {max} ms)",
+  "recorder.label": "Etiqueta de la grabación",
+  "recorder.start": "Grabar",
+  "recorder.stop": "Detener y guardar",
+  "recorder.frames": "{count} fotogramas"
 }

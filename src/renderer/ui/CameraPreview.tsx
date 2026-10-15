@@ -1,11 +1,14 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { FrameStats } from '@renderer/core/frameStats'
+import { LandmarkRecorder, recordingFileName, serializeRecording } from '@renderer/core/recording'
 import { drawSkeleton } from '@renderer/core/skeleton'
 import { LandmarkSmoother } from '@renderer/core/smoothing'
 import { cameraSettingsUrl } from '@shared/camera'
 import { t } from '@renderer/i18n'
 import { CameraProblem } from './CameraProblem'
 import { DebugPanel } from './DebugPanel'
+import { downloadText } from './download'
+import { RecorderControls } from './RecorderControls'
 import { useCamera } from './useCamera'
 import { usePoseDetection } from './usePoseDetection'
 import { usePoseLandmarker } from './usePoseLandmarker'
@@ -17,6 +20,29 @@ export function CameraPreview(): React.JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const smootherRef = useRef(new LandmarkSmoother())
   const statsRef = useRef(new FrameStats())
+  const recorderRef = useRef<LandmarkRecorder | null>(null)
+
+  const startRecording = useCallback((label: string) => {
+    const video = videoRef.current
+    if (!video?.videoWidth) return
+    recorderRef.current = new LandmarkRecorder(
+      { width: video.videoWidth, height: video.videoHeight },
+      label
+    )
+  }, [])
+
+  const stopRecording = useCallback(() => {
+    const recording = recorderRef.current?.finish()
+    recorderRef.current = null
+    if (recording && recording.frames.length > 0) {
+      downloadText(
+        recordingFileName(recording.label, recording.recordedAt),
+        serializeRecording(recording)
+      )
+    }
+  }, [])
+
+  const getRecordedFrames = useCallback(() => recorderRef.current?.frameCount ?? 0, [])
 
   useEffect(() => {
     if (videoRef.current) videoRef.current.srcObject = stream
@@ -24,7 +50,11 @@ export function CameraPreview(): React.JSX.Element {
 
   // The canvas keeps the video's own resolution; CSS scales both to the same box.
   usePoseDetection(videoRef, pose.pose?.landmarker ?? null, status === 'ready', (frame) => {
-    if (import.meta.env.DEV) statsRef.current.add(frame)
+    if (import.meta.env.DEV) {
+      statsRef.current.add(frame)
+      // Raw model output, before smoothing: fixtures must show what the model really said.
+      recorderRef.current?.add(frame)
+    }
 
     const video = videoRef.current
     const canvas = canvasRef.current
@@ -82,6 +112,13 @@ export function CameraPreview(): React.JSX.Element {
         {pose.status === 'ready' && t('pose.ready', { delegate: pose.delegate ?? '' })}
         {pose.status === 'error' && t('pose.error')}
       </p>
+      {import.meta.env.DEV && (
+        <RecorderControls
+          onStart={startRecording}
+          onStop={stopRecording}
+          getFrameCount={getRecordedFrames}
+        />
+      )}
       <select
         value={activeDeviceId ?? ''}
         onChange={(event) => selectDevice(event.target.value)}
