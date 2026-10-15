@@ -148,7 +148,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T1.11 Registro de decisiones.** `docs/DECISIONS.md` con las decisiones de arquitectura. *Hecho cuando:* recoge las de la sección 2.
 
 ### Fase 2 — Percepción
-- [ ] **T2.1 Lista de cámaras y flujo.** Enumerar dispositivos y abrir el flujo de video. *Hecho cuando:* se ve la cámara elegida en pantalla.
+- [x] **T2.1 Lista de cámaras y flujo.** Enumerar dispositivos y abrir el flujo de video. *Hecho cuando:* se ve la cámara elegida en pantalla.
 - [ ] **T2.2 Permisos de cámara.** Manejo de aceptar, rechazar y sin dispositivo; descripción de uso en macOS. *Hecho cuando:* cada caso muestra su estado y macOS pide el permiso.
 - [ ] **T2.3 Cargar el modelo de pose.** `PoseLandmarker` con el modelo empaquetado, sin red. *Hecho cuando:* el modelo carga con internet desactivado.
 - [ ] **T2.4 Bucle de detección.** Con `requestVideoFrameCallback`. *Hecho cuando:* se obtienen landmarks por fotograma.
