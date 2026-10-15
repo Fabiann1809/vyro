@@ -34,3 +34,23 @@ export function openCamera(devices: StreamOpener, deviceId?: string): Promise<Me
 export function stopStream(stream: MediaStream): void {
   stream.getTracks().forEach((track) => track.stop())
 }
+
+export type CameraErrorKind = 'permission-denied' | 'no-device' | 'in-use' | 'unknown'
+
+export function classifyCameraError(error: unknown): CameraErrorKind {
+  const name = typeof error === 'object' && error !== null && 'name' in error ? error.name : ''
+
+  switch (name) {
+    case 'NotAllowedError':
+    case 'SecurityError':
+      return 'permission-denied'
+    case 'NotFoundError':
+    case 'OverconstrainedError':
+      return 'no-device'
+    case 'NotReadableError':
+    case 'AbortError':
+      return 'in-use'
+    default:
+      return 'unknown'
+  }
+}

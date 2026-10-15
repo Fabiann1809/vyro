@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
-import { buildCameraConstraints, listVideoInputs, openCamera, stopStream } from './camera'
+import {
+  buildCameraConstraints,
+  classifyCameraError,
+  listVideoInputs,
+  openCamera,
+  stopStream
+} from './camera'
 
 function fakeDevice(kind: MediaDeviceKind, deviceId: string, label: string): MediaDeviceInfo {
   return { kind, deviceId, label, groupId: '', toJSON: () => ({}) }
@@ -65,5 +71,24 @@ describe('openCamera and stopStream', () => {
     stopStream(stream)
 
     stops.forEach((stop) => expect(stop).toHaveBeenCalledOnce())
+  })
+})
+
+describe('classifyCameraError', () => {
+  it.each([
+    ['NotAllowedError', 'permission-denied'],
+    ['SecurityError', 'permission-denied'],
+    ['NotFoundError', 'no-device'],
+    ['OverconstrainedError', 'no-device'],
+    ['NotReadableError', 'in-use'],
+    ['AbortError', 'in-use'],
+    ['TypeError', 'unknown']
+  ])('maps %s to %s', (name, kind) => {
+    expect(classifyCameraError({ name })).toBe(kind)
+  })
+
+  it('treats values that are not errors as unknown', () => {
+    expect(classifyCameraError(undefined)).toBe('unknown')
+    expect(classifyCameraError('boom')).toBe('unknown')
   })
 })

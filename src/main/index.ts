@@ -3,6 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { APP_NAME } from '@shared/app'
 import icon from '../../resources/icon.png?asset'
+import { registerCameraIpc } from './ipc/camera'
 import { setupSessionSecurity, setupWindowSecurity } from './security'
 
 const devUrl = is.dev ? process.env['ELECTRON_RENDERER_URL'] : undefined
@@ -39,6 +40,7 @@ function createWindow(): void {
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('io.github.fabiann1809.vyro')
   setupSessionSecurity(devUrl)
+  registerCameraIpc()
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

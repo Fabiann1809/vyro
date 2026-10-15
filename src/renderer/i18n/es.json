@@ -1,0 +1,14 @@
+{
+  "camera.starting": "Iniciando cámara…",
+  "camera.fallbackName": "Cámara {n}",
+  "camera.retry": "Reintentar",
+  "camera.openSettings": "Abrir configuración",
+  "camera.error.permissionDenied.title": "VYRO no tiene permiso para usar la cámara",
+  "camera.error.permissionDenied.body": "Permite el acceso a la cámara en la configuración de tu sistema y vuelve a intentarlo.",
+  "camera.error.noDevice.title": "No encontramos ninguna cámara",
+  "camera.error.noDevice.body": "Conecta una cámara, o usa tu celular como webcam, y vuelve a intentarlo.",
+  "camera.error.inUse.title": "La cámara está en uso",
+  "camera.error.inUse.body": "Cierra las otras aplicaciones que la estén usando y vuelve a intentarlo.",
+  "camera.error.unknown.title": "No se pudo abrir la cámara",
+  "camera.error.unknown.body": "Ocurrió un error inesperado. Vuelve a intentarlo."
+}
