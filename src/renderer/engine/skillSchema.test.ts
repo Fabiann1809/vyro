@@ -1,33 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { depthRule as rule, kneeMetric, validSkillInput as validSkill } from './skillFixtures'
 import { skillConfigSchema } from './skillSchema'
-
-const kneeMetric = { type: 'angle', points: ['hip', 'knee', 'ankle'] }
-
-const rule = {
-  id: 'depth',
-  severity: 'high',
-  check: 'min(knee) <= 100',
-  message: { es: 'Baja más la cadera', en: 'Go deeper' }
-}
-
-// A complete valid skill. Tests replace one section at a time to break it in a single way.
-const validSkill: Record<string, unknown> = {
-  id: 'squat',
-  category: 'exercise',
-  name: { es: 'Sentadilla', en: 'Squat' },
-  camera: { view: 'side', fullBody: true },
-  metrics: {
-    knee: kneeMetric,
-    torso: { type: 'tilt', from: 'hip', to: 'shoulder' },
-    kneeDrift: { type: 'offset', from: 'ankle', to: 'knee', axis: 'x', scale: ['hip', 'knee'] }
-  },
-  phases: [
-    { id: 'up', when: { knee: { gt: 160 } } },
-    { id: 'down', when: { knee: { lt: 110 } } }
-  ],
-  rep: { sequence: ['up', 'down', 'up'], minDurationMs: 800 },
-  rules: [rule]
-}
 
 // Validation messages as "path: message", after replacing some top-level sections.
 function problemsWith(overrides: Record<string, unknown>): string[] {
