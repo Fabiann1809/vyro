@@ -3,9 +3,11 @@ import { cameraSettingsUrl } from '@shared/camera'
 import { t } from '@renderer/i18n'
 import { CameraProblem } from './CameraProblem'
 import { useCamera } from './useCamera'
+import { usePoseLandmarker } from './usePoseLandmarker'
 
 export function CameraPreview(): React.JSX.Element {
   const { status, stream, devices, activeDeviceId, errorKind, selectDevice, retry } = useCamera()
+  const pose = usePoseLandmarker()
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
@@ -33,6 +35,11 @@ export function CameraPreview(): React.JSX.Element {
         muted
         className="max-h-[70vh] rounded-lg bg-black"
       />
+      <p role="status" className="text-sm text-slate-400">
+        {pose.status === 'loading' && t('pose.loading')}
+        {pose.status === 'ready' && t('pose.ready', { delegate: pose.delegate ?? '' })}
+        {pose.status === 'error' && t('pose.error')}
+      </p>
       <select
         value={activeDeviceId ?? ''}
         onChange={(event) => selectDevice(event.target.value)}

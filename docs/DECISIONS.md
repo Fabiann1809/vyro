@@ -28,7 +28,7 @@ Format: **context → decision → consequences**.
 
 - **Context:** the camera shows the user's body at home.
 - **Decision:** video and frames are never saved, uploaded or committed. SQLite stores only numeric metrics (sessions, reps, errors, settings).
-- **Consequences:** no accounts, no cloud, works offline. The pose model is bundled with the app instead of downloaded.
+- **Consequences:** no accounts, no cloud, works offline. The pose model (`pose_landmarker_lite.task`) and the MediaPipe WASM runtime are bundled with the app instead of downloaded; with the app loaded, every request is a `file://` one. MediaPipe tries to send usage logs to `odml.pa.googleapis.com`; the CSP (`connect-src 'self'`) blocks it, so a CSP error about that URL in the dev console is expected and must not be "fixed" by relaxing the policy.
 
 ## D05 — Side view for the MVP exercises
 
