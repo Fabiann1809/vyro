@@ -157,7 +157,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T2.7 Suavizado.** Filtro sobre los landmarks (One Euro o media móvil exponencial). *Hecho cuando:* las pruebas muestran menos ruido sin retraso notable.
 - [x] **T2.8 Visibilidad y lado.** Descartar puntos poco visibles y elegir el lado visible (izquierdo o derecho). *Hecho cuando:* las pruebas cubren ambos lados y puntos ocultos.
 - [x] **T2.9 Panel de depuración.** FPS y latencia, visible solo en desarrollo. *Hecho cuando:* muestra valores en vivo.
-- [ ] **T2.10 Guía de celular como webcam.** `docs/PHONE_AS_WEBCAM.md`. *Hecho cuando:* explica el paso a paso con al menos una opción por sistema.
+- [x] **T2.10 Guía de celular como webcam.** `docs/PHONE_AS_WEBCAM.md`. *Hecho cuando:* explica el paso a paso con al menos una opción por sistema.
 
 ### Fase 3 — Motor de habilidades
 - [ ] **T3.1 Tipos y esquema.** Tipos de habilidad y esquema zod. *Hecho cuando:* una configuración válida pasa y una inválida falla con un mensaje claro.
