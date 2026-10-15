@@ -53,6 +53,15 @@ describe('skillConfigSchema', () => {
       )
     })
 
+    it.each(['constructor', 'toString', 'valueOf', 'hasOwnProperty'])(
+      'rejects %s, a name that already exists on every JavaScript object',
+      (name) => {
+        const problems = problemsWith({ metrics: { [name]: kneeMetric, knee: kneeMetric } })
+
+        expect(problems.join()).toContain('built-in JavaScript property name')
+      }
+    )
+
     it('rejects a metric name with invalid characters', () => {
       const problems = problemsWith({ metrics: { 'knee angle': kneeMetric, knee: kneeMetric } })
 

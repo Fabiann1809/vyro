@@ -22,6 +22,9 @@ function metricNameProblem(name: string): string | undefined {
   if (!/^[a-z][A-Za-z0-9]*$/.test(name)) {
     return `invalid metric name "${name}": it must start with a lowercase letter and contain only letters and digits`
   }
+  if (name in Object.prototype) {
+    return `invalid metric name "${name}": it is a built-in JavaScript property name`
+  }
   if ((RESERVED_NAMES as readonly string[]).includes(name)) {
     return `invalid metric name "${name}": it is reserved by the expression language (${RESERVED_NAMES.join(', ')})`
   }

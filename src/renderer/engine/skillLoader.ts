@@ -1,3 +1,4 @@
+import { compileExpression } from './expression'
 import { skillConfigSchema, type SkillConfig } from './skillSchema'
 
 export type ParseResult = { ok: true; skill: SkillConfig } | { ok: false; errors: string[] }
@@ -13,10 +14,16 @@ export interface SkillLoadResult {
   errors: SkillLoadError[]
 }
 
-// Validates one raw configuration. Each error reads "path: what is wrong".
+// Validates one raw configuration, including that every rule expression is well formed and only
+// uses the metrics of the skill. Each error reads "path: what is wrong".
 export function parseSkillConfig(raw: unknown): ParseResult {
   const result = skillConfigSchema.safeParse(raw)
-  if (result.success) return { ok: true, skill: result.data }
+  if (result.success) {
+    const problems = ruleExpressionProblems(result.data)
+    return problems.length === 0
+      ? { ok: true, skill: result.data }
+      : { ok: false, errors: problems }
+  }
 
   return {
     ok: false,
@@ -25,6 +32,15 @@ export function parseSkillConfig(raw: unknown): ParseResult {
       return path ? `${path}: ${issue.message}` : issue.message
     })
   }
+}
+
+function ruleExpressionProblems(skill: SkillConfig): string[] {
+  const metricNames = Object.keys(skill.metrics)
+
+  return skill.rules.flatMap((rule, index) => {
+    const compiled = compileExpression(rule.check, metricNames)
+    return compiled.ok ? [] : [`rules.${index}.check: ${compiled.error}`]
+  })
 }
 
 // Loads every configuration it can. An invalid one is skipped and reported, so a single bad file
