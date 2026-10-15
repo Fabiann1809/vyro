@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { drawSkeleton } from '@renderer/core/skeleton'
+import { LandmarkSmoother } from '@renderer/core/smoothing'
 import { cameraSettingsUrl } from '@shared/camera'
 import { t } from '@renderer/i18n'
 import { CameraProblem } from './CameraProblem'
@@ -12,6 +13,7 @@ export function CameraPreview(): React.JSX.Element {
   const pose = usePoseLandmarker()
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const smootherRef = useRef(new LandmarkSmoother())
 
   useEffect(() => {
     if (videoRef.current) videoRef.current.srcObject = stream
@@ -28,12 +30,14 @@ export function CameraPreview(): React.JSX.Element {
       canvas.width = video.videoWidth
       canvas.height = video.videoHeight
     }
-    drawSkeleton(ctx, frame.landmarks, canvas.width, canvas.height)
+    const landmarks = smootherRef.current.smooth(frame.landmarks, frame.timestampMs)
+    drawSkeleton(ctx, landmarks, canvas.width, canvas.height)
   })
 
   // A stale skeleton must not stay on screen when the camera stops or changes.
   useEffect(() => {
     if (status === 'ready') return
+    smootherRef.current.reset()
     const canvas = canvasRef.current
     canvas?.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height)
   }, [status])
