@@ -153,7 +153,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T2.3 Cargar el modelo de pose.** `PoseLandmarker` con el modelo empaquetado, sin red. *Hecho cuando:* el modelo carga con internet desactivado.
 - [x] **T2.4 Bucle de detección.** Con `requestVideoFrameCallback`. *Hecho cuando:* se obtienen landmarks por fotograma.
 - [x] **T2.5 Esqueleto en pantalla.** Dibujo sobre un canvas. *Hecho cuando:* el esqueleto sigue tu cuerpo en vivo.
-- [ ] **T2.6 Geometría.** Ángulo entre tres puntos, distancia e inclinación respecto a la vertical. *Hecho cuando:* las pruebas unitarias pasan.
+- [x] **T2.6 Geometría.** Ángulo entre tres puntos, distancia e inclinación respecto a la vertical. *Hecho cuando:* las pruebas unitarias pasan.
 - [ ] **T2.7 Suavizado.** Filtro sobre los landmarks (One Euro o media móvil exponencial). *Hecho cuando:* las pruebas muestran menos ruido sin retraso notable.
 - [ ] **T2.8 Visibilidad y lado.** Descartar puntos poco visibles y elegir el lado visible (izquierdo o derecho). *Hecho cuando:* las pruebas cubren ambos lados y puntos ocultos.
 - [ ] **T2.9 Panel de depuración.** FPS y latencia, visible solo en desarrollo. *Hecho cuando:* muestra valores en vivo.
