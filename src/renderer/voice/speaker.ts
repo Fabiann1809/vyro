@@ -5,6 +5,7 @@ export interface SpeechBackend {
   getVoices: () => SpeechSynthesisVoice[]
   speak: (utterance: SpeechSynthesisUtterance) => void
   cancel: () => void
+  isSpeaking: () => boolean
   createUtterance: (text: string) => SpeechSynthesisUtterance
 }
 
@@ -50,6 +51,10 @@ export class Speaker {
     this.backend.cancel()
     this.backend.speak(utterance)
     return true
+  }
+
+  isSpeaking(): boolean {
+    return this.backend.isSpeaking()
   }
 
   cancel(): void {

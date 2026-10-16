@@ -6,9 +6,12 @@ import type { RepQuality } from '@renderer/engine/repEvaluator'
 import { TrainingRun, type TrainingSnapshot } from '@renderer/engine/trainingRun'
 import { localize, t, type MessageKey } from '@renderer/i18n'
 import { bundledSkills } from '@renderer/skills'
+import { voice } from '@renderer/voice'
+import { VoicePolicy } from '@renderer/voice/voicePolicy'
 import { CameraStage } from '../CameraStage'
 import { useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
+import { useSettings } from '../settingsStore'
 
 const MESSAGE_VISIBLE_MS = 4000
 
@@ -64,6 +67,7 @@ export function TrainingScreen(): React.JSX.Element {
   const skill = bundledSkills.skills.find((candidate) => candidate.id === skillId)
 
   const runRef = useRef<TrainingRun | null>(null)
+  const policyRef = useRef<VoicePolicy | null>(null)
   const bannerId = useRef(0)
   const [snapshot, setSnapshot] = useState<TrainingSnapshot>(EMPTY)
   const [banner, setBanner] = useState<Banner | null>(null)
@@ -83,7 +87,16 @@ export function TrainingScreen(): React.JSX.Element {
         landmarks: frame.landmarks
       })
 
-      if (next.feedback) setBanner(bannerOf(next.feedback, ++bannerId.current))
+      if (next.feedback) {
+        setBanner(bannerOf(next.feedback, ++bannerId.current))
+        const { voiceEnabled, language, volume } = useSettings.getState()
+        policyRef.current ??= new VoicePolicy(voice, skill.id)
+        policyRef.current.consider(
+          next.feedback,
+          { enabled: voiceEnabled, language, volume },
+          frame.timestampMs
+        )
+      }
       setSnapshot((previous) =>
         previous.repCount === next.repCount &&
         previous.phase === next.phase &&
@@ -100,7 +113,10 @@ export function TrainingScreen(): React.JSX.Element {
     const run = runRef.current
     if (!run) return
     if (run.paused) run.resume()
-    else run.pause()
+    else {
+      run.pause()
+      voice.stop()
+    }
     setPaused(run.paused)
   }, [])
 
@@ -118,6 +134,9 @@ export function TrainingScreen(): React.JSX.Element {
   useEffect(() => {
     if (!skill) go('home')
   }, [skill, go])
+
+  // Whatever is being said is cut off when the user leaves the training.
+  useEffect(() => () => voice.stop(), [])
 
   // The stopwatch only runs while the session does.
   useEffect(() => {

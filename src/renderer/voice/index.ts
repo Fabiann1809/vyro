@@ -6,6 +6,7 @@ const speaker = new Speaker({
   getVoices: () => window.speechSynthesis.getVoices(),
   speak: (utterance) => window.speechSynthesis.speak(utterance),
   cancel: () => window.speechSynthesis.cancel(),
+  isSpeaking: () => window.speechSynthesis.speaking,
   createUtterance: (text) => new SpeechSynthesisUtterance(text)
 })
 
@@ -16,7 +17,8 @@ const player: ClipPlayer = {
     audio.volume = volume
     audio.play().catch(() => undefined)
   },
-  stop: () => audio.pause()
+  stop: () => audio.pause(),
+  isPlaying: () => !audio.paused && !audio.ended
 }
 
 // The app's voice: the speech engine of the operating system, with recorded clips as backup.

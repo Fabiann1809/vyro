@@ -24,6 +24,7 @@ function fakeBackend(
     getVoices: () => voices,
     speak: (utterance: SpeechSynthesisUtterance) => void backend.spoken.push(utterance.text),
     cancel: () => void backend.cancels++,
+    isSpeaking: () => false,
     createUtterance: (text: string) => ({ text }) as SpeechSynthesisUtterance
   }
   return backend

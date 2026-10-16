@@ -190,7 +190,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T6.2 Inglés.** Traducción completa y cambio de idioma. *Hecho cuando:* al cambiar el idioma se traduce toda la interfaz y los mensajes de las habilidades.
 - [x] **T6.3 Voz con `speechSynthesis`.** Envoltorio con elección de voz por idioma. *Hecho cuando:* la app habla un mensaje de prueba.
 - [x] **T6.4 Audios de respaldo.** Para sistemas sin voz en español. *Hecho cuando:* los mensajes clave suenan aun sin voces del sistema.
-- [ ] **T6.5 Política de voz.** Solo mensajes importantes, sin solaparse. *Hecho cuando:* en una sesión la voz no se repite ni se pisa.
+- [x] **T6.5 Política de voz.** Solo mensajes importantes, sin solaparse. *Hecho cuando:* en una sesión la voz no se repite ni se pisa.
 
 ### Fase 7 — Datos y progreso
 - [ ] **T7.1 SQLite y migraciones.** En el proceso principal. *Hecho cuando:* la base se crea y migra al iniciar.

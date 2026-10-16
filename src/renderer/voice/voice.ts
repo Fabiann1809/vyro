@@ -17,6 +17,7 @@ export interface SayOptions {
 export interface ClipPlayer {
   play: (url: string, volume: number) => void
   stop: () => void
+  isPlaying: () => boolean
 }
 
 export type HowItSounded = 'system-voice' | 'recorded-clip' | 'silent'
@@ -39,6 +40,11 @@ export class Voice {
     this.player.stop()
     this.player.play(url, Math.min(1, Math.max(0, options.volume)))
     return 'recorded-clip'
+  }
+
+  // True while the voice or a clip is still talking.
+  isSpeaking(): boolean {
+    return this.speaker.isSpeaking() || this.player.isPlaying()
   }
 
   stop(): void {

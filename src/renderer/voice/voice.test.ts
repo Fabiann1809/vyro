@@ -13,12 +13,14 @@ function setup(
     getVoices: () => voices as SpeechSynthesisVoice[],
     speak: (utterance) => void spoken.push(utterance.text),
     cancel: () => undefined,
+    isSpeaking: () => false,
     createUtterance: (text) => ({ text }) as SpeechSynthesisUtterance
   }
   const played: Array<{ url: string; volume: number }> = []
   const player: ClipPlayer = {
     play: (url, volume) => void played.push({ url, volume }),
-    stop: () => undefined
+    stop: () => undefined,
+    isPlaying: () => false
   }
   const voice = new Voice(
     new Speaker(backend),
