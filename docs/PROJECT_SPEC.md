@@ -189,7 +189,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T6.1 i18next en español.** Todos los textos fuera de los componentes. *Hecho cuando:* no hay textos fijos en la interfaz.
 - [x] **T6.2 Inglés.** Traducción completa y cambio de idioma. *Hecho cuando:* al cambiar el idioma se traduce toda la interfaz y los mensajes de las habilidades.
 - [x] **T6.3 Voz con `speechSynthesis`.** Envoltorio con elección de voz por idioma. *Hecho cuando:* la app habla un mensaje de prueba.
-- [ ] **T6.4 Audios de respaldo.** Para sistemas sin voz en español. *Hecho cuando:* los mensajes clave suenan aun sin voces del sistema.
+- [x] **T6.4 Audios de respaldo.** Para sistemas sin voz en español. *Hecho cuando:* los mensajes clave suenan aun sin voces del sistema.
 - [ ] **T6.5 Política de voz.** Solo mensajes importantes, sin solaparse. *Hecho cuando:* en una sesión la voz no se repite ni se pisa.
 
 ### Fase 7 — Datos y progreso
@@ -239,7 +239,7 @@ Cada punto se convertirá en fases con tareas propias cuando llegue el momento.
 ## 11. Pendientes por decidir
 
 - Crear el repositorio público en GitHub (`Fabiann1809/vyro`) y activar Dependabot.
-- Elegir los audios de respaldo: grabación propia o voz sintética exportada.
+- ~~Elegir los audios de respaldo~~: voz sintética exportada (`scripts/generate-voice-clips.ps1`).
 - Modelo de pose: `lite` o `full`, según el rendimiento medido en la fase 2.
 - Estructura final de pantallas según el diseño de Claude Design.
 - Logo e icono de VYRO.

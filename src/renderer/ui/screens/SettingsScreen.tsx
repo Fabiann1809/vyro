@@ -1,6 +1,7 @@
 import { t, type Language, type MessageKey } from '@renderer/i18n'
 import { useState } from 'react'
-import { speaker } from '@renderer/voice'
+import { SAMPLE_CLIP_ID } from '@renderer/voice/clipList'
+import { voice } from '@renderer/voice'
 import { CameraStage } from '../CameraStage'
 import { useSettings } from '../settingsStore'
 import { THEME_PREFERENCES, useTheme, type ThemePreference } from '../theme'
@@ -37,11 +38,11 @@ export function SettingsScreen(): React.JSX.Element {
   const [voiceMissing, setVoiceMissing] = useState(false)
 
   const testVoice = (): void => {
-    const spoke = speaker.speak(t('settings.voice.sample'), {
-      language: settings.language,
-      volume: settings.volume
-    })
-    setVoiceMissing(!spoke)
+    const result = voice.say(
+      { clipId: SAMPLE_CLIP_ID, text: t('settings.voice.sample') },
+      { language: settings.language, volume: settings.volume }
+    )
+    setVoiceMissing(result === 'silent')
   }
 
   return (
