@@ -65,3 +65,9 @@ Format: **context → decision → consequences**.
 - **Context:** signing costs money (Apple Developer ≈ 99 USD/year, Windows certificates) and this is a portfolio project.
 - **Decision:** ship unsigned installers and say so in the README (SmartScreen warning on Windows, right-click → Open on macOS).
 - **Consequences:** revisit after the MVP together with `electron-updater`.
+
+## D11 — `node:sqlite` instead of `better-sqlite3`
+
+- **Context:** the first plan used `better-sqlite3`, a native module. It has to be rebuilt for Electron, and the unit tests run on plain Node, which needs a different binary: that complicates the three-system CI and the installers.
+- **Decision:** use the `node:sqlite` module that ships with Node 24 and Electron 44. Migrations use SQLite's own `user_version`.
+- **Consequences:** nothing native to compile or package, and the repository tests run against in-memory SQLite exactly as the app does. The module is still flagged experimental (a warning in the console), so the Electron version stays pinned and all access lives in `src/main/db/`, which makes a later switch cheap.

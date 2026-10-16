@@ -1,10 +1,13 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { APP_NAME } from '@shared/app'
 import icon from '../../resources/icon.png?asset'
+import { openDatabase, type Database } from './db/database'
 import { registerCameraIpc } from './ipc/camera'
 import { setupSessionSecurity, setupWindowSecurity } from './security'
+
+let database: Database | undefined
 
 const devUrl = is.dev ? process.env['ELECTRON_RENDERER_URL'] : undefined
 
@@ -39,6 +42,15 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('io.github.fabiann1809.vyro')
+
+  try {
+    database = openDatabase(join(app.getPath('userData'), 'vyro.db'))
+  } catch (error) {
+    // Better to stop with a clear message than to run without being able to save anything.
+    dialog.showErrorBox(APP_NAME, error instanceof Error ? error.message : String(error))
+    app.quit()
+    return
+  }
   setupSessionSecurity(devUrl)
   registerCameraIpc()
 
@@ -52,6 +64,8 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
+
+app.on('will-quit', () => database?.close())
 
 // Quit when all windows are closed, except on macOS where apps stay active until Cmd + Q.
 app.on('window-all-closed', () => {

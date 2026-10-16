@@ -46,7 +46,7 @@ El MVP cubre tres ejercicios con el propio peso del cuerpo (sentadilla, flexión
 | Estado | Zustand |
 | Detección de pose | MediaPipe Tasks Vision `PoseLandmarker`, modelo empaquetado (offline) |
 | Validación de configuraciones | zod |
-| Datos | SQLite con `better-sqlite3` (proceso principal) |
+| Datos | SQLite con `node:sqlite` integrado (proceso principal; ver D11 en `docs/DECISIONS.md`) |
 | Voz | `speechSynthesis` con audios pregrabados de respaldo |
 | Internacionalización | i18next |
 | Gráficas | Recharts |
@@ -193,7 +193,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T6.5 Política de voz.** Solo mensajes importantes, sin solaparse. *Hecho cuando:* en una sesión la voz no se repite ni se pisa.
 
 ### Fase 7 — Datos y progreso
-- [ ] **T7.1 SQLite y migraciones.** En el proceso principal. *Hecho cuando:* la base se crea y migra al iniciar.
+- [x] **T7.1 SQLite y migraciones.** En el proceso principal. *Hecho cuando:* la base se crea y migra al iniciar.
 - [ ] **T7.2 Repositorios.** Sesiones, repeticiones y errores. *Hecho cuando:* las pruebas con SQLite en memoria pasan.
 - [ ] **T7.3 Puente IPC tipado.** API expuesta desde el preload. *Hecho cuando:* el renderer guarda y lee datos sin acceso directo a Node.
 - [ ] **T7.4 Guardar sesión.** Al terminar un entrenamiento. *Hecho cuando:* la sesión persiste tras reiniciar la app.
@@ -228,7 +228,7 @@ Cada punto se convertirá en fases con tareas propias cuando llegue el momento.
 | Riesgo | Mitigación |
 |---|---|
 | Voz en español no disponible en Linux | Audios pregrabados de respaldo (T6.4) |
-| Módulo nativo `better-sqlite3` falla al empaquetar en algún sistema | CI en los 3 sistemas desde la fase 1 |
+| `node:sqlite` aún se marca experimental y su API podría cambiar | Versión de Electron fija; las pruebas de repositorios lo cubren; el acceso está aislado en `src/main/db/` |
 | Precisión baja con mala luz o ángulos raros | Calibración y avisos de encuadre |
 | Falsos errores que frustran | Umbrales tolerantes, suavizado y persistencia de varios fotogramas |
 | Lesión por un consejo erróneo | Mensajes conservadores y aviso de seguridad |
