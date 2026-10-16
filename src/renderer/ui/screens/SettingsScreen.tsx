@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { SAMPLE_CLIP_ID } from '@renderer/voice/clipList'
 import { voice } from '@renderer/voice'
 import { CameraStage } from '../CameraStage'
+import { deleteAllData } from '../settingsSync'
 import { useSettings } from '../settingsStore'
 import { THEME_PREFERENCES, useTheme, type ThemePreference } from '../theme'
 
@@ -36,6 +37,13 @@ export function SettingsScreen(): React.JSX.Element {
   const settings = useSettings()
   const { preference, setPreference } = useTheme()
   const [voiceMissing, setVoiceMissing] = useState(false)
+  const [deleteStep, setDeleteStep] = useState<'idle' | 'confirm' | 'done' | 'failed'>('idle')
+
+  const deleteEverything = (): void => {
+    deleteAllData(window.api)
+      .then(() => setDeleteStep('done'))
+      .catch(() => setDeleteStep('failed'))
+  }
 
   const testVoice = (): void => {
     const result = voice.say(
@@ -111,6 +119,45 @@ export function SettingsScreen(): React.JSX.Element {
             </label>
           ))}
         </div>
+      </Group>
+
+      <Group title="settings.privacy">
+        <p>{t('settings.privacy.explanation')}</p>
+        {deleteStep === 'confirm' ? (
+          <div
+            role="alertdialog"
+            aria-label={t('settings.delete.question')}
+            className="flex flex-col gap-3"
+          >
+            <p className="font-semibold">{t('settings.delete.question')}</p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={deleteEverything}
+                className="rounded-md bg-red-700 px-4 py-2 text-white"
+              >
+                {t('settings.delete.confirm')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeleteStep('idle')}
+                className="rounded-md bg-slate-200 px-4 py-2 dark:bg-slate-800"
+              >
+                {t('settings.delete.cancel')}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setDeleteStep('confirm')}
+            className="w-fit rounded-md bg-red-700 px-4 py-2 text-white"
+          >
+            {t('settings.delete')}
+          </button>
+        )}
+        {deleteStep === 'done' && <p role="status">{t('settings.delete.done')}</p>}
+        {deleteStep === 'failed' && <p role="alert">{t('settings.delete.failed')}</p>}
       </Group>
 
       <Group title="settings.camera">

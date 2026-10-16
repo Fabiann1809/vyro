@@ -2,7 +2,9 @@ import i18next from 'i18next'
 import en from './en.json'
 import es from './es.json'
 
-export type Language = 'es' | 'en'
+import type { Language } from '@shared/settings'
+
+export type { Language }
 
 // Plural forms are stored as "key_one" and "key_other"; the code asks for "key" plus a count.
 type WithoutPluralSuffix<K extends string> = K extends `${infer Base}_${'one' | 'other'}` ? Base : K

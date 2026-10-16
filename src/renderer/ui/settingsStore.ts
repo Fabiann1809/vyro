@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { setLanguage, type Language } from '@renderer/i18n'
+import { setLanguage } from '@renderer/i18n'
+import { DEFAULT_SETTINGS, type Language } from '@shared/settings'
 
 interface SettingsState {
   language: Language
@@ -17,10 +18,10 @@ interface SettingsState {
 const clamp01 = (value: number): number => Math.min(1, Math.max(0, value))
 
 export const useSettings = create<SettingsState>((set) => ({
-  language: 'es',
-  voiceEnabled: true,
-  volume: 0.8,
-  cameraId: null,
+  language: DEFAULT_SETTINGS.language,
+  voiceEnabled: DEFAULT_SETTINGS.voiceEnabled,
+  volume: DEFAULT_SETTINGS.volume,
+  cameraId: DEFAULT_SETTINGS.cameraId,
   // The texts change in the same instant, before the screens draw again.
   setLanguage: (language) => {
     setLanguage(language)

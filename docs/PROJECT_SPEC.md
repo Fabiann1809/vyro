@@ -199,7 +199,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T7.4 Guardar sesión.** Al terminar un entrenamiento. *Hecho cuando:* la sesión persiste tras reiniciar la app.
 - [x] **T7.5 Historial.** Lista de sesiones. *Hecho cuando:* muestra las sesiones guardadas y el estado vacío.
 - [x] **T7.6 Gráficas de progreso.** Por ejercicio. *Hecho cuando:* muestra la evolución de repeticiones buenas y puntuación.
-- [ ] **T7.7 Ajustes persistentes y borrado de datos.** *Hecho cuando:* los ajustes sobreviven al reinicio y "borrar datos" vacía la base.
+- [x] **T7.7 Ajustes persistentes y borrado de datos.** *Hecho cuando:* los ajustes sobreviven al reinicio y "borrar datos" vacía la base.
 
 ### Fase 8 — Empaquetado y portafolio
 - [ ] **T8.1 electron-builder.** Instalador de Windows, `.dmg` y AppImage. *Hecho cuando:* `pnpm package` genera el instalador de Windows y se instala y abre.

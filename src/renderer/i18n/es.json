@@ -120,5 +120,13 @@
   "settings.theme.dark": "Oscuro",
   "settings.theme.light": "Claro",
   "settings.theme.system": "Sistema",
+  "settings.privacy": "Datos y privacidad",
+  "settings.privacy.explanation": "VYRO guarda solo números de tus sesiones (repeticiones, puntuación y errores) y tus ajustes, en este equipo. Tu video y tus imágenes nunca se guardan ni salen de aquí.",
+  "settings.delete": "Borrar todos los datos",
+  "settings.delete.question": "¿Borrar tus sesiones y tus ajustes? No se puede deshacer.",
+  "settings.delete.confirm": "Sí, borrar todo",
+  "settings.delete.cancel": "Cancelar",
+  "settings.delete.done": "Datos borrados.",
+  "settings.delete.failed": "No se pudieron borrar los datos.",
   "settings.camera": "Cámara"
 }

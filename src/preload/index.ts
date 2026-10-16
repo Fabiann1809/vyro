@@ -13,6 +13,13 @@ const api: VyroApi = {
     list: (query) => ipcRenderer.invoke(IPC.sessionsList, query),
     get: (id) => ipcRenderer.invoke(IPC.sessionsGet, id),
     errorCounts: (skillId) => ipcRenderer.invoke(IPC.sessionsErrorCounts, skillId)
+  },
+  settings: {
+    get: () => ipcRenderer.invoke(IPC.settingsGet),
+    set: (patch) => ipcRenderer.invoke(IPC.settingsSet, patch)
+  },
+  data: {
+    deleteAll: () => ipcRenderer.invoke(IPC.dataDeleteAll)
   }
 }
 

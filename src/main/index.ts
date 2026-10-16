@@ -5,8 +5,10 @@ import { APP_NAME } from '@shared/app'
 import icon from '../../resources/icon.png?asset'
 import { openDatabase, type Database } from './db/database'
 import { SessionRepository } from './db/sessionRepository'
+import { SettingsRepository } from './db/settingsRepository'
 import { registerCameraIpc } from './ipc/camera'
 import { registerSessionsIpc } from './ipc/sessions'
+import { registerSettingsIpc } from './ipc/settings'
 import { setupSessionSecurity, setupWindowSecurity } from './security'
 
 let database: Database | undefined
@@ -55,7 +57,9 @@ app.whenReady().then(() => {
   }
   setupSessionSecurity(devUrl)
   registerCameraIpc()
-  registerSessionsIpc(new SessionRepository(database))
+  const sessions = new SessionRepository(database)
+  registerSessionsIpc(sessions)
+  registerSettingsIpc(new SettingsRepository(database), sessions)
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

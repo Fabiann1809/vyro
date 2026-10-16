@@ -1,4 +1,5 @@
 import type { CameraAccessStatus } from './camera'
+import type { AppSettings, SettingsPatch } from './settings'
 import type { ErrorCount, SessionDetail, SessionQuery, SessionRow, SessionToSave } from './sessions'
 
 export const IPC = {
@@ -7,7 +8,10 @@ export const IPC = {
   sessionsSave: 'sessions:save',
   sessionsList: 'sessions:list',
   sessionsGet: 'sessions:get',
-  sessionsErrorCounts: 'sessions:error-counts'
+  sessionsErrorCounts: 'sessions:error-counts',
+  settingsGet: 'settings:get',
+  settingsSet: 'settings:set',
+  dataDeleteAll: 'data:delete-all'
 } as const
 
 // The only API the renderer can call. Everything else stays in the main process.
@@ -23,5 +27,13 @@ export interface VyroApi {
     list: (query?: SessionQuery) => Promise<SessionRow[]>
     get: (id: number) => Promise<SessionDetail | null>
     errorCounts: (skillId?: string) => Promise<ErrorCount[]>
+  }
+  settings: {
+    get: () => Promise<AppSettings>
+    set: (patch: SettingsPatch) => Promise<void>
+  }
+  data: {
+    // Empties the database: sessions and settings.
+    deleteAll: () => Promise<void>
   }
 }

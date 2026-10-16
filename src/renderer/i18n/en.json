@@ -120,5 +120,13 @@
   "settings.theme.dark": "Dark",
   "settings.theme.light": "Light",
   "settings.theme.system": "System",
+  "settings.privacy": "Data and privacy",
+  "settings.privacy.explanation": "VYRO only stores numbers from your sessions (repetitions, score and mistakes) and your settings, on this computer. Your video and images are never saved or leave it.",
+  "settings.delete": "Delete all data",
+  "settings.delete.question": "Delete your sessions and your settings? This cannot be undone.",
+  "settings.delete.confirm": "Yes, delete everything",
+  "settings.delete.cancel": "Cancel",
+  "settings.delete.done": "Data deleted.",
+  "settings.delete.failed": "The data could not be deleted.",
   "settings.camera": "Camera"
 }
