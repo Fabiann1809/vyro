@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nextPreference, resolveTheme, useTheme } from './theme'
+import { resolveTheme, useTheme } from './theme'
 
 describe('theme', () => {
   it('is dark by default', () => {
@@ -14,12 +14,6 @@ describe('theme', () => {
   it('follows the system when asked to', () => {
     expect(resolveTheme('system', true)).toBe('dark')
     expect(resolveTheme('system', false)).toBe('light')
-  })
-
-  it('cycles through every preference', () => {
-    expect(nextPreference('dark')).toBe('light')
-    expect(nextPreference('light')).toBe('system')
-    expect(nextPreference('system')).toBe('dark')
   })
 
   it('stores the preference', () => {

@@ -2,6 +2,7 @@ import { CameraPreview } from './ui/CameraPreview'
 import { NavBar } from './ui/NavBar'
 import { isImmersive, useNavigation, type Screen } from './ui/navigation'
 import { CalibrationScreen } from './ui/screens/CalibrationScreen'
+import { SettingsScreen } from './ui/screens/SettingsScreen'
 import { SummaryScreen } from './ui/screens/SummaryScreen'
 import { TrainingScreen } from './ui/screens/TrainingScreen'
 import { HomeScreen } from './ui/screens/HomeScreen'
@@ -21,7 +22,7 @@ function CurrentScreen({ screen }: { screen: Screen }): React.JSX.Element {
     case 'progress':
       return <PlaceholderScreen screen={screen} title="screen.progress.title" />
     case 'settings':
-      return <PlaceholderScreen screen={screen} title="screen.settings.title" />
+      return <SettingsScreen />
     case 'lab':
       return <CameraPreview />
   }

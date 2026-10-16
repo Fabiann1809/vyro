@@ -7,6 +7,7 @@ import {
   type CameraDevice,
   type CameraErrorKind
 } from '@renderer/core/camera'
+import { useSettings } from './settingsStore'
 
 export type CameraStatus = 'starting' | 'ready' | 'error'
 
@@ -27,7 +28,9 @@ async function isBlockedByOperatingSystem(): Promise<boolean> {
 }
 
 export function useCamera(): CameraState {
-  const [requestedId, setRequestedId] = useState<string | undefined>(undefined)
+  const [requestedId, setRequestedId] = useState<string | undefined>(
+    () => useSettings.getState().cameraId ?? undefined
+  )
   const [attempt, setAttempt] = useState(0)
   const [status, setStatus] = useState<CameraStatus>('starting')
   const [stream, setStream] = useState<MediaStream | null>(null)
@@ -49,10 +52,22 @@ export function useCamera(): CameraState {
       setStatus('error')
     }
 
+    // A remembered camera may be unplugged by now: fall back to the default one.
+    const openPreferredCamera = async (): Promise<MediaStream> => {
+      try {
+        return await openCamera(navigator.mediaDevices, requestedId)
+      } catch (error) {
+        if (requestedId && classifyCameraError(error) === 'no-device') {
+          return openCamera(navigator.mediaDevices)
+        }
+        throw error
+      }
+    }
+
     const start = async (): Promise<void> => {
       if (await isBlockedByOperatingSystem()) return fail('permission-denied')
 
-      const next = await openCamera(navigator.mediaDevices, requestedId)
+      const next = await openPreferredCamera()
       if (cancelled) return stopStream(next)
 
       opened = next
@@ -89,6 +104,7 @@ export function useCamera(): CameraState {
   const selectDevice = useCallback((deviceId: string) => {
     setStatus('starting')
     setRequestedId(deviceId)
+    useSettings.getState().setCameraId(deviceId)
   }, [])
 
   const activeDeviceId = stream?.getVideoTracks()[0]?.getSettings().deviceId

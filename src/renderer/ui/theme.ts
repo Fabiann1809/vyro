@@ -10,10 +10,6 @@ export const resolveTheme = (preference: ThemePreference, systemPrefersDark: boo
   return preference
 }
 
-export const nextPreference = (preference: ThemePreference): ThemePreference =>
-  THEME_PREFERENCES[(THEME_PREFERENCES.indexOf(preference) + 1) % THEME_PREFERENCES.length] ??
-  'dark'
-
 interface ThemeState {
   preference: ThemePreference
   setPreference: (preference: ThemePreference) => void

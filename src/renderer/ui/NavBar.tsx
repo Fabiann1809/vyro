@@ -1,6 +1,5 @@
 import { t, type MessageKey } from '@renderer/i18n'
 import { NAV_SCREENS, useNavigation, type Screen } from './navigation'
-import { nextPreference, useTheme, type ThemePreference } from './theme'
 
 const LABEL: Partial<Record<Screen, MessageKey>> = {
   home: 'nav.home',
@@ -9,15 +8,8 @@ const LABEL: Partial<Record<Screen, MessageKey>> = {
   lab: 'nav.lab'
 }
 
-const THEME_LABEL: Record<ThemePreference, MessageKey> = {
-  dark: 'theme.dark',
-  light: 'theme.light',
-  system: 'theme.system'
-}
-
 export function NavBar(): React.JSX.Element {
   const { screen, go } = useNavigation()
-  const { preference, setPreference } = useTheme()
   // The lab holds the recorder used to make fixtures, so it only exists in development.
   const screens: readonly Screen[] = import.meta.env.DEV ? [...NAV_SCREENS, 'lab'] : NAV_SCREENS
 
@@ -37,13 +29,6 @@ export function NavBar(): React.JSX.Element {
           {t(LABEL[target] ?? 'nav.home')}
         </button>
       ))}
-      <button
-        type="button"
-        onClick={() => setPreference(nextPreference(preference))}
-        className="ml-auto rounded-md px-3 py-1.5 text-sm hover:bg-slate-200 dark:hover:bg-slate-800"
-      >
-        {t('theme.label', { theme: t(THEME_LABEL[preference]) })}
-      </button>
     </nav>
   )
 }

@@ -183,7 +183,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T5.3 Calibración.** Guía de encuadre (distancia, perfil, cuerpo completo) con verificación automática. *Hecho cuando:* no deja empezar hasta que el encuadre es válido.
 - [x] **T5.4 Entrenamiento.** Video con esqueleto, contador, fase y mensaje. *Hecho cuando:* una sesión completa cuenta y corrige en vivo.
 - [x] **T5.5 Resumen de sesión.** Repeticiones buenas y malas, errores frecuentes y puntuación. *Hecho cuando:* se muestra al terminar la sesión.
-- [ ] **T5.6 Ajustes.** Idioma, voz, volumen y cámara. *Hecho cuando:* los cambios se aplican al instante.
+- [x] **T5.6 Ajustes.** Idioma, voz, volumen y cámara. *Hecho cuando:* los cambios se aplican al instante.
 
 ### Fase 6 — Idioma y voz
 - [ ] **T6.1 i18next en español.** Todos los textos fuera de los componentes. *Hecho cuando:* no hay textos fijos en la interfaz.
