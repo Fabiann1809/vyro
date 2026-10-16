@@ -1,1 +1,4 @@
 @import 'tailwindcss';
+
+/* The theme is a data attribute on the root element, set by useAppliedTheme. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));

@@ -20,5 +20,22 @@
   "recorder.label": "Etiqueta de la grabación",
   "recorder.start": "Grabar",
   "recorder.stop": "Detener y guardar",
-  "recorder.frames": "{count} fotogramas"
+  "recorder.frames": "{count} fotogramas",
+  "nav.label": "Navegación principal",
+  "nav.home": "Inicio",
+  "nav.progress": "Progreso",
+  "nav.settings": "Ajustes",
+  "nav.lab": "Laboratorio",
+  "theme.label": "Tema: {theme}",
+  "theme.dark": "oscuro",
+  "theme.light": "claro",
+  "theme.system": "sistema",
+  "screen.home.title": "Inicio",
+  "screen.calibration.title": "Calibración",
+  "screen.training.title": "Entrenamiento",
+  "screen.summary.title": "Resumen de sesión",
+  "screen.progress.title": "Progreso",
+  "screen.settings.title": "Ajustes",
+  "screen.next": "Continuar",
+  "screen.exit": "Salir"
 }
