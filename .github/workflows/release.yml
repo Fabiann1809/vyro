@@ -1,0 +1,74 @@
+name: Release
+
+# A tag such as v0.1.0 builds the installers on the three systems and leaves them in a DRAFT
+# release. The draft is published by hand, after trying the installers.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            args: --win
+            files: dist/*-setup.exe
+          - os: macos-latest
+            # Apple Silicon runner; the Intel build is cross-compiled on it.
+            args: --mac --x64 --arm64
+            files: dist/*.dmg
+          - os: ubuntu-latest
+            args: --linux
+            files: dist/*.AppImage
+    env:
+      # The installers are not signed (see D10 in docs/DECISIONS.md).
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the installer
+        run: pnpm package ${{ matrix.args }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.os }}
+          path: ${{ matrix.files }}
+          if-no-files-found: error
+
+  draft-release:
+    name: Draft release
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: installers
+          pattern: installer-*
+          merge-multiple: true
+
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release create "$GITHUB_REF_NAME" installers/* --draft --generate-notes --title "$GITHUB_REF_NAME"

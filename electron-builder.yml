@@ -27,7 +27,7 @@ mac:
     - NSCameraUsageDescription: VYRO usa la cámara para analizar tu técnica. El video nunca se guarda ni sale de tu equipo.
   notarize: false
 dmg:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: ${name}-${version}-${arch}.${ext}
 linux:
   target: AppImage
   maintainer: Fabiann1809
