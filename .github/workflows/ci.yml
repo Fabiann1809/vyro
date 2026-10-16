@@ -16,7 +16,7 @@ jobs:
   verify:
     name: Verify (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -48,3 +48,7 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: End-to-end smoke test
+        # Linux runners have no screen: xvfb gives Electron a virtual one.
+        run: ${{ runner.os == 'Linux' && 'xvfb-run -a pnpm test:e2e' || 'pnpm test:e2e' }}
