@@ -4,7 +4,9 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { APP_NAME } from '@shared/app'
 import icon from '../../resources/icon.png?asset'
 import { openDatabase, type Database } from './db/database'
+import { SessionRepository } from './db/sessionRepository'
 import { registerCameraIpc } from './ipc/camera'
+import { registerSessionsIpc } from './ipc/sessions'
 import { setupSessionSecurity, setupWindowSecurity } from './security'
 
 let database: Database | undefined
@@ -53,6 +55,7 @@ app.whenReady().then(() => {
   }
   setupSessionSecurity(devUrl)
   registerCameraIpc()
+  registerSessionsIpc(new SessionRepository(database))
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

@@ -7,6 +7,12 @@ const api: VyroApi = {
   camera: {
     requestAccess: () => ipcRenderer.invoke(IPC.cameraRequestAccess),
     openSystemSettings: () => ipcRenderer.invoke(IPC.cameraOpenSettings)
+  },
+  sessions: {
+    save: (session) => ipcRenderer.invoke(IPC.sessionsSave, session),
+    list: (query) => ipcRenderer.invoke(IPC.sessionsList, query),
+    get: (id) => ipcRenderer.invoke(IPC.sessionsGet, id),
+    errorCounts: (skillId) => ipcRenderer.invoke(IPC.sessionsErrorCounts, skillId)
   }
 }
 
