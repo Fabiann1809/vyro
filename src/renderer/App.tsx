@@ -9,7 +9,7 @@ import { SummaryScreen } from './ui/screens/SummaryScreen'
 import { TrainingScreen } from './ui/screens/TrainingScreen'
 import { HomeScreen } from './ui/screens/HomeScreen'
 import { useSettings } from './ui/settingsStore'
-import { useAppliedTheme } from './ui/useAppliedTheme'
+import { useAppliedAppearance } from './ui/useAppliedAppearance'
 
 function CurrentScreen({ screen }: { screen: Screen }): React.JSX.Element {
   switch (screen) {
@@ -31,7 +31,7 @@ function CurrentScreen({ screen }: { screen: Screen }): React.JSX.Element {
 }
 
 function App(): React.JSX.Element {
-  useAppliedTheme()
+  useAppliedAppearance()
   // Subscribing makes every screen draw again, with the new texts, when the language changes.
   const language = useSettings((state) => state.language)
   useEffect(() => {

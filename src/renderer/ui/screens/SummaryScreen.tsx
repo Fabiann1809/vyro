@@ -121,7 +121,7 @@ export function SummaryScreen(): React.JSX.Element {
         <button
           type="button"
           onClick={() => go('calibration')}
-          className="rounded-md bg-emerald-600 px-4 py-2 text-white"
+          className="rounded-md bg-emerald-700 px-4 py-2 text-white"
         >
           {t('summary.again')}
         </button>

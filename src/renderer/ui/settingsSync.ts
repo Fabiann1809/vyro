@@ -11,8 +11,10 @@ import { useTheme } from './theme'
 type SettingsApi = Pick<VyroApi, 'settings' | 'data'>
 
 export function currentSettings(): AppSettings {
-  const { language, voiceEnabled, volume, cameraId } = useSettings.getState()
-  return { language, voiceEnabled, volume, cameraId, theme: useTheme.getState().preference }
+  const { language, voiceEnabled, volume, cameraId, textSize, reduceMotion } =
+    useSettings.getState()
+  const theme = useTheme.getState().preference
+  return { language, voiceEnabled, volume, cameraId, theme, textSize, reduceMotion }
 }
 
 // What changed between two states of the settings; empty when nothing did.
@@ -35,6 +37,8 @@ export function applySettings(settings: AppSettings): void {
     store.setVoiceEnabled(settings.voiceEnabled)
     store.setVolume(settings.volume)
     store.setCameraId(settings.cameraId)
+    store.setTextSize(settings.textSize)
+    store.setReduceMotion(settings.reduceMotion)
     useTheme.getState().setPreference(settings.theme)
   } finally {
     applying = false

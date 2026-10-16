@@ -1,11 +1,18 @@
 import { t, type Language, type MessageKey } from '@renderer/i18n'
 import { useState } from 'react'
+import type { TextSize } from '@shared/settings'
 import { SAMPLE_CLIP_ID } from '@renderer/voice/clipList'
 import { voice } from '@renderer/voice'
 import { CameraStage } from '../CameraStage'
 import { deleteAllData } from '../settingsSync'
 import { useSettings } from '../settingsStore'
 import { THEME_PREFERENCES, useTheme, type ThemePreference } from '../theme'
+
+const TEXT_SIZES: ReadonlyArray<{ id: TextSize; label: MessageKey }> = [
+  { id: 'normal', label: 'settings.textSize.normal' },
+  { id: 'large', label: 'settings.textSize.large' },
+  { id: 'extra-large', label: 'settings.textSize.extraLarge' }
+]
 
 const THEME_LABEL: Record<ThemePreference, MessageKey> = {
   dark: 'settings.theme.dark',
@@ -119,6 +126,32 @@ export function SettingsScreen(): React.JSX.Element {
             </label>
           ))}
         </div>
+      </Group>
+
+      <Group title="settings.accessibility">
+        <div role="radiogroup" aria-label={t('settings.textSize')} className="flex flex-wrap gap-4">
+          <span>{t('settings.textSize')}</span>
+          {TEXT_SIZES.map((option) => (
+            <label key={option.id} className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="text-size"
+                checked={settings.textSize === option.id}
+                onChange={() => settings.setTextSize(option.id)}
+              />
+              {t(option.label)}
+            </label>
+          ))}
+        </div>
+        <label className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            checked={settings.reduceMotion}
+            onChange={(event) => settings.setReduceMotion(event.target.checked)}
+            className="size-5"
+          />
+          {t('settings.reduceMotion')}
+        </label>
       </Group>
 
       <Group title="settings.privacy">

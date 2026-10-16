@@ -1,4 +1,31 @@
 @import 'tailwindcss';
 
-/* The theme is a data attribute on the root element, set by useAppliedTheme. */
+/* The theme is a data attribute on the root element, set by useAppliedAppearance. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* Someone using the keyboard must always see where the focus is (at least 3:1 against the page). */
+:focus-visible {
+  outline: 3px solid #0369a1;
+  outline-offset: 2px;
+}
+[data-theme='dark'] :focus-visible {
+  outline-color: #38bdf8;
+}
+
+/* No animation or transition when the user asked for less motion, in the settings or in the system. */
+:root[data-reduce-motion='true'] *,
+:root[data-reduce-motion='true'] *::before,
+:root[data-reduce-motion='true'] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

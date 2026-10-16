@@ -44,9 +44,20 @@ export function ProgressCharts({
       <ResponsiveContainer>
         <ComposedChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-          <XAxis dataKey="day" stroke="currentColor" />
-          <YAxis yAxisId="reps" allowDecimals={false} stroke={GOOD_REPS_COLOR} />
-          <YAxis yAxisId="score" orientation="right" domain={[0, 100]} stroke={SCORE_COLOR} />
+          <XAxis dataKey="day" stroke="currentColor" tick={{ fill: 'currentColor' }} />
+          <YAxis
+            yAxisId="reps"
+            allowDecimals={false}
+            stroke={GOOD_REPS_COLOR}
+            tick={{ fill: 'currentColor' }}
+          />
+          <YAxis
+            yAxisId="score"
+            orientation="right"
+            domain={[0, 100]}
+            stroke={SCORE_COLOR}
+            tick={{ fill: 'currentColor' }}
+          />
           <Tooltip />
           <Legend />
           <Bar
