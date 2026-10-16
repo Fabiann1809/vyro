@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { CameraPreview } from './ui/CameraPreview'
 import { NavBar } from './ui/NavBar'
 import { isImmersive, useNavigation, type Screen } from './ui/navigation'
@@ -7,6 +8,7 @@ import { SummaryScreen } from './ui/screens/SummaryScreen'
 import { TrainingScreen } from './ui/screens/TrainingScreen'
 import { HomeScreen } from './ui/screens/HomeScreen'
 import { PlaceholderScreen } from './ui/screens/PlaceholderScreen'
+import { useSettings } from './ui/settingsStore'
 import { useAppliedTheme } from './ui/useAppliedTheme'
 
 function CurrentScreen({ screen }: { screen: Screen }): React.JSX.Element {
@@ -30,6 +32,11 @@ function CurrentScreen({ screen }: { screen: Screen }): React.JSX.Element {
 
 function App(): React.JSX.Element {
   useAppliedTheme()
+  // Subscribing makes every screen draw again, with the new texts, when the language changes.
+  const language = useSettings((state) => state.language)
+  useEffect(() => {
+    document.documentElement.lang = language
+  }, [language])
   const screen = useNavigation((state) => state.screen)
 
   return (

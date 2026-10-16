@@ -1,8 +1,5 @@
 import { create } from 'zustand'
-
-export type Language = 'es' | 'en'
-
-export const LANGUAGES: readonly Language[] = ['es', 'en']
+import { setLanguage, type Language } from '@renderer/i18n'
 
 interface SettingsState {
   language: Language
@@ -24,7 +21,11 @@ export const useSettings = create<SettingsState>((set) => ({
   voiceEnabled: true,
   volume: 0.8,
   cameraId: null,
-  setLanguage: (language) => set({ language }),
+  // The texts change in the same instant, before the screens draw again.
+  setLanguage: (language) => {
+    setLanguage(language)
+    set({ language })
+  },
   setVoiceEnabled: (voiceEnabled) => set({ voiceEnabled }),
   setVolume: (volume) => set({ volume: clamp01(volume) }),
   setCameraId: (cameraId) => set({ cameraId })

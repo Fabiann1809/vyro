@@ -1,6 +1,6 @@
-import { t, type MessageKey } from '@renderer/i18n'
+import { t, type Language, type MessageKey } from '@renderer/i18n'
 import { CameraStage } from '../CameraStage'
-import { useSettings, type Language } from '../settingsStore'
+import { useSettings } from '../settingsStore'
 import { THEME_PREFERENCES, useTheme, type ThemePreference } from '../theme'
 
 const THEME_LABEL: Record<ThemePreference, MessageKey> = {
@@ -13,9 +13,6 @@ const LANGUAGE_LABEL: Record<Language, MessageKey> = {
   es: 'settings.language.es',
   en: 'settings.language.en'
 }
-
-// English is added with the translation; until then it can be seen but not chosen.
-const AVAILABLE_LANGUAGES: readonly Language[] = ['es']
 
 function Group({
   title,
@@ -48,11 +45,7 @@ export function SettingsScreen(): React.JSX.Element {
           className="w-fit rounded bg-slate-200 px-3 py-2 dark:bg-slate-800"
         >
           {(['es', 'en'] as const).map((language) => (
-            <option
-              key={language}
-              value={language}
-              disabled={!AVAILABLE_LANGUAGES.includes(language)}
-            >
+            <option key={language} value={language}>
               {t(LANGUAGE_LABEL[language])}
             </option>
           ))}
