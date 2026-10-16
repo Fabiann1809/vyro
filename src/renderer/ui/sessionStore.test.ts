@@ -9,4 +9,16 @@ describe('session store', () => {
 
     expect(useSession.getState().skillId).toBe('squat')
   })
+
+  it('keeps the session that just ended for the summary', () => {
+    expect(useSession.getState().finished).toBeNull()
+
+    useSession.getState().finishSession({ skillId: 'squat', durationMs: 60_000, results: [] })
+
+    expect(useSession.getState().finished).toEqual({
+      skillId: 'squat',
+      durationMs: 60_000,
+      results: []
+    })
+  })
 })

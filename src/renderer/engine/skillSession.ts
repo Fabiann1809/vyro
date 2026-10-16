@@ -17,6 +17,8 @@ export interface FrameOutput {
   // The side of the body being judged, or null if the body could not be followed in this frame.
   side: Side | null
   metrics: MetricValues | null
+  // The phase of the body now, such as "down"; null before the first phase is reached.
+  phase: string | null
   repEvent: RepEvent | null
   // Set in the frame where a repetition is completed.
   repResult: RepResult | null
@@ -30,6 +32,7 @@ const LOST_BODY_RESET_MS = 1000
 const NOTHING: FrameOutput = {
   side: null,
   metrics: null,
+  phase: null,
   repEvent: null,
   repResult: null,
   feedback: null
@@ -81,24 +84,28 @@ export class SkillSession {
     const repEvent = this.counter.update(input.timestampMs, metrics)
 
     if (repEvent?.type !== 'completed') {
-      return { side, metrics, repEvent, repResult: null, feedback: null }
+      return { side, metrics, phase: this.counter.phase, repEvent, repResult: null, feedback: null }
     }
 
     const repResult = this.evaluator.evaluate(repEvent.rep)
     this.results.push(repResult)
     const feedback = this.feedback.onRepResult(repResult, input.timestampMs)
 
-    return { side, metrics, repEvent, repResult, feedback }
+    return { side, metrics, phase: this.counter.phase, repEvent, repResult, feedback }
+  }
+
+  // Drops the repetition in progress, for example after a pause. Count and history are kept.
+  restartTracking(): void {
+    this.counter.reset()
+    this.smoother.reset()
+    this.sideTracker.reset()
+    this.lostSinceMs = undefined
   }
 
   // Forgets the repetition in progress and the smoothing, but keeps the count and the history.
   private onBodyLost(timestampMs: number): void {
     this.lostSinceMs ??= timestampMs
 
-    if (timestampMs - this.lostSinceMs >= LOST_BODY_RESET_MS) {
-      this.counter.reset()
-      this.smoother.reset()
-      this.sideTracker.reset()
-    }
+    if (timestampMs - this.lostSinceMs >= LOST_BODY_RESET_MS) this.restartTracking()
   }
 }

@@ -16,10 +16,16 @@ interface Props {
   // Elements drawn over the video, such as a framing guide.
   children?: React.ReactNode
   showDevicePicker?: boolean
+  videoClassName?: string
 }
 
 // The camera picture with the skeleton over it, for the screens where the user is tracked.
-export function CameraStage({ onFrame, children, showDevicePicker }: Props): React.JSX.Element {
+export function CameraStage({
+  onFrame,
+  children,
+  showDevicePicker,
+  videoClassName = 'max-h-[65vh]'
+}: Props): React.JSX.Element {
   const { status, stream, devices, activeDeviceId, errorKind, selectDevice, retry } = useCamera()
   const pose = usePoseLandmarker()
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -72,7 +78,7 @@ export function CameraStage({ onFrame, children, showDevicePicker }: Props): Rea
           autoPlay
           playsInline
           muted
-          className="block max-h-[65vh] rounded-lg bg-black"
+          className={`block rounded-lg bg-black ${videoClassName}`}
         />
         <canvas
           ref={canvasRef}

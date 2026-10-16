@@ -52,6 +52,7 @@ export class RepCounter {
   private steps: PhaseStep[] = []
   private samples: RepSample[] = []
   private completed = 0
+  private currentPhase: string | null = null
 
   constructor(skill: SkillConfig, options: Partial<RepCounterOptions> = {}) {
     this.detector = new PhaseDetector(skill)
@@ -64,9 +65,15 @@ export class RepCounter {
     return this.completed
   }
 
+  // The phase the body is in now, or null before any phase has been reached.
+  get phase(): string | null {
+    return this.currentPhase
+  }
+
   update(timestampMs: number, values: MetricValues): RepEvent | null {
     const sample: RepSample = { timestampMs, values }
     const change = this.detector.update(values)
+    this.currentPhase = change.phase
 
     if (change.changed && change.phase !== null) return this.onPhaseChange(change.phase, sample)
 
@@ -77,6 +84,7 @@ export class RepCounter {
   // Call when the person leaves the frame or the camera changes: the attempt in progress is lost.
   reset(): void {
     this.detector.reset()
+    this.currentPhase = null
     this.abandon()
   }
 
