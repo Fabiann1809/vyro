@@ -1,15 +1,12 @@
 import { compileExpression, type CompiledExpression, type EvalContext } from './expression'
+import type { RepQuality } from '@shared/sessions'
 import type { CompletedRep } from './repCounter'
 import type { Severity, SkillConfig } from './skillSchema'
 
 export type RuleStatus = 'passed' | 'failed' | 'unknown'
 
-// How a repetition went overall.
-//   good       every rule passed
-//   needs-work only medium or low rules failed
-//   bad        a high severity rule failed
-//   unknown    no rule could be judged (the body was not measurable)
-export type RepQuality = 'good' | 'needs-work' | 'bad' | 'unknown'
+// Defined in @shared/sessions, since the database stores it too.
+export type { RepQuality }
 
 export interface RuleOutcome {
   ruleId: string
