@@ -202,7 +202,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T7.7 Ajustes persistentes y borrado de datos.** *Hecho cuando:* los ajustes sobreviven al reinicio y "borrar datos" vacía la base.
 
 ### Fase 8 — Empaquetado y portafolio
-- [ ] **T8.1 electron-builder.** Instalador de Windows, `.dmg` y AppImage. *Hecho cuando:* `pnpm package` genera el instalador de Windows y se instala y abre.
+- [x] **T8.1 electron-builder.** Instalador de Windows, `.dmg` y AppImage. *Hecho cuando:* `pnpm package` genera el instalador de Windows y se instala y abre.
 - [ ] **T8.2 Release por tag.** Workflow que construye en los 3 sistemas y publica un borrador de release. *Hecho cuando:* un tag de prueba genera los tres instaladores.
 - [ ] **T8.3 Accesibilidad.** Teclado, contraste AA, texto grande y reducción de movimiento. *Hecho cuando:* se puede usar toda la app sin ratón y el contraste cumple AA.
 - [ ] **T8.4 Prueba e2e de humo.** Con Playwright. *Hecho cuando:* abre la app y recorre las pantallas principales en CI.

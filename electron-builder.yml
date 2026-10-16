@@ -1,5 +1,6 @@
 appId: io.github.fabiann1809.vyro
 productName: VYRO
+copyright: Copyright © 2026 Fabiann1809
 directories:
   buildResources: build
 files:
@@ -13,12 +14,14 @@ asarUnpack:
   - resources/**
 win:
   executableName: vyro
+  target: nsis
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  target: dmg
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSCameraUsageDescription: VYRO usa la cámara para analizar tu técnica. El video nunca se guarda ni sale de tu equipo.
@@ -26,15 +29,11 @@ mac:
 dmg:
   artifactName: ${name}-${version}.${ext}
 linux:
-  target:
-    - AppImage
-    - snap
-    - deb
-  maintainer: electronjs.org
+  target: AppImage
+  maintainer: Fabiann1809
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
-publish:
-  provider: generic
-  url: https://example.com/auto-updates
+# No auto-update in the MVP (see D10 in docs/DECISIONS.md).
+publish: null
