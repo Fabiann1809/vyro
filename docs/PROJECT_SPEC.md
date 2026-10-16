@@ -179,7 +179,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 
 ### Fase 5 — Interfaz
 - [x] **T5.1 Estructura, rutas y tema.** Navegación base y tema oscuro/claro. *Hecho cuando:* se navega entre pantallas vacías.
-- [ ] **T5.2 Inicio.** Selector de ejercicio y resumen reciente. *Hecho cuando:* muestra los tres ejercicios y el estado vacío.
+- [x] **T5.2 Inicio.** Selector de ejercicio y resumen reciente. *Hecho cuando:* muestra los tres ejercicios y el estado vacío.
 - [ ] **T5.3 Calibración.** Guía de encuadre (distancia, perfil, cuerpo completo) con verificación automática. *Hecho cuando:* no deja empezar hasta que el encuadre es válido.
 - [ ] **T5.4 Entrenamiento.** Video con esqueleto, contador, fase y mensaje. *Hecho cuando:* una sesión completa cuenta y corrige en vivo.
 - [ ] **T5.5 Resumen de sesión.** Repeticiones buenas y malas, errores frecuentes y puntuación. *Hecho cuando:* se muestra al terminar la sesión.

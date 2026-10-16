@@ -36,6 +36,9 @@
   "screen.summary.title": "Resumen de sesión",
   "screen.progress.title": "Progreso",
   "screen.settings.title": "Ajustes",
+  "home.choose": "¿Qué quieres practicar hoy?",
+  "home.recent.title": "Sesiones recientes",
+  "home.recent.empty": "Todavía no tienes sesiones. Elige un ejercicio para empezar.",
   "screen.next": "Continuar",
   "screen.exit": "Salir"
 }
