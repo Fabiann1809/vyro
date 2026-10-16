@@ -186,7 +186,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T5.6 Ajustes.** Idioma, voz, volumen y cámara. *Hecho cuando:* los cambios se aplican al instante.
 
 ### Fase 6 — Idioma y voz
-- [ ] **T6.1 i18next en español.** Todos los textos fuera de los componentes. *Hecho cuando:* no hay textos fijos en la interfaz.
+- [x] **T6.1 i18next en español.** Todos los textos fuera de los componentes. *Hecho cuando:* no hay textos fijos en la interfaz.
 - [ ] **T6.2 Inglés.** Traducción completa y cambio de idioma. *Hecho cuando:* al cambiar el idioma se traduce toda la interfaz y los mensajes de las habilidades.
 - [ ] **T6.3 Voz con `speechSynthesis`.** Envoltorio con elección de voz por idioma. *Hecho cuando:* la app habla un mensaje de prueba.
 - [ ] **T6.4 Audios de respaldo.** Para sistemas sin voz en español. *Hecho cuando:* los mensajes clave suenan aun sin voces del sistema.
