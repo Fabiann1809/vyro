@@ -3,6 +3,7 @@ import type { PoseFrame } from '@renderer/core/detectionLoop'
 import type { Landmark } from '@renderer/core/landmarks'
 import type { FeedbackMessage } from '@renderer/engine/feedback'
 import type { RepQuality } from '@renderer/engine/repEvaluator'
+import { buildSessionToSave } from '@renderer/engine/sessionSummary'
 import { TrainingRun, type TrainingSnapshot } from '@renderer/engine/trainingRun'
 import { localize, t, type MessageKey } from '@renderer/i18n'
 import { bundledSkills } from '@renderer/skills'
@@ -64,11 +65,13 @@ export function TrainingScreen(): React.JSX.Element {
   const go = useNavigation((state) => state.go)
   const skillId = useSession((state) => state.skillId)
   const finishSession = useSession((state) => state.finishSession)
+  const setSaveStatus = useSession((state) => state.setSaveStatus)
   const skill = bundledSkills.skills.find((candidate) => candidate.id === skillId)
 
   const runRef = useRef<TrainingRun | null>(null)
   const policyRef = useRef<VoicePolicy | null>(null)
   const bannerId = useRef(0)
+  const [startedAt] = useState(() => Date.now())
   const [snapshot, setSnapshot] = useState<TrainingSnapshot>(EMPTY)
   const [banner, setBanner] = useState<Banner | null>(null)
   const [paused, setPaused] = useState(false)
@@ -122,14 +125,21 @@ export function TrainingScreen(): React.JSX.Element {
 
   const end = useCallback(() => {
     if (skill) {
-      finishSession({
-        skillId: skill.id,
-        durationMs: elapsedMs,
-        results: runRef.current?.results ?? []
-      })
+      const results = runRef.current?.results ?? []
+      finishSession({ skillId: skill.id, durationMs: elapsedMs, results })
+
+      const toSave = buildSessionToSave(skill.id, startedAt, elapsedMs, results)
+      if (toSave) {
+        window.api.sessions
+          .save(toSave)
+          .then(() => setSaveStatus('saved'))
+          .catch(() => setSaveStatus('failed'))
+      } else {
+        setSaveStatus('nothing-to-save')
+      }
     }
     go('summary')
-  }, [skill, elapsedMs, finishSession, go])
+  }, [skill, startedAt, elapsedMs, finishSession, setSaveStatus, go])
 
   useEffect(() => {
     if (!skill) go('home')

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RepQuality, RepResult, RuleOutcome } from './repEvaluator'
-import { summarizeSession } from './sessionSummary'
+import { buildSessionToSave, summarizeSession } from './sessionSummary'
 
 const failure = (ruleId: string): RuleOutcome => ({
   ruleId,
@@ -64,5 +64,29 @@ describe('summarizeSession', () => {
     const summary = summarizeSession([rep('good'), rep('bad', ['depth']), rep('good')])
 
     expect(summary.qualities).toEqual(['good', 'bad', 'good'])
+  })
+})
+
+describe('buildSessionToSave', () => {
+  it('stores nothing for a session without repetitions', () => {
+    expect(buildSessionToSave('squat', 1000, 60_000, [])).toBeNull()
+  })
+
+  it('keeps only numbers and the names of the failed rules', () => {
+    const results = [
+      { ...rep('good'), repIndex: 1, durationMs: 2000.4 },
+      { ...rep('bad', ['depth', 'torso']), repIndex: 2 }
+    ]
+
+    expect(buildSessionToSave('squat', 1000, 60_000.6, results)).toEqual({
+      skillId: 'squat',
+      startedAt: 1000,
+      durationMs: 60_001,
+      score: 50,
+      reps: [
+        { index: 1, quality: 'good', durationMs: 2000, failedRuleIds: [] },
+        { index: 2, quality: 'bad', durationMs: 2000, failedRuleIds: ['depth', 'torso'] }
+      ]
+    })
   })
 })

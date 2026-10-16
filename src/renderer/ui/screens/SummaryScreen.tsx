@@ -24,6 +24,7 @@ const clock = (ms: number): string => {
 export function SummaryScreen(): React.JSX.Element {
   const go = useNavigation((state) => state.go)
   const finished = useSession((state) => state.finished)
+  const saveStatus = useSession((state) => state.saveStatus)
   const skill = bundledSkills.skills.find((candidate) => candidate.id === finished?.skillId)
 
   if (!finished || !skill) {
@@ -54,6 +55,10 @@ export function SummaryScreen(): React.JSX.Element {
           {t('summary.duration', { time: clock(finished.durationMs) })}
         </p>
       </div>
+
+      {(saveStatus === 'saved' || saveStatus === 'failed') && (
+        <p role="status">{t(saveStatus === 'saved' ? 'summary.saved' : 'summary.saveFailed')}</p>
+      )}
 
       {summary.score === null ? (
         <p className="text-xl">{t('summary.noReps')}</p>

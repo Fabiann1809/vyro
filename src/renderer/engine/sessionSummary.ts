@@ -1,3 +1,4 @@
+import type { SessionToSave } from '@shared/sessions'
 import type { RepQuality, RepResult } from './repEvaluator'
 
 export interface FrequentError {
@@ -53,4 +54,28 @@ function frequentErrors(results: readonly RepResult[]): FrequentError[] {
 
   // Sort is stable, so errors with the same count keep the order in which they first happened.
   return [...byRule.values()].sort((a, b) => b.count - a.count)
+}
+
+// What is stored of a session: numbers and rule names only. A session without a single
+// repetition says nothing about progress, so there is nothing to store (null).
+export function buildSessionToSave(
+  skillId: string,
+  startedAt: number,
+  durationMs: number,
+  results: readonly RepResult[]
+): SessionToSave | null {
+  if (results.length === 0) return null
+
+  return {
+    skillId,
+    startedAt,
+    durationMs: Math.round(durationMs),
+    score: summarizeSession(results).score,
+    reps: results.map((result) => ({
+      index: result.repIndex,
+      quality: result.quality,
+      durationMs: Math.round(result.durationMs),
+      failedRuleIds: result.failed.map((outcome) => outcome.ruleId)
+    }))
+  }
 }

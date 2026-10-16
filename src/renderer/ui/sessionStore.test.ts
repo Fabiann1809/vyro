@@ -21,4 +21,12 @@ describe('session store', () => {
       results: []
     })
   })
+
+  it('starts saving a finished session and records how it went', () => {
+    useSession.getState().finishSession({ skillId: 'squat', durationMs: 1, results: [] })
+    expect(useSession.getState().saveStatus).toBe('saving')
+
+    useSession.getState().setSaveStatus('saved')
+    expect(useSession.getState().saveStatus).toBe('saved')
+  })
 })

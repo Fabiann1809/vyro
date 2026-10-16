@@ -89,6 +89,8 @@
   "summary.times_other": "{count} veces",
   "summary.tip": "Para la próxima vez:",
   "summary.noErrors": "No hubo errores. ¡Buen trabajo!",
+  "summary.saved": "Sesión guardada",
+  "summary.saveFailed": "No se pudo guardar la sesión.",
   "summary.again": "Repetir",
   "summary.progress": "Ver progreso",
   "summary.home": "Volver al inicio",

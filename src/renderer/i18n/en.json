@@ -89,6 +89,8 @@
   "summary.times_other": "{count} times",
   "summary.tip": "For next time:",
   "summary.noErrors": "No mistakes. Good job!",
+  "summary.saved": "Session saved",
+  "summary.saveFailed": "The session could not be saved.",
   "summary.again": "Repeat",
   "summary.progress": "See progress",
   "summary.home": "Back to home",
