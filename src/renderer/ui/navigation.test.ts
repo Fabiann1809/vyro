@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { isImmersive, nextScreen, useNavigation } from './navigation'
+import { isImmersive, useNavigation } from './navigation'
 
 describe('navigation', () => {
   beforeEach(() => useNavigation.setState({ screen: 'home' }))
@@ -21,13 +21,5 @@ describe('navigation', () => {
     expect(isImmersive('summary')).toBe(false)
     expect(isImmersive('progress')).toBe(false)
     expect(isImmersive('settings')).toBe(false)
-  })
-
-  it('follows the session flow and comes back home', () => {
-    expect(nextScreen('home')).toBe('calibration')
-    expect(nextScreen('calibration')).toBe('training')
-    expect(nextScreen('training')).toBe('summary')
-    expect(nextScreen('summary')).toBe('home')
-    expect(nextScreen('settings')).toBeNull()
   })
 })

@@ -94,6 +94,13 @@
   "summary.again": "Repeat",
   "summary.progress": "See progress",
   "summary.home": "Back to home",
+  "progress.filter": "Show exercise:",
+  "progress.allSkills": "All exercises",
+  "progress.history": "Session history",
+  "progress.empty": "You have no saved sessions yet.",
+  "progress.start": "Do my first session",
+  "progress.error": "The history could not be loaded.",
+  "history.score": "{score} points",
   "settings.language": "Language",
   "settings.language.es": "Español",
   "settings.language.en": "English",
@@ -107,7 +114,5 @@
   "settings.theme.dark": "Dark",
   "settings.theme.light": "Light",
   "settings.theme.system": "System",
-  "settings.camera": "Camera",
-  "screen.next": "Continue",
-  "screen.exit": "Exit"
+  "settings.camera": "Camera"
 }

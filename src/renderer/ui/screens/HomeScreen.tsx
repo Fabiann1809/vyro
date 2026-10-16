@@ -1,11 +1,16 @@
 import { localize, t } from '@renderer/i18n'
 import { bundledSkills } from '@renderer/skills'
+import { SessionList } from '../SessionList'
 import { useNavigation } from '../navigation'
+import { useSessionList } from '../useSessionList'
 import { useSession } from '../sessionStore'
+
+const RECENT_SESSIONS = 3
 
 export function HomeScreen(): React.JSX.Element {
   const go = useNavigation((state) => state.go)
   const selectSkill = useSession((state) => state.selectSkill)
+  const { status, sessions } = useSessionList({ limit: RECENT_SESSIONS })
 
   const start = (skillId: string): void => {
     selectSkill(skillId)
@@ -35,7 +40,10 @@ export function HomeScreen(): React.JSX.Element {
 
       <div>
         <h2 className="text-xl font-semibold">{t('home.recent.title')}</h2>
-        <p className="mt-1 text-slate-600 dark:text-slate-400">{t('home.recent.empty')}</p>
+        {status === 'ready' && sessions.length === 0 && (
+          <p className="mt-1 text-slate-600 dark:text-slate-400">{t('home.recent.empty')}</p>
+        )}
+        {sessions.length > 0 && <SessionList sessions={sessions} />}
       </div>
     </section>
   )

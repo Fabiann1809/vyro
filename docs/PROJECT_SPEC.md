@@ -197,7 +197,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T7.2 Repositorios.** Sesiones, repeticiones y errores. *Hecho cuando:* las pruebas con SQLite en memoria pasan.
 - [x] **T7.3 Puente IPC tipado.** API expuesta desde el preload. *Hecho cuando:* el renderer guarda y lee datos sin acceso directo a Node.
 - [x] **T7.4 Guardar sesión.** Al terminar un entrenamiento. *Hecho cuando:* la sesión persiste tras reiniciar la app.
-- [ ] **T7.5 Historial.** Lista de sesiones. *Hecho cuando:* muestra las sesiones guardadas y el estado vacío.
+- [x] **T7.5 Historial.** Lista de sesiones. *Hecho cuando:* muestra las sesiones guardadas y el estado vacío.
 - [ ] **T7.6 Gráficas de progreso.** Por ejercicio. *Hecho cuando:* muestra la evolución de repeticiones buenas y puntuación.
 - [ ] **T7.7 Ajustes persistentes y borrado de datos.** *Hecho cuando:* los ajustes sobreviven al reinicio y "borrar datos" vacía la base.
 
