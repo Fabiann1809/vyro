@@ -1,4 +1,6 @@
 import { t, type Language, type MessageKey } from '@renderer/i18n'
+import { useState } from 'react'
+import { speaker } from '@renderer/voice'
 import { CameraStage } from '../CameraStage'
 import { useSettings } from '../settingsStore'
 import { THEME_PREFERENCES, useTheme, type ThemePreference } from '../theme'
@@ -32,6 +34,15 @@ function Group({
 export function SettingsScreen(): React.JSX.Element {
   const settings = useSettings()
   const { preference, setPreference } = useTheme()
+  const [voiceMissing, setVoiceMissing] = useState(false)
+
+  const testVoice = (): void => {
+    const spoke = speaker.speak(t('settings.voice.sample'), {
+      language: settings.language,
+      volume: settings.volume
+    })
+    setVoiceMissing(!spoke)
+  }
 
   return (
     <section className="flex w-full max-w-3xl flex-col gap-5 self-start p-8">
@@ -74,6 +85,15 @@ export function SettingsScreen(): React.JSX.Element {
           />
           <span className="tabular-nums">{Math.round(settings.volume * 100)}%</span>
         </label>
+        <button
+          type="button"
+          disabled={!settings.voiceEnabled}
+          onClick={testVoice}
+          className="w-fit rounded-md bg-slate-200 px-4 py-2 disabled:opacity-50 dark:bg-slate-800"
+        >
+          {t('settings.voice.test')}
+        </button>
+        {voiceMissing && <p role="status">{t('settings.voice.missing')}</p>}
       </Group>
 
       <Group title="settings.appearance">
