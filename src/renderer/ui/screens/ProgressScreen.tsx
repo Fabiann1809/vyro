@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { localize, t } from '@renderer/i18n'
 import { bundledSkills } from '@renderer/skills'
+import { ProgressCharts } from '../ProgressCharts'
 import { SessionList } from '../SessionList'
 import { useNavigation } from '../navigation'
 import { useSessionList } from '../useSessionList'
@@ -30,6 +31,15 @@ export function ProgressScreen(): React.JSX.Element {
           ))}
         </select>
       </label>
+
+      <div>
+        <h2 className="text-xl font-semibold">{t('progress.evolution')}</h2>
+        {skillId === undefined ? (
+          <p className="mt-1 text-slate-600 dark:text-slate-400">{t('progress.pickSkill')}</p>
+        ) : (
+          status === 'ready' && <ProgressCharts sessions={sessions} />
+        )}
+      </div>
 
       <div>
         <h2 className="text-xl font-semibold">{t('progress.history')}</h2>
