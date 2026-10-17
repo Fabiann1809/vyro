@@ -1,3 +1,4 @@
+import { createServer, type Server } from 'node:http'
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -143,6 +144,176 @@ test('the coach answers a question with data, and only the typed bridge reaches 
     noKey: { ok: false, error: { kind: 'no-key' } },
     invalid: { ok: false, error: { kind: 'invalid-input' } },
     methods: ['chat']
+  })
+})
+
+// A stand-in for an AI provider, on this computer: it answers like an OpenAI-compatible server and
+// remembers what it was sent, so the whole path from the screen to the network can be followed.
+interface FakeProvider {
+  url: string
+  received: Array<{
+    headers: Record<string, string | string[] | undefined>
+    body: Record<string, unknown>
+  }>
+  // The next answers, in order; when they run out it answers with the default reply.
+  script: Array<{ status: number; headers?: Record<string, string> }>
+  close: () => Promise<void>
+}
+
+async function startFakeProvider(reply: string): Promise<FakeProvider> {
+  const received: FakeProvider['received'] = []
+  const script: FakeProvider['script'] = []
+  const server: Server = createServer((request, response) => {
+    let raw = ''
+    request.on('data', (chunk: Buffer) => (raw += chunk.toString()))
+    request.on('end', () => {
+      received.push({ headers: request.headers, body: JSON.parse(raw) as Record<string, unknown> })
+      const next = script.shift() ?? { status: 200 }
+      response.writeHead(next.status, { 'content-type': 'application/json', ...next.headers })
+      response.end(
+        JSON.stringify(
+          next.status === 200
+            ? {
+                choices: [
+                  { message: { content: JSON.stringify({ reply }) }, finish_reason: 'stop' }
+                ]
+              }
+            : { error: { message: 'no' } }
+        )
+      )
+    })
+  })
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
+  const address = server.address()
+  const port = typeof address === 'object' && address ? address.port : 0
+  return {
+    url: `http://127.0.0.1:${port}/v1`,
+    received,
+    script,
+    close: () => new Promise<void>((resolve) => server.close(() => resolve()))
+  }
+}
+
+test.describe('AI coach screen', () => {
+  const REPLY = 'Empieza con diez sentadillas lentas.'
+  let provider: FakeProvider
+
+  test.beforeEach(async () => {
+    provider = await startFakeProvider(REPLY)
+  })
+
+  test.afterEach(async () => {
+    await provider.close()
+  })
+
+  async function turnOnWithFakeProvider(page: Page): Promise<void> {
+    await nav(page, 'Ajustes').click()
+    await page.getByLabel('Proveedor').selectOption('ollama')
+    await page.getByLabel('Dirección del servicio').fill(provider.url)
+    await page.getByLabel('Dirección del servicio').blur()
+    await page.getByLabel('Activar el coach con IA').check()
+  }
+
+  test('invites to turn it on when it is off, and goes to the settings', async () => {
+    const page = await launch()
+
+    await nav(page, 'Coach').click()
+    await expect(page.getByRole('heading', { name: 'El coach con IA está apagado' })).toBeVisible()
+    await page.getByRole('button', { name: 'Ir a Ajustes' }).click()
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Ajustes' })).toBeVisible()
+  })
+
+  test('holds a conversation, from the screen to the provider and back', async () => {
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+
+    await nav(page, 'Coach').click()
+    await page.getByLabel('Tu mensaje').fill('Quiero mejorar mi sentadilla')
+    await page.getByLabel('Tu mensaje').press('Enter')
+
+    const log = page.getByRole('log', { name: 'Conversación con el coach' })
+    await expect(log.getByText('Quiero mejorar mi sentadilla')).toBeVisible()
+    await expect(log.getByText(REPLY)).toBeVisible()
+    // The box is empty and ready again.
+    await expect(page.getByLabel('Tu mensaje')).toHaveValue('')
+    await expect(page.getByLabel('Tu mensaje')).toBeFocused()
+
+    // What reached the provider: the persona, the message, no key, nothing else.
+    expect(provider.received).toHaveLength(1)
+    const [sent] = provider.received
+    expect(sent?.headers['authorization']).toBeUndefined()
+    expect(Object.keys(sent?.body ?? {}).sort()).toEqual([
+      'max_tokens',
+      'messages',
+      'model',
+      'response_format'
+    ])
+    const messages = sent?.body['messages'] as Array<{ role: string; content: string }>
+    expect(messages[0]?.role).toBe('system')
+    expect(messages[0]?.content).toContain('Always answer in Spanish.')
+    expect(messages.slice(1)).toEqual([{ role: 'user', content: 'Quiero mejorar mi sentadilla' }])
+  })
+
+  test('keeps the whole conversation in what it sends next, and starts over when asked', async () => {
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+    await nav(page, 'Coach').click()
+
+    await page.getByLabel('Tu mensaje').fill('Hola')
+    await page.getByRole('button', { name: 'Enviar' }).click()
+    await expect(page.getByText(REPLY)).toBeVisible()
+    await page.getByLabel('Tu mensaje').fill('Gracias')
+    await page.getByRole('button', { name: 'Enviar' }).click()
+    await expect(page.getByText(REPLY)).toHaveCount(2)
+
+    const second = provider.received[1]?.body['messages'] as Array<{ role: string }>
+    expect(second.map((message) => message.role)).toEqual(['system', 'user', 'assistant', 'user'])
+
+    await page.getByRole('button', { name: 'Nueva conversación' }).click()
+    await expect(page.getByText('Cuéntame qué quieres aprender o mejorar.')).toBeVisible()
+  })
+
+  test('explains a rate limit with the wait and lets the user try again', async () => {
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+    await nav(page, 'Coach').click()
+    provider.script.push({ status: 429, headers: { 'retry-after': '7' } })
+
+    await page.getByLabel('Tu mensaje').fill('Hola')
+    await page.getByLabel('Tu mensaje').press('Enter')
+
+    await expect(page.getByRole('alert')).toContainText('Espera 7 s')
+    await page.getByRole('button', { name: 'Reintentar' }).click()
+    await expect(page.getByText(REPLY)).toBeVisible()
+    await expect(page.getByRole('alert')).toHaveCount(0)
+  })
+
+  test('says that the provider had a problem, and recovers on retry', async () => {
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+    await nav(page, 'Coach').click()
+    provider.script.push({ status: 503 })
+
+    await page.getByLabel('Tu mensaje').fill('Hola')
+    await page.getByLabel('Tu mensaje').press('Enter')
+
+    await expect(page.getByRole('alert')).toContainText('El proveedor tuvo un problema')
+    await page.getByRole('button', { name: 'Reintentar' }).click()
+    await expect(page.getByText(REPLY)).toBeVisible()
+  })
+
+  test('writes a new line with Shift + Enter instead of sending', async () => {
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+    await nav(page, 'Coach').click()
+
+    await page.getByLabel('Tu mensaje').fill('Primera línea')
+    await page.getByLabel('Tu mensaje').press('Shift+Enter')
+    await page.getByLabel('Tu mensaje').pressSequentially('Segunda línea')
+
+    expect(provider.received).toHaveLength(0)
+    await expect(page.getByLabel('Tu mensaje')).toHaveValue('Primera línea\nSegunda línea')
   })
 })
 

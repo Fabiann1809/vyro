@@ -28,7 +28,9 @@ export class ConfiguredLlmClient implements LlmClient {
 
     if (choice.aiProvider === 'claude') return this.claude.generate(request)
 
-    const baseUrl = preset.baseUrl ?? choice.aiBaseUrl
+    // Groq and Gemini keep their own address. Only Ollama and "custom" let the user choose one, and
+    // the key of "custom" goes where the user pointed it.
+    const baseUrl = preset.baseUrlEditable ? (choice.aiBaseUrl ?? preset.baseUrl) : preset.baseUrl
     const model = choice.aiModel ?? preset.models[request.tier]
     // The address is checked here as well as when it is saved: this is where the key would leave.
     if (!baseUrl || !model || !isSafeAiBaseUrl(baseUrl)) {

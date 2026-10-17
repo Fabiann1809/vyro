@@ -137,14 +137,14 @@ export function AiSettings(): React.JSX.Element {
         </label>
       )}
 
-      {settings.aiProvider === 'custom' && (
+      {provider.baseUrlEditable && (
         <div className="flex flex-col gap-1">
           <label className="flex flex-wrap items-center gap-3">
             {t('settings.ai.baseUrl')}
             <input
               type="url"
               value={urlDraft}
-              placeholder="https://…/v1"
+              placeholder={provider.baseUrl ?? 'https://…/v1'}
               aria-invalid={urlInvalid}
               onChange={(event) => setUrlDraft(event.target.value)}
               onBlur={commitUrl}

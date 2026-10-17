@@ -15,29 +15,44 @@ export interface ProviderPreset {
   models: { fast: string | null; capable: string | null }
   // Ollama runs on the user's computer and ignores the key.
   requiresKey: boolean
+  // Whether the user may type another address (Ollama on another port, or any compatible server).
+  baseUrlEditable: boolean
 }
 
 // URLs and model names checked against each provider's documentation on 2026-10-16. Models
 // change often: the user can always type another one in Settings.
 export const AI_PROVIDERS: Record<AiProviderId, ProviderPreset> = {
-  claude: { baseUrl: null, models: { fast: null, capable: null }, requiresKey: true },
+  claude: {
+    baseUrl: null,
+    models: { fast: null, capable: null },
+    requiresKey: true,
+    baseUrlEditable: false
+  },
   groq: {
     baseUrl: 'https://api.groq.com/openai/v1',
     models: { fast: 'openai/gpt-oss-20b', capable: 'openai/gpt-oss-120b' },
-    requiresKey: true
+    requiresKey: true,
+    baseUrlEditable: false
   },
   gemini: {
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
     models: { fast: 'gemini-3.5-flash-lite', capable: 'gemini-3.8-flash' },
-    requiresKey: true
+    requiresKey: true,
+    baseUrlEditable: false
   },
   ollama: {
     baseUrl: 'http://localhost:11434/v1',
     // Whatever the user has pulled with `ollama pull`; this one is small and common.
     models: { fast: 'llama3.2', capable: 'llama3.2' },
-    requiresKey: false
+    requiresKey: false,
+    baseUrlEditable: true
   },
-  custom: { baseUrl: null, models: { fast: null, capable: null }, requiresKey: true }
+  custom: {
+    baseUrl: null,
+    models: { fast: null, capable: null },
+    requiresKey: true,
+    baseUrlEditable: true
+  }
 }
 
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]'])

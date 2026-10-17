@@ -1,10 +1,10 @@
 import { create } from 'zustand'
 
 export type Screen =
-  'home' | 'calibration' | 'training' | 'summary' | 'progress' | 'settings' | 'lab'
+  'home' | 'calibration' | 'training' | 'summary' | 'progress' | 'coach' | 'settings' | 'lab'
 
 // Screens reached from the top navigation.
-export const NAV_SCREENS: readonly Screen[] = ['home', 'progress', 'settings']
+export const NAV_SCREENS: readonly Screen[] = ['home', 'progress', 'coach', 'settings']
 
 // The user is standing in front of the camera: no navigation, only a way out.
 const IMMERSIVE_SCREENS: readonly Screen[] = ['calibration', 'training']

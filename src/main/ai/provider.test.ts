@@ -102,6 +102,27 @@ describe('ConfiguredLlmClient', () => {
     )
   })
 
+  it('lets Ollama run on another local port', async () => {
+    const { client, net } = clientFor(
+      choice({ aiProvider: 'ollama', aiBaseUrl: 'http://127.0.0.1:5555/v1' }),
+      null
+    )
+
+    await client.generate(request)
+
+    expect(net.urls[0]).toBe('http://127.0.0.1:5555/v1/chat/completions')
+  })
+
+  it('keeps the own address of a provider with a key, whatever the settings say', async () => {
+    const { client, net } = clientFor(
+      choice({ aiProvider: 'groq', aiBaseUrl: 'https://elsewhere.example.com/v1' })
+    )
+
+    await client.generate(request)
+
+    expect(net.urls[0]).toBe('https://api.groq.com/openai/v1/chat/completions')
+  })
+
   it('prefers the model the user typed, for every kind of request', async () => {
     const { client, net } = clientFor(choice({ aiProvider: 'groq', aiModel: 'my-model' }))
 
