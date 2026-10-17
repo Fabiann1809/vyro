@@ -17,7 +17,10 @@ The core is built so that any other skill can be added as a configuration file.
   English.
 - **Sets you up first.** A calibration step checks that your whole body is in view, that you are
   seen from the side, at a good distance and in good light, before the session starts.
-- **Shows your progress.** A summary after every session, a history, and charts per exercise.
+- **Talks first.** The home screen is a chat with the coach (optional, with your own key): say what you
+  want to learn and it proposes a path of steps that VYRO can measure.
+- **Shows your progress.** A summary after every session and a dashboard with your streak, your scores
+  over time, what fails most and how each channel (body, hands, object, sound) is doing.
 - **Works offline.** No account, no cloud. The pose model ships with the app.
 
 ## Install
@@ -45,7 +48,7 @@ If you prefer not to trust an unsigned binary, build it yourself (see _Developme
 
 ## First session
 
-1. Open VYRO and pick an exercise.
+1. Open VYRO. Tell the coach what you want to learn, or pick a skill in the Library.
 2. Allow the camera when your system asks.
 3. Place the camera **to your side**, 2–3 metres away, so that your whole body is in view. If your
    laptop camera cannot do that, [use your phone as a webcam](docs/PHONE_AS_WEBCAM.md) (the guide

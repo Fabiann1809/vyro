@@ -48,7 +48,7 @@ El MVP cubre tres ejercicios con el propio peso del cuerpo (sentadilla, flexión
 | Datos | SQLite con `node:sqlite` integrado (proceso principal; ver D11 en `docs/DECISIONS.md`) |
 | Voz | `speechSynthesis` con audios pregrabados de respaldo |
 | Internacionalización | i18next |
-| Gráficas | Recharts |
+| Gráficas | Dibujadas a mano en SVG desde funciones puras (D17) |
 | Pruebas | Vitest y Playwright |
 | Calidad | ESLint, Prettier, husky, lint-staged, commitlint |
 | Empaquetado | electron-builder (instalador de Windows, `.dmg` y AppImage) |
@@ -352,7 +352,7 @@ Vista frontal, detección de fatiga, clips de errores, modelos propios que juzgu
 - Crear el repositorio público en GitHub (`Fabiann1809/vyro`) y activar Dependabot.
 - ~~Elegir los audios de respaldo~~: voz sintética exportada (`scripts/generate-voice-clips.ps1`).
 - Modelo de pose: `lite` o `full`, según el rendimiento medido en la fase 2.
-- Estructura final de pantallas según el diseño de Claude Design.
+- ~~Estructura final de pantallas según el diseño de Claude Design~~: hecha en la fase 16.
 - Logo e icono de VYRO.
 - Texto del aviso de consentimiento de la IA (T12.1).
 - Límite de gasto diario por defecto (T12.2): decidido en 200 000 tokens al día, configurable.
