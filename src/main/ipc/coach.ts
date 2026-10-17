@@ -9,10 +9,12 @@ import {
   type CoachSummaryReply
 } from '@shared/coach'
 import { IPC } from '@shared/ipc'
+import { planPathInputSchema, type PlanPathResult } from '@shared/pathPlan'
 import type { AppSettings } from '@shared/settings'
 import { coachSystemPrompt, summarySystemPrompt } from '../ai/coachPrompts'
 import { LlmError } from '../ai/errors'
 import type { LlmClient } from '../ai/llmClient'
+import { generatePathTurn } from '../ai/pathGenerator'
 import { buildMessages, textTurn } from '../ai/outbound'
 import { generateWithRepair } from '../ai/repair'
 
@@ -39,6 +41,7 @@ export function createCoachHandlers(deps: {
 }): {
   chat: (input: unknown) => Promise<CoachResult<CoachChatReply>>
   summarize: (input: unknown) => Promise<CoachResult<CoachSummaryReply>>
+  planPath: (input: unknown) => Promise<CoachResult<PlanPathResult>>
 } {
   let busy = false
 
@@ -95,7 +98,10 @@ export function createCoachHandlers(deps: {
           maxTokens: SUMMARY_MAX_TOKENS
         })
       )
-    }
+    },
+
+    planPath: (input) =>
+      guarded(planPathInputSchema.safeParse(input), (plan) => generatePathTurn(deps.llm, plan))
   }
 }
 
@@ -104,4 +110,5 @@ export function registerCoachIpc(deps: Parameters<typeof createCoachHandlers>[0]
 
   ipcMain.handle(IPC.coachChat, (_event, input: unknown) => handlers.chat(input))
   ipcMain.handle(IPC.coachSummarize, (_event, input: unknown) => handlers.summarize(input))
+  ipcMain.handle(IPC.coachPlanPath, (_event, input: unknown) => handlers.planPath(input))
 }

@@ -1,4 +1,5 @@
 import type { AiKeyStatus } from './ai'
+import type { PlanPathInput, PlanPathResult } from './pathPlan'
 import type {
   CoachChatInput,
   CoachChatReply,
@@ -24,7 +25,8 @@ export const IPC = {
   aiKeySave: 'ai:key-save',
   aiKeyClear: 'ai:key-clear',
   coachChat: 'coach:chat',
-  coachSummarize: 'coach:summarize'
+  coachSummarize: 'coach:summarize',
+  coachPlanPath: 'coach:plan-path'
 } as const
 
 // The only API the renderer can call. Everything else stays in the main process.
@@ -56,6 +58,8 @@ export interface VyroApi {
     chat: (input: CoachChatInput) => Promise<CoachResult<CoachChatReply>>
     // A few words about one session, from its numbers only.
     summarize: (input: CoachSummaryInput) => Promise<CoachResult<CoachSummaryReply>>
+    // One step of planning a learning path: a question, a path, or why it cannot be done.
+    planPath: (input: PlanPathInput) => Promise<CoachResult<PlanPathResult>>
   }
   data: {
     // Empties the database: sessions and settings.

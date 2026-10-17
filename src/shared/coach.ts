@@ -42,21 +42,23 @@ export type CoachResult<T> = { ok: true; value: T } | { ok: false; error: CoachE
 export const MAX_COACH_TURNS = 40
 export const MAX_COACH_TURN_LENGTH = 4000
 
+// The turns of a conversation, ending with the user's: a question is waiting for its answer.
+export const coachTurnsSchema = z
+  .array(
+    z
+      .object({
+        role: z.enum(['user', 'assistant']),
+        text: z.string().trim().min(1).max(MAX_COACH_TURN_LENGTH)
+      })
+      .strict()
+  )
+  .min(1)
+  .max(MAX_COACH_TURNS)
+  .refine((turns) => turns[turns.length - 1]?.role === 'user')
+
 export const coachChatInputSchema = z
   .object({
-    turns: z
-      .array(
-        z
-          .object({
-            role: z.enum(['user', 'assistant']),
-            text: z.string().trim().min(1).max(MAX_COACH_TURN_LENGTH)
-          })
-          .strict()
-      )
-      .min(1)
-      .max(MAX_COACH_TURNS)
-      // A question is waiting for its answer: the last word is the user's.
-      .refine((turns) => turns[turns.length - 1]?.role === 'user'),
+    turns: coachTurnsSchema,
     // The language the coach answers in.
     language: z.enum(['es', 'en'])
   })

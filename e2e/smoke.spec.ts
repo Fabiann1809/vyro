@@ -143,7 +143,7 @@ test('the coach answers a question with data, and only the typed bridge reaches 
     off: { ok: false, error: { kind: 'not-enabled' } },
     noKey: { ok: false, error: { kind: 'no-key' } },
     invalid: { ok: false, error: { kind: 'invalid-input' } },
-    methods: ['chat', 'summarize']
+    methods: ['chat', 'summarize', 'planPath']
   })
 })
 
@@ -359,6 +359,64 @@ test.describe('AI coach screen', () => {
       error: { kind: 'invalid-input' }
     })
     expect(provider.received).toHaveLength(1)
+  })
+
+  test('plans a learning path, or says why it cannot', async () => {
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+    const plan = (text: string): Promise<unknown> =>
+      page.evaluate(
+        (message) =>
+          (
+            window as unknown as { api: { coach: { planPath: (i: unknown) => Promise<unknown> } } }
+          ).api.coach.planPath({
+            turns: [{ role: 'user', text: message }],
+            language: 'es',
+            skills: [{ id: 'squat', name: { es: 'Sentadilla', en: 'Squat' }, ruleIds: ['depth'] }]
+          }),
+        text
+      )
+
+    provider.setAnswer({
+      action: 'propose',
+      requirement: { channels: ['body'] },
+      path: {
+        goal: 'Mejorar mi sentadilla',
+        steps: [
+          {
+            title: 'Sentadilla lenta',
+            description: 'Baja en tres segundos.',
+            kind: 'skill',
+            skillId: 'squat',
+            criterionSessions: 3,
+            criterionScore: 75
+          }
+        ]
+      }
+    })
+    expect(await plan('Quiero mejorar mi sentadilla')).toMatchObject({
+      ok: true,
+      value: { kind: 'path', path: { goal: 'Mejorar mi sentadilla' } }
+    })
+
+    // The planner is told which skills exist, and nothing else about the person.
+    const messages = provider.received[0]?.body['messages'] as Array<{
+      role: string
+      content: string
+    }>
+    expect(messages[0]?.content).toContain('- squat: "Squat" / "Sentadilla"')
+    expect(messages.slice(1)).toEqual([{ role: 'user', content: 'Quiero mejorar mi sentadilla' }])
+
+    // Something that cannot be measured is declined by the app, not left to the model.
+    provider.setAnswer({
+      action: 'ask',
+      requirement: { channels: [], outOfScope: ['invisible-outcome'] },
+      question: '¿Qué tipo?'
+    })
+    expect(await plan('Quiero aprender a meditar')).toEqual({
+      ok: true,
+      value: { kind: 'out-of-scope', reasons: ['invisible-outcome', 'no-signal'], measurable: [] }
+    })
   })
 
   test('writes a new line with Shift + Enter instead of sending', async () => {

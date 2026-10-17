@@ -6,6 +6,7 @@ import type {
   CoachSummaryInput,
   CoachSummaryReply
 } from '@shared/coach'
+import type { PlanPathInput, PlanPathResult } from '@shared/pathPlan'
 import { LlmError } from '../ai/errors'
 import type { GenerateRequest, LlmClient } from '../ai/llmClient'
 import { createCoachHandlers } from './coach'
@@ -22,6 +23,7 @@ const input: CoachChatInput = {
 interface Setup {
   chat: (input: unknown) => Promise<CoachResult<CoachChatReply>>
   summarize: (input: unknown) => Promise<CoachResult<CoachSummaryReply>>
+  planPath: (input: unknown) => Promise<CoachResult<PlanPathResult>>
   requests: GenerateRequest<unknown>[]
   answer: (outcome: unknown) => void
   enabled: { value: boolean }
@@ -41,11 +43,11 @@ function setup(...outcomes: unknown[]): Setup {
       return value instanceof Error ? Promise.reject(value) : Promise.resolve(value as T)
     }
   }
-  const { chat, summarize } = createCoachHandlers({
+  const { chat, summarize, planPath } = createCoachHandlers({
     llm,
     getSettings: () => ({ aiEnabled: enabled.value })
   })
-  return { chat, summarize, requests, answer: (outcome) => queue.push(outcome), enabled }
+  return { chat, summarize, planPath, requests, answer: (outcome) => queue.push(outcome), enabled }
 }
 
 let ctx: Setup
@@ -324,5 +326,98 @@ describe('coach summary handler', () => {
 
     finish({ reply: 'listo' })
     await chatting
+  })
+})
+
+const planInput: PlanPathInput = {
+  turns: [{ role: 'user', text: 'Quiero mejorar mi sentadilla' }],
+  language: 'es',
+  skills: [{ id: 'squat', name: { es: 'Sentadilla', en: 'Squat' }, ruleIds: ['depth'] }]
+}
+const proposed = {
+  action: 'propose',
+  requirement: { channels: ['body'], objects: [], outOfScope: [] },
+  path: {
+    goal: 'Mejorar mi sentadilla',
+    steps: [
+      {
+        title: 'Sentadilla lenta',
+        description: 'Baja en tres segundos.',
+        kind: 'skill',
+        skillId: 'squat',
+        criterionSessions: 3,
+        criterionScore: 75
+      }
+    ]
+  }
+}
+
+describe('coach path planning handler', () => {
+  it('gives back the path that the planner proposes', async () => {
+    const planning = setup(proposed)
+
+    expect(await planning.planPath(planInput)).toEqual({
+      ok: true,
+      value: { kind: 'path', path: proposed.path }
+    })
+  })
+
+  it('declines what cannot be coached, as a normal answer and not as an error', async () => {
+    const planning = setup({
+      action: 'ask',
+      requirement: { channels: [], objects: [], outOfScope: ['invisible-outcome'] },
+      question: '¿Qué tipo de meditación?'
+    })
+
+    expect(await planning.planPath(planInput)).toEqual({
+      ok: true,
+      value: { kind: 'out-of-scope', reasons: ['invisible-outcome', 'no-signal'], measurable: [] }
+    })
+  })
+
+  it.each([
+    ['no skills to choose from', { ...planInput, skills: [] }],
+    [
+      'a skill id that is not an identifier',
+      { ...planInput, skills: [{ ...planInput.skills[0], id: 'Not An Id' }] }
+    ],
+    [
+      'a conversation that ends with the coach',
+      { ...planInput, turns: [{ role: 'assistant', text: 'hola' }] }
+    ],
+    ['a field that is not listed', { ...planInput, camera: 'x' }],
+    ['something that is not an object', 'hola']
+  ])('rejects %s', async (_name, bad) => {
+    const planning = setup(proposed)
+
+    expect(await planning.planPath(bad)).toEqual({ ok: false, error: { kind: 'invalid-input' } })
+    expect(planning.requests).toEqual([])
+  })
+
+  it('does not ask while the AI coach is off', async () => {
+    const planning = setup(proposed)
+    planning.enabled.value = false
+
+    expect(await planning.planPath(planInput)).toEqual({
+      ok: false,
+      error: { kind: 'not-enabled' }
+    })
+  })
+
+  it('answers a failure as data, with only its kind', async () => {
+    const failing = setup(new LlmError('network'))
+
+    expect(await failing.planPath(planInput)).toEqual({ ok: false, error: { kind: 'network' } })
+  })
+
+  it('blocks a message that carries a picture', async () => {
+    const planning = setup(proposed)
+    const withImage = {
+      ...planInput,
+      turns: [{ role: 'user', text: `mira ${'iVBORw0KGgoAAAANSUhEUg'.repeat(20)}` }]
+    }
+
+    expect(await planning.planPath(withImage)).toEqual({ ok: false, error: { kind: 'blocked' } })
+    expect(planning.requests).toEqual([])
   })
 })

@@ -25,7 +25,8 @@ const api: VyroApi = {
   },
   coach: {
     chat: (input) => ipcRenderer.invoke(IPC.coachChat, input),
-    summarize: (input) => ipcRenderer.invoke(IPC.coachSummarize, input)
+    summarize: (input) => ipcRenderer.invoke(IPC.coachSummarize, input),
+    planPath: (input) => ipcRenderer.invoke(IPC.coachPlanPath, input)
   },
   data: {
     deleteAll: () => ipcRenderer.invoke(IPC.dataDeleteAll)
