@@ -443,6 +443,132 @@ test.describe('AI coach screen', () => {
     expect(messages.slice(1)).toEqual([{ role: 'user', content: 'Quiero mejorar mi sentadilla' }])
   })
 
+  const SQUAT_PATH = {
+    action: 'propose',
+    requirement: { channels: ['body'] },
+    path: {
+      goal: 'Mejorar mi sentadilla',
+      steps: [
+        {
+          title: 'Sentadilla lenta',
+          description: 'Baja en tres segundos.',
+          kind: 'skill',
+          skillId: 'squat',
+          criterionSessions: 2,
+          criterionScore: 75
+        },
+        {
+          title: 'Descanso activo',
+          description: 'Camina diez minutos.',
+          kind: 'auxiliary',
+          skillId: null,
+          criterionSessions: null,
+          criterionScore: null
+        }
+      ]
+    }
+  }
+
+  test('shows a proposed path as a card, keeps it when asked and starts its first step', async () => {
+    provider.setAnswer(SQUAT_PATH)
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+    await nav(page, 'Inicio').click()
+
+    await page.getByLabel('Tu mensaje').fill('Quiero mejorar mi sentadilla')
+    await page.getByLabel('Tu mensaje').press('Enter')
+
+    const card = page.getByRole('heading', { name: 'Mejorar mi sentadilla' })
+    await expect(card).toBeVisible()
+    await expect(page.getByText('Sentadilla lenta')).toBeVisible()
+    await expect(page.getByText('Descanso activo')).toBeVisible()
+    await expect(page.getByText('Auxiliar')).toBeVisible()
+    await expect(page.getByText('2 pasos')).toBeVisible()
+
+    // A path is not kept until the person says so.
+    await expect(page.getByText('Ruta guardada')).toHaveCount(0)
+
+    await page.getByRole('button', { name: 'Empezar ahora' }).click()
+    await expect(
+      page.getByRole('heading', { level: 1, name: /Calibración · Sentadilla/ })
+    ).toBeVisible()
+
+    // Leaving the calibration comes back to the chat, where the path is now kept.
+    await page.getByRole('button', { name: 'Cancelar' }).click()
+    await expect(page.getByText('Ruta guardada')).toBeVisible()
+    await nav(page, 'Mi ruta').click()
+    await expect(page.getByText('Sentadilla lenta')).toBeVisible()
+  })
+
+  test('keeps a proposed path and opens it, and goes on chatting afterwards', async () => {
+    provider.setAnswer(SQUAT_PATH)
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+    await nav(page, 'Inicio').click()
+    await page.getByLabel('Tu mensaje').fill('Quiero mejorar mi sentadilla')
+    await page.getByLabel('Tu mensaje').press('Enter')
+
+    await page.getByRole('button', { name: 'Ver ruta completa' }).click()
+    await expect(page.getByRole('heading', { level: 1, name: 'Mi ruta' })).toBeVisible()
+    await expect(page.getByText('Sentadilla lenta')).toBeVisible()
+
+    // Back in the chat the talk is an ordinary one: the answer is not a path any more.
+    provider.setAnswer({ reply: REPLY })
+    await nav(page, 'Inicio').click()
+    await page.getByLabel('Tu mensaje').fill('¿Y si me duele la rodilla?')
+    await page.getByLabel('Tu mensaje').press('Enter')
+
+    await expect(page.getByRole('log').getByText(REPLY)).toBeVisible()
+    const sent = provider.received.at(-1)?.body['messages'] as Array<{
+      role: string
+      content: string
+    }>
+    expect(sent[0]?.content).toContain('Always answer in Spanish.')
+    expect(sent.slice(1)).toEqual([{ role: 'user', content: '¿Y si me duele la rodilla?' }])
+  })
+
+  test('takes the adjust button as a chance to change what was proposed', async () => {
+    provider.setAnswer(SQUAT_PATH)
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+    await nav(page, 'Inicio').click()
+    await page.getByLabel('Tu mensaje').fill('Quiero mejorar mi sentadilla')
+    await page.getByLabel('Tu mensaje').press('Enter')
+
+    await page.getByRole('button', { name: 'Ajustar' }).click()
+    await expect(page.getByRole('button', { name: 'Empezar ahora' })).toHaveCount(0)
+    await expect(page.getByLabel('Tu mensaje')).toBeFocused()
+
+    await page.getByLabel('Tu mensaje').fill('Más corta, por favor')
+    await page.getByLabel('Tu mensaje').press('Enter')
+    await expect(page.getByRole('button', { name: 'Empezar ahora' })).toBeVisible()
+
+    // The planner was told about both things the person asked.
+    const sent = provider.received.at(-1)?.body['messages'] as Array<{ role: string }>
+    expect(sent.map((message) => message.role)).toEqual(['system', 'user', 'user'])
+  })
+
+  test('explains on a card why it cannot make a path, and starts over', async () => {
+    provider.setAnswer({
+      action: 'ask',
+      requirement: { channels: [], outOfScope: ['invisible-outcome'] },
+      question: '¿Qué tipo de meditación?'
+    })
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+    await nav(page, 'Inicio').click()
+
+    await page.getByLabel('Tu mensaje').fill('Quiero aprender a meditar')
+    await page.getByLabel('Tu mensaje').press('Enter')
+
+    await expect(page.getByRole('heading', { name: 'VYRO no puede entrenar eso' })).toBeVisible()
+    await expect(page.getByText('El resultado no se puede ver ni oír')).toBeVisible()
+    await page.getByRole('button', { name: 'Probar con otra cosa' }).click()
+    await expect(
+      page.getByRole('heading', { level: 1, name: '¿Qué quieres aprender?' })
+    ).toBeVisible()
+  })
+
   test('counts what it uses, and at the daily limit asks nothing of the provider', async () => {
     askReply()
     const page = await launch()
