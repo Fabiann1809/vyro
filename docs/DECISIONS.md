@@ -99,6 +99,6 @@ Format: **context → decision → consequences**.
 ## D16 — A custom object detector, only for detecting objects
 
 - **Context:** the generic detectors do not know dumbbells or guitars.
-- **Decision:** train a small detector with MediaPipe Model Maker for a short list of objects. Training images are never committed; their source and license are documented.
+- **Decision:** train a small detector with MediaPipe Model Maker for a short list of objects, starting with the guitar only. Training images are never committed; their source and license are documented.
 - **Consequences:** this reopens "own models" only for object detection. Models that judge technique remain out of scope; rules do that.
 

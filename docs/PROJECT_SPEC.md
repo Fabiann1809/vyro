@@ -296,12 +296,12 @@ están menos detalladas que las anteriores y se afinarán al llegar a ellas.
 - [x] **T14.8 Audio en el chat y en el generador.** El canal pasa a "soportado" en T10.2. *Hecho cuando:* con un LLM falso se genera y valida una habilidad con audio.
 
 ### Fase 15 — Canal objetos
-- [ ] **T15.1 Objetos y datos de entrenamiento.** Elegir la lista corta inicial (mancuerna y guitarra), el origen y la licencia de las imágenes (por ejemplo, Open Images, a verificar), y un script reproducible; ninguna imagen entra al repositorio. *Hecho cuando:* un documento recoge fuente y licencia de cada conjunto.
+- [x] **T15.1 Objetos y datos de entrenamiento.** Lista inicial: solo la guitarra (la mancuerna queda aplazada: el curl ya se mide con el cuerpo). Origen y licencia de las imágenes (Open Images V7, CC BY; ver `docs/OBJECT_DATA.md`), y un script reproducible; ninguna imagen entra al repositorio. *Hecho cuando:* un documento recoge fuente y licencia de cada conjunto.
 - [ ] **T15.2 Entrenamiento del detector.** Script en `tools/` con MediaPipe Model Maker y evaluación con un conjunto aparte. *Hecho cuando:* existe un modelo con sus métricas registradas y un umbral mínimo acordado.
 - [ ] **T15.3 Detector empaquetado.** Modelo `ObjectDetector` cargado sin red. *Hecho cuando:* carga con internet desactivado.
 - [ ] **T15.4 Detección en el bucle.** Con suavizado de la caja y presupuesto de tiempo por fotograma. *Hecho cuando:* la caja sigue al objeto en vivo con FPS aceptables.
 - [ ] **T15.5 Esquema y métricas de objeto.** Posición del objeto respecto a la muñeca y al cuerpo, e inclinación de su eje. *Hecho cuando:* las pruebas con cajas conocidas dan los valores esperados.
-- [ ] **T15.6 Curl de bíceps con mancuerna.** Habilidad con objeto y fixtures. *Hecho cuando:* ≥ 90 % de acierto en conteo y ≥ 80 % en errores sobre los fixtures.
+- [ ] **T15.6 (aplazada) Curl de bíceps con mancuerna.** Necesita un detector de mancuerna, que no se entrena en esta ronda. Habilidad con objeto y fixtures. *Hecho cuando:* ≥ 90 % de acierto en conteo y ≥ 80 % en errores sobre los fixtures.
 - [ ] **T15.7 Postura con guitarra.** Inclinación del mástil y altura de la guitarra combinadas con cuerpo, manos y audio. *Hecho cuando:* una habilidad usa los cuatro canales.
 - [ ] **T15.8 Objetos en el chat y en el generador.** Solo los objetos entrenados; cualquier otro se rechaza con un mensaje claro. *Hecho cuando:* con un LLM falso un objeto no soportado se rechaza y uno soportado se acepta.
 
