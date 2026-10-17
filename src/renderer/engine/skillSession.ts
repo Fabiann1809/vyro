@@ -5,16 +5,23 @@ import { FeedbackPrioritizer, type FeedbackMessage } from './feedback'
 import { computeMetrics, type FrameSize, type MetricValues } from './metrics'
 import { RepCounter, type CompletedRep, type RepEvent } from './repCounter'
 import { RepEvaluator, type RepResult } from './repEvaluator'
+import { skillChannels } from '@shared/skill/skillChannels'
 import type { SkillConfig } from '@shared/skill/skillSchema'
 
 export interface FrameInput {
   timestampMs: number
   // null when the model saw nobody.
   landmarks: readonly Landmark[] | null
+  // The 21 points of the hand the skill is judged by; null when no hand is in view. Only skills that
+  // look at hands read it.
+  hand?: readonly Landmark[] | null
 }
 
 export interface FrameOutput {
-  // The side of the body being judged, or null if the body could not be followed in this frame.
+  // False when what the skill needs to see (the body, a hand, or both) could not be followed in
+  // this frame.
+  tracked: boolean
+  // The side of the body being judged; null if the body is not used or could not be followed.
   side: Side | null
   metrics: MetricValues | null
   // The phase of the body now, such as "down"; null before the first phase is reached.
@@ -30,6 +37,7 @@ export interface FrameOutput {
 const LOST_BODY_RESET_MS = 1000
 
 const NOTHING: FrameOutput = {
+  tracked: false,
   side: null,
   metrics: null,
   phase: null,
@@ -43,6 +51,9 @@ const NOTHING: FrameOutput = {
 // The training screen and the replay harness feed it the same way, one frame at a time.
 export class SkillSession {
   private readonly smoother = new LandmarkSmoother()
+  private readonly handSmoother = new LandmarkSmoother()
+  private readonly needsBody: boolean
+  private readonly needsHand: boolean
   private readonly sideTracker = new SideTracker()
   private readonly counter: RepCounter
   private readonly evaluator: RepEvaluator
@@ -55,6 +66,9 @@ export class SkillSession {
     private readonly skill: SkillConfig,
     private readonly frame: FrameSize
   ) {
+    const channels = skillChannels(skill)
+    this.needsBody = channels.includes('body')
+    this.needsHand = channels.includes('hands')
     this.counter = new RepCounter(skill)
     this.evaluator = new RepEvaluator(skill)
   }
@@ -75,22 +89,36 @@ export class SkillSession {
   }
 
   processFrame(input: FrameInput): FrameOutput {
-    const smoothed = input.landmarks
-      ? this.smoother.smooth(input.landmarks, input.timestampMs)
-      : null
-    const side = this.sideTracker.update(smoothed)
+    const smoothed =
+      this.needsBody && input.landmarks
+        ? this.smoother.smooth(input.landmarks, input.timestampMs)
+        : null
+    const side = this.needsBody ? this.sideTracker.update(smoothed) : null
+    const hand =
+      this.needsHand && input.hand ? this.handSmoother.smooth(input.hand, input.timestampMs) : null
+    if (this.needsHand && !hand) this.handSmoother.reset()
 
-    if (!smoothed || !side) {
+    const bodyOk = !this.needsBody || (smoothed !== null && side !== null)
+    const handOk = !this.needsHand || hand !== null
+    if (!bodyOk || !handOk) {
       this.onBodyLost(input.timestampMs)
       return NOTHING
     }
     this.lostSinceMs = undefined
 
-    const metrics = computeMetrics(this.skill.metrics, smoothed, side, this.frame)
+    const metrics = computeMetrics(this.skill.metrics, smoothed, side, this.frame, hand)
     const repEvent = this.counter.update(input.timestampMs, metrics)
 
     if (repEvent?.type !== 'completed') {
-      return { side, metrics, phase: this.counter.phase, repEvent, repResult: null, feedback: null }
+      return {
+        tracked: true,
+        side,
+        metrics,
+        phase: this.counter.phase,
+        repEvent,
+        repResult: null,
+        feedback: null
+      }
     }
 
     this.lastRep = repEvent.rep
@@ -98,13 +126,22 @@ export class SkillSession {
     this.results.push(repResult)
     const feedback = this.feedback.onRepResult(repResult, input.timestampMs)
 
-    return { side, metrics, phase: this.counter.phase, repEvent, repResult, feedback }
+    return {
+      tracked: true,
+      side,
+      metrics,
+      phase: this.counter.phase,
+      repEvent,
+      repResult,
+      feedback
+    }
   }
 
   // Drops the repetition in progress, for example after a pause. Count and history are kept.
   restartTracking(): void {
     this.counter.reset()
     this.smoother.reset()
+    this.handSmoother.reset()
     this.sideTracker.reset()
     this.lostSinceMs = undefined
   }

@@ -85,6 +85,19 @@ test('goes from the home screen to the calibration and back', async () => {
   await expect(page.getByRole('heading', { level: 1, name: 'Inicio' })).toBeVisible()
 })
 
+test('a skill of the hands is calibrated with the hands, not the body', async () => {
+  const page = await launch()
+
+  await page.getByRole('button', { name: 'Mano al piano' }).click()
+
+  await expect(
+    page.getByRole('heading', { level: 1, name: /Calibración · Mano al piano/ })
+  ).toBeVisible()
+  await expect(page.getByText('Mano completa')).toBeVisible()
+  await expect(page.getByText('Muestra tu mano a la cámara')).toBeVisible()
+  await expect(page.getByText('Cuerpo completo')).toHaveCount(0)
+})
+
 test('keeps the page isolated from Node and exposes only the typed bridge', async () => {
   const page = await launch()
 

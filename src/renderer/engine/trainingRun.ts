@@ -66,12 +66,12 @@ export class TrainingRun {
     if (this.isPaused) return { ...this.snapshot, feedback: null }
 
     const output = this.session.processFrame(input)
-    const tracking = this.trackingAt(output.side !== null, input.timestampMs)
+    const tracking = this.trackingAt(output.tracked, input.timestampMs)
     const lastQuality = output.repResult?.quality ?? this.snapshot.lastQuality
 
     this.snapshot = {
       repCount: this.session.repCount,
-      phase: output.side ? output.phase : null,
+      phase: output.tracked ? output.phase : null,
       lastQuality,
       tracking,
       feedback: output.feedback

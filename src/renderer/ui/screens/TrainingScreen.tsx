@@ -9,6 +9,8 @@ import { TrainingRun, type TrainingSnapshot } from '@renderer/engine/trainingRun
 import { localize, t, type MessageKey } from '@renderer/i18n'
 import { voice } from '@renderer/voice'
 import { VoicePolicy } from '@renderer/voice/voicePolicy'
+import { pickHand } from '@renderer/core/handJoints'
+import { skillChannels } from '@shared/skill/skillChannels'
 import { CameraStage } from '../CameraStage'
 import { useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
@@ -99,9 +101,11 @@ export function TrainingScreen(): React.JSX.Element {
         width: video.videoWidth,
         height: video.videoHeight
       })
+      const hand = pickHand(frame.hands?.observations ?? [], skill.camera.hand)
       const next = runRef.current.processFrame({
         timestampMs: frame.timestampMs,
-        landmarks: frame.landmarks
+        landmarks: frame.landmarks,
+        hand: hand?.landmarks ?? null
       })
 
       if (next.feedback) {
@@ -250,7 +254,11 @@ export function TrainingScreen(): React.JSX.Element {
 
       <div className="flex flex-1 items-start justify-center gap-6">
         <div className="relative">
-          <CameraStage onFrame={handleFrame} videoClassName="max-h-[70vh]">
+          <CameraStage
+            onFrame={handleFrame}
+            withHands={skillChannels(skill).includes('hands')}
+            videoClassName="max-h-[70vh]"
+          >
             {(paused || snapshot.tracking === 'lost') && (
               <div
                 role="alert"

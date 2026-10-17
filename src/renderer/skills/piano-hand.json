@@ -1,0 +1,51 @@
+{
+  "id": "piano_hand",
+  "category": "instrument",
+  "name": { "es": "Mano al piano", "en": "Piano hand" },
+  "camera": { "view": "side", "fullBody": false, "hand": "auto" },
+  "metrics": {
+    "arch": { "type": "angle", "points": ["indexMcp", "indexPip", "indexDip"] },
+    "wrist": { "type": "tilt", "from": "handWrist", "to": "middleMcp" },
+    "tipLift": {
+      "type": "offset",
+      "from": "indexMcp",
+      "to": "indexTip",
+      "axis": "y",
+      "scale": ["handWrist", "middleMcp"]
+    }
+  },
+  "phases": [
+    { "id": "resting", "when": { "tipLift": { "gt": 0.45 } } },
+    { "id": "lifted", "when": { "tipLift": { "lt": 0.25 } } }
+  ],
+  "rep": { "sequence": ["resting", "lifted", "resting"], "minDurationMs": 300 },
+  "rules": [
+    {
+      "id": "flat_finger",
+      "severity": "high",
+      "check": "max(arch) <= 168",
+      "message": {
+        "es": "Curva más el dedo, como si sostuvieras una pelota",
+        "en": "Curve your finger more, as if holding a ball"
+      }
+    },
+    {
+      "id": "wrist_level",
+      "severity": "medium",
+      "check": "min(wrist) >= 70 && max(wrist) <= 110",
+      "message": {
+        "es": "Mantén la muñeca a la altura de los nudillos",
+        "en": "Keep your wrist level with your knuckles"
+      }
+    },
+    {
+      "id": "clenched_finger",
+      "severity": "low",
+      "check": "min(arch) >= 105",
+      "message": {
+        "es": "No cierres tanto el dedo",
+        "en": "Do not close your finger so much"
+      }
+    }
+  ]
+}

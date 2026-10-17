@@ -282,7 +282,7 @@ están menos detalladas que las anteriores y se afinarán al llegar a ellas.
 - [x] **T13.2 Detección de manos en el bucle.** Junto a la de pose, con presupuesto de tiempo por fotograma. *Hecho cuando:* se obtienen los landmarks de ambas manos por fotograma y el panel de depuración muestra FPS aceptables.
 - [x] **T13.3 Esquema y métricas de manos.** Nuevos nombres de articulación (dedos, muñeca) y métricas (ángulo de dedo, separación, ángulo de muñeca) sin que el motor conozca ninguna habilidad. *Hecho cuando:* las pruebas con landmarks conocidos dan los valores esperados.
 - [x] **T13.4 Calibración para manos.** Comprueba que las manos se ven, la distancia y la luz. *Hecho cuando:* no deja empezar sin manos visibles.
-- [ ] **T13.5 Primera habilidad de manos.** Postura de la mano al piano (arqueo de dedos, muñeca neutra) con fixtures. *Hecho cuando:* ≥ 90 % de acierto en conteo y ≥ 80 % en errores sobre los fixtures.
+- [x] **T13.5 Primera habilidad de manos.** Postura de la mano al piano (arqueo de dedos, muñeca neutra) con fixtures. *Hecho cuando:* ≥ 90 % de acierto en conteo y ≥ 80 % en errores sobre los fixtures.
 - [ ] **T13.6 Manos en el chat y en el generador.** El canal pasa a "soportado" en T10.2 y el generador produce habilidades de manos. *Hecho cuando:* con un LLM falso se genera y valida una habilidad de manos.
 
 ### Fase 14 — Canal audio

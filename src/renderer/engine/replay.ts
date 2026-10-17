@@ -27,7 +27,7 @@ export function replayRecording(skill: SkillConfig, recording: LandmarkRecording
   for (const frame of recording.frames) {
     const output = session.processFrame({ timestampMs: frame.t, landmarks: landmarksOf(frame) })
 
-    if (output.side) framesTracked++
+    if (output.tracked) framesTracked++
     if (output.repEvent?.type === 'rejected') rejectedReps++
     if (output.feedback) feedback.push({ atMs: frame.t, message: output.feedback })
   }
