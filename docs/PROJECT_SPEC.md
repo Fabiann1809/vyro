@@ -275,7 +275,7 @@ están menos detalladas que las anteriores y se afinarán al llegar a ellas.
 - [x] **T12.2 Límites de gasto.** Tope de tokens por petición, límite diario configurable y mensaje claro al alcanzarlo. *Hecho cuando:* las pruebas confirman que al llegar al límite no se llama a la API.
 - [x] **T12.3 Prueba de privacidad de extremo a extremo.** Intercepta lo que sale de la app durante un flujo completo del coach. *Hecho cuando:* solo hay texto y números permitidos y ninguna petición al exterior sin la IA activada.
 - [x] **T12.4 Prueba e2e del coach.** Playwright con un cliente falso. *Hecho cuando:* chat, ruta y habilidad generada se recorren en CI sin red.
-- [ ] **T12.5 Documentación.** README y guía de IA (obtener una clave o usar un nivel gratuito, qué se envía, cuánto cuesta aproximadamente, cómo borrarlo). *Hecho cuando:* un usuario nuevo puede activar la IA y entender sus límites.
+- [x] **T12.5 Documentación.** README y guía de IA (obtener una clave o usar un nivel gratuito, qué se envía, cuánto cuesta aproximadamente, cómo borrarlo). *Hecho cuando:* un usuario nuevo puede activar la IA y entender sus límites.
 
 ### Fase 13 — Canal manos
 - [ ] **T13.1 Modelo de manos.** `HandLandmarker` de MediaPipe empaquetado y cargado sin red. *Hecho cuando:* carga con internet desactivado.

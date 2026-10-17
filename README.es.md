@@ -62,13 +62,21 @@ Si prefieres no confiar en un binario sin firmar, compílalo tú (mira _Desarrol
 
 VYRO guarda **solo números** en tu computador: las repeticiones, la puntuación y los errores de cada
 sesión, y tus ajustes. Nunca guarda video, imágenes ni puntos del cuerpo, y no envía nada a ningún
-sitio. Puedes borrarlo todo en **Ajustes → Datos y privacidad**.
+sitio, salvo que actives el coach con IA opcional (ver abajo). Puedes borrarlo todo en **Ajustes → Datos y privacidad**.
 
 La base de datos es un único archivo, `vyro.db`, en la carpeta de datos de la app:
 
 - Windows: `%APPDATA%\vyro`
 - macOS: `~/Library/Application Support/vyro`
 - Linux: `~/.config/vyro`
+
+## Coach con IA (opcional)
+
+VYRO puede hablar con un modelo de IA para conversar sobre tu entrenamiento, planear una ruta de
+aprendizaje, resumir una sesión y diseñar habilidades nuevas. Viene **apagado** y necesita tu propia
+clave de API (o un nivel gratuito, o un modelo en tu propio computador). Sin él, VYRO funciona como
+se describe arriba. Solo se envía el texto que escribes y números de tus sesiones: nunca video,
+imágenes, puntos del cuerpo ni sonido. Mira la [guía de IA](docs/AI_GUIDE.md).
 
 ## Desarrollo
 
@@ -113,6 +121,7 @@ sistemas que no tienen una.
 
 ### Más documentación
 
+- [`docs/AI_GUIDE.md`](docs/AI_GUIDE.md): cómo activar y entender el coach con IA.
 - [`docs/PROJECT_SPEC.md`](docs/PROJECT_SPEC.md): especificación del producto y lista de tareas.
 - [`docs/DECISIONS.md`](docs/DECISIONS.md): decisiones de arquitectura (en inglés).
 - [`docs/UX_BRIEF.md`](docs/UX_BRIEF.md): brief de diseño.

@@ -60,13 +60,22 @@ If you prefer not to trust an unsigned binary, build it yourself (see _Developme
 
 VYRO stores **only numbers** on your computer: the repetitions, score and mistakes of each
 session, and your settings. It never stores video, images or body landmarks, and it sends nothing
-anywhere. You can erase everything in **Settings → Data and privacy**.
+anywhere unless you turn on the optional AI coach (see below). You can erase everything in
+**Settings → Data and privacy**.
 
 The database is a single file, `vyro.db`, in the app's data folder:
 
 - Windows: `%APPDATA%\vyro`
 - macOS: `~/Library/Application Support/vyro`
 - Linux: `~/.config/vyro`
+
+## Optional AI coach
+
+VYRO can talk to an AI model to chat about your training, plan a learning path, summarise a
+session and design new skills. It is **off by default** and needs your own API key (or a free tier,
+or a model on your own computer). Without it, VYRO works exactly as described above. Only text you
+type and numbers from your sessions are ever sent: never video, images, body points or sound. See
+the [AI guide](docs/AI_GUIDE.md).
 
 ## Development
 
@@ -110,6 +119,7 @@ new messages also have a recorded voice for systems without one.
 
 ### More documentation
 
+- [`docs/AI_GUIDE.md`](docs/AI_GUIDE.md): setting up and understanding the AI coach.
 - [`docs/PROJECT_SPEC.md`](docs/PROJECT_SPEC.md): product spec and task list (Spanish).
 - [`docs/DECISIONS.md`](docs/DECISIONS.md): architecture decisions.
 - [`docs/UX_BRIEF.md`](docs/UX_BRIEF.md): design brief (Spanish).
