@@ -16,6 +16,8 @@ import { SessionRepository } from './db/sessionRepository'
 import { SettingsRepository } from './db/settingsRepository'
 import { registerAiIpc } from './ipc/ai'
 import { registerCameraIpc } from './ipc/camera'
+import { registerMicrophoneIpc } from './ipc/microphone'
+import { MicrophoneGate } from './mediaPermissions'
 import { registerCoachIpc } from './ipc/coach'
 import { registerPathsIpc } from './ipc/paths'
 import { registerSessionsIpc } from './ipc/sessions'
@@ -26,6 +28,9 @@ import { setupSessionSecurity, setupWindowSecurity } from './security'
 let database: Database | undefined
 
 const devUrl = is.dev ? process.env['ELECTRON_RENDERER_URL'] : undefined
+
+// Shared by the window and the permission handlers: whether a skill that listens is open.
+const microphone = new MicrophoneGate()
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -47,7 +52,7 @@ function createWindow(): void {
     mainWindow.show()
   })
 
-  setupWindowSecurity(mainWindow, devUrl)
+  setupWindowSecurity(mainWindow, devUrl, microphone)
 
   if (devUrl) {
     mainWindow.loadURL(devUrl)
@@ -67,8 +72,9 @@ app.whenReady().then(() => {
     app.quit()
     return
   }
-  setupSessionSecurity(devUrl)
+  setupSessionSecurity(devUrl, microphone)
   registerCameraIpc()
+  registerMicrophoneIpc(microphone)
   const sessions = new SessionRepository(database)
   registerSessionsIpc(sessions)
   const keyStore = new ApiKeyStore(

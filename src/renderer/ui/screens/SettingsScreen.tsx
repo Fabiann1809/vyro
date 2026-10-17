@@ -5,6 +5,7 @@ import { SAMPLE_CLIP_ID } from '@renderer/voice/clipList'
 import { voice } from '@renderer/voice'
 import { AiSettings } from '../AiSettings'
 import { GeneratedSkillsSettings } from '../GeneratedSkillsSettings'
+import { AudioInputPicker } from '../AudioInputPicker'
 import { CameraStage } from '../CameraStage'
 import { deleteAllData } from '../settingsSync'
 import { useSettings } from '../settingsStore'
@@ -205,6 +206,10 @@ export function SettingsScreen(): React.JSX.Element {
 
       <Group title="settings.camera">
         <CameraStage showDevicePicker videoClassName="max-h-60" />
+      </Group>
+
+      <Group title="settings.microphone">
+        <AudioInputPicker />
       </Group>
     </section>
   )

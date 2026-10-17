@@ -20,6 +20,7 @@ export function currentSettings(): AppSettings {
     voiceEnabled: store.voiceEnabled,
     volume: store.volume,
     cameraId: store.cameraId,
+    audioDeviceId: store.audioDeviceId,
     theme: useTheme.getState().preference,
     textSize: store.textSize,
     reduceMotion: store.reduceMotion,
@@ -52,6 +53,7 @@ export function applySettings(settings: AppSettings): void {
     store.setVoiceEnabled(settings.voiceEnabled)
     store.setVolume(settings.volume)
     store.setCameraId(settings.cameraId)
+    store.setAudioDeviceId(settings.audioDeviceId)
     store.setTextSize(settings.textSize)
     store.setReduceMotion(settings.reduceMotion)
     store.setAiEnabled(settings.aiEnabled)

@@ -12,6 +12,8 @@ export interface AppSettings {
   volume: number
   // The camera the user chose; null means the system default.
   cameraId: string | null
+  // The microphone the user chose; null means the system default.
+  audioDeviceId: string | null
   theme: ThemePreference
   textSize: TextSize
   reduceMotion: boolean
@@ -39,6 +41,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   voiceEnabled: true,
   volume: 0.8,
   cameraId: null,
+  audioDeviceId: null,
   theme: 'dark',
   textSize: 'normal',
   reduceMotion: false,
@@ -56,6 +59,7 @@ export const settingSchemas = {
   voiceEnabled: z.boolean(),
   volume: z.number().min(0).max(1),
   cameraId: z.string().min(1).max(512).nullable(),
+  audioDeviceId: z.string().min(1).max(512).nullable(),
   theme: z.enum(['dark', 'light', 'system']),
   textSize: z.enum(['normal', 'large', 'extra-large']),
   reduceMotion: z.boolean(),

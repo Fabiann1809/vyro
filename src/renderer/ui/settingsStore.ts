@@ -10,6 +10,7 @@ interface SettingsState {
   volume: number
   // The camera the user chose; null means the system default.
   cameraId: string | null
+  audioDeviceId: string | null
   textSize: TextSize
   reduceMotion: boolean
   aiEnabled: boolean
@@ -22,6 +23,7 @@ interface SettingsState {
   setVoiceEnabled: (enabled: boolean) => void
   setVolume: (volume: number) => void
   setCameraId: (cameraId: string | null) => void
+  setAudioDeviceId: (audioDeviceId: string | null) => void
   setTextSize: (textSize: TextSize) => void
   setReduceMotion: (reduceMotion: boolean) => void
   setAiEnabled: (aiEnabled: boolean) => void
@@ -39,6 +41,7 @@ export const useSettings = create<SettingsState>((set) => ({
   voiceEnabled: DEFAULT_SETTINGS.voiceEnabled,
   volume: DEFAULT_SETTINGS.volume,
   cameraId: DEFAULT_SETTINGS.cameraId,
+  audioDeviceId: DEFAULT_SETTINGS.audioDeviceId,
   textSize: DEFAULT_SETTINGS.textSize,
   reduceMotion: DEFAULT_SETTINGS.reduceMotion,
   aiEnabled: DEFAULT_SETTINGS.aiEnabled,
@@ -55,6 +58,7 @@ export const useSettings = create<SettingsState>((set) => ({
   setVoiceEnabled: (voiceEnabled) => set({ voiceEnabled }),
   setVolume: (volume) => set({ volume: clamp01(volume) }),
   setCameraId: (cameraId) => set({ cameraId }),
+  setAudioDeviceId: (audioDeviceId) => set({ audioDeviceId }),
   setTextSize: (textSize) => set({ textSize }),
   setReduceMotion: (reduceMotion) => set({ reduceMotion }),
   setAiEnabled: (aiEnabled) => set({ aiEnabled }),

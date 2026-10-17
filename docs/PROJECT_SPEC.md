@@ -286,7 +286,7 @@ están menos detalladas que las anteriores y se afinarán al llegar a ellas.
 - [x] **T13.6 Manos en el chat y en el generador.** El canal pasa a "soportado" en T10.2 y el generador produce habilidades de manos. *Hecho cuando:* con un LLM falso se genera y valida una habilidad de manos.
 
 ### Fase 14 — Canal audio
-- [ ] **T14.1 Permiso de micrófono.** Hoy se deniega a propósito: permitirlo solo para el origen de la app y solo al abrir una habilidad con audio; `NSMicrophoneUsageDescription` en macOS; selector de entrada en Ajustes. *Hecho cuando:* las pruebas de seguridad confirman que en cualquier otro caso sigue denegado.
+- [x] **T14.1 Permiso de micrófono.** Hoy se deniega a propósito: permitirlo solo para el origen de la app y solo al abrir una habilidad con audio; `NSMicrophoneUsageDescription` en macOS; selector de entrada en Ajustes. *Hecho cuando:* las pruebas de seguridad confirman que en cualquier otro caso sigue denegado.
 - [ ] **T14.2 Captura local.** Procesa el audio en memoria; nunca se graba, guarda ni envía. *Hecho cuando:* se ve el nivel de entrada en vivo y una prueba confirma que ninguna API expone los buffers de audio.
 - [ ] **T14.3 Características de audio.** Funciones puras para tono (en cents), inicios de nota y tempo, y volumen. *Hecho cuando:* con señales sintéticas detectan un La 440 Hz con ±10 cents y un tempo con ±3 bpm.
 - [ ] **T14.4 Esquema y motor para audio.** Métricas de audio (error de tono, error de intervalo, nivel) con notas objetivo en la configuración. *Hecho cuando:* las pruebas con señales conocidas dan los valores esperados.

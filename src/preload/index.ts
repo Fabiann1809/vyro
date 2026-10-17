@@ -8,6 +8,10 @@ const api: VyroApi = {
     requestAccess: () => ipcRenderer.invoke(IPC.cameraRequestAccess),
     openSystemSettings: () => ipcRenderer.invoke(IPC.cameraOpenSettings)
   },
+  microphone: {
+    setOpen: (open) => ipcRenderer.invoke(IPC.microphoneSetOpen, open),
+    requestAccess: () => ipcRenderer.invoke(IPC.microphoneRequestAccess)
+  },
   sessions: {
     save: (session) => ipcRenderer.invoke(IPC.sessionsSave, session),
     list: (query) => ipcRenderer.invoke(IPC.sessionsList, query),

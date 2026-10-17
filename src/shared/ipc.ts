@@ -19,6 +19,8 @@ import type { ErrorCount, SessionDetail, SessionQuery, SessionRow, SessionToSave
 export const IPC = {
   cameraRequestAccess: 'camera:request-access',
   cameraOpenSettings: 'camera:open-settings',
+  microphoneSetOpen: 'microphone:set-open',
+  microphoneRequestAccess: 'microphone:request-access',
   sessionsSave: 'sessions:save',
   sessionsList: 'sessions:list',
   sessionsGet: 'sessions:get',
@@ -53,6 +55,11 @@ export interface VyroApi {
   camera: {
     requestAccess: () => Promise<CameraAccessStatus>
     openSystemSettings: () => Promise<void>
+  }
+  microphone: {
+    // Says whether a skill that listens is open. Only then may the page open the microphone.
+    setOpen: (open: boolean) => Promise<void>
+    requestAccess: () => Promise<CameraAccessStatus>
   }
   sessions: {
     // Returns the id of the saved session.
