@@ -35,6 +35,6 @@ Product spec and task list: `docs/PROJECT_SPEC.md` (written in Spanish). Always 
    - Manual dependency injection via an `AppContainer` (no DI framework).
    - Adding a skill means adding a config file; the engine must not know any specific exercise.
 10. Dependency versions are pinned (no `^`/`~`) in `package.json`; the lockfile is committed.
-11. Security: never put secrets in code, the repo, logs or error messages. Electron runs with `contextIsolation: true`, `sandbox: true`, `nodeIntegration: false` and a strict CSP. Camera video and captures are never saved, uploaded or committed — only numeric metrics are stored.
+11. Security: never put secrets in code, the repo, logs or error messages. Electron runs with `contextIsolation: true`, `sandbox: true`, `nodeIntegration: false` and a strict CSP. Camera video, captures and microphone audio are never saved, uploaded or committed — only numeric metrics are stored. The optional AI features (D12) send only chat text and numbers, from the main process, and the API key lives in `safeStorage`.
 12. Keep code simple and readable — this is also a learning project. Small functions; comment only the non-obvious "why". TypeScript `strict`, no `any`, no `eval`, no `console.log` in commits.
 13. Tests: Vitest for `core` and `engine` using recorded landmark fixtures; repository tests against in-memory SQLite; one Playwright smoke test. Camera is verified by hand (CI has no camera).
