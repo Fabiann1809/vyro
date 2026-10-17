@@ -16,6 +16,7 @@
   "pose.error": "The pose model could not be loaded",
   "debug.camera": "Camera: {fps} fps",
   "debug.detection": "Detection: {fps} fps",
+  "debug.hands": "Hands: {fps} fps ({avg} ms)",
   "debug.latency": "Latency: {avg} ms (max. {max} ms)",
   "recorder.label": "Recording label",
   "recorder.start": "Record",

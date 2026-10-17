@@ -279,7 +279,7 @@ están menos detalladas que las anteriores y se afinarán al llegar a ellas.
 
 ### Fase 13 — Canal manos
 - [x] **T13.1 Modelo de manos.** `HandLandmarker` de MediaPipe empaquetado y cargado sin red. *Hecho cuando:* carga con internet desactivado.
-- [ ] **T13.2 Detección de manos en el bucle.** Junto a la de pose, con presupuesto de tiempo por fotograma. *Hecho cuando:* se obtienen los landmarks de ambas manos por fotograma y el panel de depuración muestra FPS aceptables.
+- [x] **T13.2 Detección de manos en el bucle.** Junto a la de pose, con presupuesto de tiempo por fotograma. *Hecho cuando:* se obtienen los landmarks de ambas manos por fotograma y el panel de depuración muestra FPS aceptables.
 - [ ] **T13.3 Esquema y métricas de manos.** Nuevos nombres de articulación (dedos, muñeca) y métricas (ángulo de dedo, separación, ángulo de muñeca) sin que el motor conozca ninguna habilidad. *Hecho cuando:* las pruebas con landmarks conocidos dan los valores esperados.
 - [ ] **T13.4 Calibración para manos.** Comprueba que las manos se ven, la distancia y la luz. *Hecho cuando:* no deja empezar sin manos visibles.
 - [ ] **T13.5 Primera habilidad de manos.** Postura de la mano al piano (arqueo de dedos, muñeca neutra) con fixtures. *Hecho cuando:* ≥ 90 % de acierto en conteo y ≥ 80 % en errores sobre los fixtures.

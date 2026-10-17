@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { startDetectionLoop, type FrameSource, type PoseFrame } from './detectionLoop'
+import { HandBudget, type HandsResultLike } from './handFrame'
 import type { Landmark } from './landmarks'
 
 interface FakeSource {
@@ -159,5 +160,74 @@ describe('startDetectionLoop frame metadata', () => {
     emitFrame()
 
     expect(frames.map((frame) => frame.presentedFrames)).toEqual([1, 2])
+  })
+})
+
+describe('startDetectionLoop with hands', () => {
+  const twoHands: HandsResultLike = {
+    landmarks: [[point], [point]],
+    handedness: [[{ categoryName: 'Left', score: 1 }], [{ categoryName: 'Right', score: 1 }]]
+  }
+
+  function setup(options: { budgetMs?: number; times?: number[] } = {}): {
+    emitFrame: () => void
+    frames: PoseFrame[]
+    detectHands: ReturnType<typeof vi.fn>
+  } {
+    const { source, emitFrame } = createFakeSource()
+    const frames: PoseFrame[] = []
+    const detectHands = vi.fn(() => twoHands)
+    const times = [...(options.times ?? [])]
+    let now = 0
+    // Each reading of the clock moves it on, or follows the script of the test.
+    const clock = (): number => times.shift() ?? (now += 1)
+    startDetectionLoop(
+      source,
+      { detectForVideo: () => ({ landmarks: [[point]] }) },
+      { onFrame: (frame) => frames.push(frame), onError: vi.fn() },
+      clock,
+      {
+        detector: { detectForVideo: detectHands },
+        budget: new HandBudget(options.budgetMs ?? 33, 1)
+      }
+    )
+    return { emitFrame, frames, detectHands }
+  }
+
+  it('reports both hands in every frame', () => {
+    const { emitFrame, frames } = setup()
+
+    emitFrame()
+
+    expect(frames[0]?.hands?.observations.map((hand) => hand.handedness)).toEqual(['right', 'left'])
+    expect(frames[0]?.hands?.fresh).toBe(true)
+  })
+
+  it('does not look for hands when nothing asked for them', () => {
+    const { source, emitFrame } = createFakeSource()
+    const frames: PoseFrame[] = []
+    startDetectionLoop(
+      source,
+      { detectForVideo: () => ({ landmarks: [] }) },
+      { onFrame: (frame) => frames.push(frame), onError: vi.fn() }
+    )
+
+    emitFrame()
+
+    expect(frames[0]?.hands).toBeUndefined()
+  })
+
+  it('reuses the last hands when the body leaves no time, and says they are not fresh', () => {
+    // Frame 1: body takes 1 ms, hands 40 ms. Frame 2: the body takes 10 ms and hands are known to be slow.
+    const { emitFrame, frames, detectHands } = setup({
+      times: [0, 1, 1, 41, 100, 110]
+    })
+
+    emitFrame()
+    emitFrame()
+
+    expect(detectHands).toHaveBeenCalledTimes(1)
+    expect(frames[1]?.hands).toMatchObject({ fresh: false, latencyMs: 0 })
+    expect(frames[1]?.hands?.observations).toHaveLength(2)
   })
 })
