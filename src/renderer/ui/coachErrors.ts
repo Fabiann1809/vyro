@@ -18,7 +18,8 @@ const ERROR_TEXT: Record<CoachErrorKind, MessageKey> = {
   unknown: 'coach.error.unknown',
   'not-enabled': 'coach.error.not-enabled',
   busy: 'coach.error.busy',
-  'invalid-input': 'coach.error.invalid-input'
+  'invalid-input': 'coach.error.invalid-input',
+  'no-path': 'coach.error.no-path'
 }
 
 // A different try will not help: something has to change in Settings first.

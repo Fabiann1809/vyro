@@ -30,6 +30,8 @@ export type CoachErrorKind =
   | 'busy'
   // The page sent something that is not a valid request.
   | 'invalid-input'
+  // There is no path being followed that could be reviewed.
+  | 'no-path'
 
 export interface CoachError {
   kind: CoachErrorKind

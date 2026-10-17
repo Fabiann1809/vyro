@@ -26,13 +26,15 @@ const api: VyroApi = {
   coach: {
     chat: (input) => ipcRenderer.invoke(IPC.coachChat, input),
     summarize: (input) => ipcRenderer.invoke(IPC.coachSummarize, input),
-    planPath: (input) => ipcRenderer.invoke(IPC.coachPlanPath, input)
+    planPath: (input) => ipcRenderer.invoke(IPC.coachPlanPath, input),
+    reviewPath: (input) => ipcRenderer.invoke(IPC.coachReviewPath, input)
   },
   paths: {
     getCurrent: () => ipcRenderer.invoke(IPC.pathsGetCurrent),
     save: (path) => ipcRenderer.invoke(IPC.pathsSave, path),
     setStepDone: (stepId, done) => ipcRenderer.invoke(IPC.pathsSetStepDone, stepId, done),
-    archive: (pathId) => ipcRenderer.invoke(IPC.pathsArchive, pathId)
+    archive: (pathId) => ipcRenderer.invoke(IPC.pathsArchive, pathId),
+    applyAdjustments: (input) => ipcRenderer.invoke(IPC.pathsApplyAdjustments, input)
   },
   data: {
     deleteAll: () => ipcRenderer.invoke(IPC.dataDeleteAll)

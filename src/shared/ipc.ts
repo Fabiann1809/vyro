@@ -2,6 +2,7 @@ import type { AiKeyStatus } from './ai'
 import type { PathToSave } from './paths'
 import type { CurrentPath } from './pathProgress'
 import type { PlanPathInput, PlanPathResult } from './pathPlan'
+import type { ApplyAdjustmentsInput, PathReview, ReviewPathInput } from './pathReview'
 import type {
   CoachChatInput,
   CoachChatReply,
@@ -29,10 +30,12 @@ export const IPC = {
   coachChat: 'coach:chat',
   coachSummarize: 'coach:summarize',
   coachPlanPath: 'coach:plan-path',
+  coachReviewPath: 'coach:review-path',
   pathsGetCurrent: 'paths:get-current',
   pathsSave: 'paths:save',
   pathsSetStepDone: 'paths:set-step-done',
-  pathsArchive: 'paths:archive'
+  pathsArchive: 'paths:archive',
+  pathsApplyAdjustments: 'paths:apply-adjustments'
 } as const
 
 // The only API the renderer can call. Everything else stays in the main process.
@@ -66,6 +69,8 @@ export interface VyroApi {
     summarize: (input: CoachSummaryInput) => Promise<CoachResult<CoachSummaryReply>>
     // One step of planning a learning path: a question, a path, or why it cannot be done.
     planPath: (input: PlanPathInput) => Promise<CoachResult<PlanPathResult>>
+    // The weekly review of the path being followed, built from the numbers kept in this computer.
+    reviewPath: (input: ReviewPathInput) => Promise<CoachResult<PathReview>>
   }
   paths: {
     // The path being followed, with how far it has got, or null. Asking also brings the progress
@@ -76,6 +81,8 @@ export interface VyroApi {
     // Only auxiliary steps are marked by hand; whether anything changed.
     setStepDone: (stepId: number, done: boolean) => Promise<boolean>
     archive: (pathId: number) => Promise<boolean>
+    // Applies the adjustments that the person accepted; false if the path changed in the meantime.
+    applyAdjustments: (input: ApplyAdjustmentsInput) => Promise<boolean>
   }
   data: {
     // Empties the database: sessions and settings.

@@ -1,4 +1,5 @@
 import { sessionDigestSchema, type SessionDigest } from '@shared/coach'
+import { reviewDigestSchema } from '@shared/pathReview'
 import { LlmError } from './errors'
 import type { ChatMessage } from './llmClient'
 
@@ -26,6 +27,7 @@ export type OutboundPart =
   | { kind: 'text'; text: string }
   | { kind: 'session'; digest: unknown }
   | { kind: 'history'; digests: unknown[] }
+  | { kind: 'review'; digest: unknown }
 
 export interface OutboundTurn {
   role: 'user' | 'assistant'
@@ -63,12 +65,25 @@ function digestOf(value: unknown): SessionDigest {
   return parsed.data
 }
 
+// The path and how it is going. Its goal and titles are text, so they get the same check as any
+// text that leaves.
+function reviewOf(value: unknown): string {
+  const parsed = reviewDigestSchema.safeParse(value)
+  if (!parsed.success) throw blocked('A path review has fields that are not allowed to leave.')
+  const { goal, steps } = parsed.data
+  checkText(goal)
+  steps.forEach((step) => checkText(step.title))
+  return JSON.stringify(parsed.data)
+}
+
 function renderPart(part: OutboundPart): string {
   switch (part.kind) {
     case 'text':
       return checkText(part.text)
     case 'session':
       return JSON.stringify(digestOf(part.digest))
+    case 'review':
+      return reviewOf(part.digest)
     case 'history': {
       if (part.digests.length > MAX_SESSIONS_IN_HISTORY) throw blocked('Too many sessions to send.')
       return JSON.stringify(part.digests.map(digestOf))

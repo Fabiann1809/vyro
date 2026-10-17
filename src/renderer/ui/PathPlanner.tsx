@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { t, type MessageKey } from '@renderer/i18n'
 import type { Channel, OutOfScopeReason } from '@shared/feasibility'
-import { bundledSkills } from '@renderer/skills'
 import { CoachErrorNotice } from './CoachErrorNotice'
 import { ConversationLog, MessageBox } from './Conversation'
 import { useNavigation } from './navigation'
@@ -11,9 +10,9 @@ import {
   retryPlanner,
   sendToPlanner,
   usePathPlan,
-  type PlanOutcome,
-  type PlannerSkills
+  type PlanOutcome
 } from './pathPlanStore'
+import { plannerSkills } from './plannerSkills'
 import { useSettings } from './settingsStore'
 
 const REASON_TEXT: Record<OutOfScopeReason, MessageKey> = {
@@ -35,14 +34,6 @@ const CHANNEL_TEXT: Record<Channel, MessageKey> = {
 
 const channelList = (channels: readonly Channel[]): string =>
   channels.map((channel) => t(CHANNEL_TEXT[channel])).join(', ')
-
-// The skills that exist, as the planner needs to know them.
-const plannerSkills = (): PlannerSkills =>
-  bundledSkills.skills.map((skill) => ({
-    id: skill.id,
-    name: skill.name,
-    ruleIds: skill.rules.map((rule) => rule.id)
-  }))
 
 // Why there is no path, in words the person can use to ask for something else.
 function Reasons({

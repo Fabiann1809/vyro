@@ -143,7 +143,7 @@ test('the coach answers a question with data, and only the typed bridge reaches 
     off: { ok: false, error: { kind: 'not-enabled' } },
     noKey: { ok: false, error: { kind: 'no-key' } },
     invalid: { ok: false, error: { kind: 'invalid-input' } },
-    methods: ['chat', 'summarize', 'planPath']
+    methods: ['chat', 'summarize', 'planPath', 'reviewPath']
   })
 })
 
@@ -588,6 +588,168 @@ test.describe('AI coach screen', () => {
     await expect(
       page.getByRole('heading', { level: 1, name: /Calibración · Sentadilla/ })
     ).toBeVisible()
+  })
+
+  test('applies only the changes of the weekly review that the person accepts', async () => {
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+
+    type Bridge = {
+      api: {
+        paths: {
+          save: (path: unknown) => Promise<number>
+          getCurrent: () => Promise<{ path: { steps: Array<{ id: number }> } } | null>
+        }
+      }
+    }
+    // A path with three steps, made as the planner would have saved it.
+    const stepIds = await page.evaluate(async () => {
+      const bridge = window as unknown as Bridge
+      await bridge.api.paths.save({
+        goal: 'Mejorar mi sentadilla',
+        steps: [
+          {
+            title: 'Sentadilla lenta',
+            description: 'Texto largo que no debe salir',
+            kind: 'skill',
+            skillId: 'squat',
+            criterionSessions: 3,
+            criterionScore: 80
+          },
+          {
+            title: 'Descansar',
+            description: '',
+            kind: 'auxiliary',
+            skillId: null,
+            criterionSessions: null,
+            criterionScore: null
+          },
+          {
+            title: 'Flexiones controladas',
+            description: '',
+            kind: 'skill',
+            skillId: 'pushup',
+            criterionSessions: 2,
+            criterionScore: 70
+          }
+        ]
+      })
+      return (await bridge.api.paths.getCurrent())?.path.steps.map((step) => step.id) ?? []
+    })
+    const [squat, rest, pushup] = stepIds
+    await nav(page, 'Ruta').click()
+    const card = (title: string): ReturnType<Page['getByRole']> =>
+      page.getByRole('listitem').filter({ hasText: title })
+
+    provider.setAnswer({
+      summary: 'Semana difícil: tus puntajes están por debajo de la meta.',
+      adjustments: [
+        {
+          type: 'change-criteria',
+          stepId: squat,
+          criterionSessions: 2,
+          criterionScore: 60,
+          reason: 'Costó más de lo previsto.'
+        },
+        {
+          type: 'add-step',
+          afterStepId: rest,
+          step: {
+            title: 'Descanso extra',
+            description: '',
+            kind: 'auxiliary',
+            skillId: null,
+            criterionSessions: null,
+            criterionScore: null
+          },
+          reason: 'Recuperarse mejor.'
+        },
+        { type: 'remove-step', stepId: pushup, reason: 'Es demasiado pronto para las flexiones.' }
+      ]
+    })
+
+    await page.getByRole('button', { name: 'Revisar mi semana' }).click()
+
+    // The coach says how it went and proposes three changes, all ticked.
+    await expect(page.getByText('Semana difícil')).toBeVisible()
+    const boxes = page.getByRole('checkbox', { name: /Cambiar la meta|Añadir después|Quitar/ })
+    await expect(boxes).toHaveCount(3)
+    await expect(page.getByText('Motivo: Costó más de lo previsto.')).toBeVisible()
+    for (const box of await boxes.all()) await expect(box).toBeChecked()
+
+    // What was sent: the numbers of the path made by the app, with no descriptions.
+    const sent = provider.received[0]?.body['messages'] as Array<{ role: string; content: string }>
+    const [lead, json] = (sent[1]?.content ?? '').split('\n')
+    expect(lead).toBe('Review this week of the learning path.')
+    expect(json).not.toContain('Texto largo que no debe salir')
+    expect(JSON.parse(json ?? '').steps.map((step: { id: number }) => step.id)).toEqual(stepIds)
+
+    // The person leaves out the removal and applies the rest.
+    await page.getByRole('checkbox', { name: /Quitar/ }).uncheck()
+    await page.getByRole('button', { name: 'Aplicar los marcados' }).click()
+
+    await expect(page.getByText('Cambios aplicados a tu ruta.')).toBeVisible()
+    await expect(page.getByText('Meta: 2 sesiones con 60 puntos o más')).toBeVisible()
+    await expect(page.getByRole('listitem').getByRole('heading', { level: 3 })).toHaveText([
+      'Sentadilla lenta',
+      'Descansar',
+      'Descanso extra',
+      'Flexiones controladas'
+    ])
+
+    // A review that is turned down changes nothing.
+    provider.setAnswer({
+      summary: 'Otra idea.',
+      adjustments: [
+        {
+          type: 'change-criteria',
+          stepId: squat,
+          criterionSessions: 9,
+          criterionScore: 10,
+          reason: 'Otra.'
+        }
+      ]
+    })
+    await page.getByRole('button', { name: 'Revisar mi semana' }).click()
+    await expect(page.getByText('Otra idea.')).toBeVisible()
+    await page.getByRole('button', { name: 'Ahora no' }).click()
+
+    await expect(card('Sentadilla lenta')).toContainText('Meta: 2 sesiones con 60 puntos o más')
+    await expect(page.getByRole('listitem').getByRole('heading', { level: 3 })).toHaveCount(4)
+  })
+
+  test('says what is wrong when the review proposes something that cannot be applied twice', async () => {
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+    await page.evaluate(() =>
+      (
+        window as unknown as { api: { paths: { save: (p: unknown) => Promise<number> } } }
+      ).api.paths.save({
+        goal: 'Mejorar',
+        steps: [
+          {
+            title: 'Sentadilla lenta',
+            description: '',
+            kind: 'skill',
+            skillId: 'squat',
+            criterionSessions: 3,
+            criterionScore: 80
+          }
+        ]
+      })
+    )
+    await nav(page, 'Ruta').click()
+    // A step that does not exist, which the coach is asked to fix and never does.
+    provider.setAnswer({
+      summary: 'x',
+      adjustments: [{ type: 'remove-step', stepId: 9999, reason: 'No existe.' }]
+    })
+
+    await page.getByRole('button', { name: 'Revisar mi semana' }).click()
+
+    await expect(page.getByRole('alert')).toContainText('La respuesta no tuvo el formato esperado')
+    // The planner was asked three times: the first answer and two corrections.
+    expect(provider.received).toHaveLength(3)
   })
 
   test('explains why a path cannot be made, and lets the person start again', async () => {

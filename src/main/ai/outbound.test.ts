@@ -137,6 +137,65 @@ describe('what is not allowed to leave', () => {
     ).toBe('blocked')
   })
 
+  describe('the digest of a path review', () => {
+    const review = {
+      goal: 'Mejorar mi sentadilla',
+      daysSinceStart: 7,
+      steps: [
+        {
+          id: 1,
+          position: 1,
+          title: 'Sentadilla lenta',
+          kind: 'skill',
+          skillId: 'squat',
+          criterionSessions: 3,
+          criterionScore: 80,
+          state: 'current',
+          counted: 1,
+          attempts: 2
+        }
+      ],
+      skills: [
+        { skillId: 'squat', sessions: 2, averageScore: 70, lastScores: [60, 80], errors: [] }
+      ]
+    }
+
+    it('is written as JSON with exactly its listed fields', () => {
+      const [message] = buildMessages([
+        { role: 'user', parts: [{ kind: 'review', digest: review }] }
+      ])
+
+      expect(JSON.parse(message?.content ?? '')).toEqual(review)
+    })
+
+    it.each([
+      ['landmarks', { landmarks: [{ x: 0.1, y: 0.2 }] }],
+      ['a picture', { frame: 'data:image/png;base64,AAAA' }],
+      ['audio', { audio: [0.1] }]
+    ])('refuses a review that carries %s', (_name, extra) => {
+      expect(
+        blockedBy(() =>
+          buildMessages([
+            { role: 'user', parts: [{ kind: 'review', digest: { ...review, ...extra } }] }
+          ])
+        ).kind
+      ).toBe('blocked')
+    })
+
+    it('refuses a title that is really a picture', () => {
+      const tampered = {
+        ...review,
+        steps: [{ ...review.steps[0], title: `x ${'iVBORw0KGgoAAAANSUhEUg'.repeat(20)}` }]
+      }
+
+      expect(
+        blockedBy(() =>
+          buildMessages([{ role: 'user', parts: [{ kind: 'review', digest: tampered }] }])
+        ).kind
+      ).toBe('blocked')
+    })
+  })
+
   it('refuses text that carries a picture or sound', () => {
     const base64 = 'iVBORw0KGgoAAAANSUhEUg'.repeat(30)
 

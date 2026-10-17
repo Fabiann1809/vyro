@@ -130,3 +130,137 @@ describe('path handlers', () => {
     expect(() => handlers.setStepDone(id, done)).toThrow()
   })
 })
+
+describe('applying the adjustments that were accepted', () => {
+  const known = ['squat', 'pushup']
+  const stepIds = (): number[] => handlers.getCurrent()?.path.steps.map((step) => step.id) ?? []
+
+  it('applies them and the path changes', () => {
+    const pathId = handlers.save(path())
+    const [rest, skill] = stepIds()
+
+    const applied = handlers.applyAdjustments({
+      pathId,
+      skillIds: known,
+      adjustments: [
+        {
+          type: 'change-criteria',
+          stepId: skill,
+          criterionSessions: 5,
+          criterionScore: 60,
+          reason: 'Más práctica.'
+        },
+        {
+          type: 'add-step',
+          afterStepId: rest,
+          step: {
+            title: 'Descanso extra',
+            description: '',
+            kind: 'auxiliary',
+            skillId: null,
+            criterionSessions: null,
+            criterionScore: null
+          },
+          reason: 'Recuperarse.'
+        }
+      ]
+    })
+
+    expect(applied).toBe(true)
+    const steps = handlers.getCurrent()?.path.steps ?? []
+    expect(steps.map((step) => step.title)).toEqual([
+      'Descansar',
+      'Descanso extra',
+      'Sentadilla lenta'
+    ])
+    expect(steps[2]).toMatchObject({ criterionSessions: 5, criterionScore: 60 })
+  })
+
+  it('does not change a step that is already done, and changes nothing', () => {
+    const pathId = handlers.save(path())
+    const [rest, skill] = stepIds()
+    handlers.setStepDone(rest ?? 0, true)
+
+    const applied = handlers.applyAdjustments({
+      pathId,
+      skillIds: known,
+      adjustments: [
+        { type: 'remove-step', stepId: rest, reason: 'Sobra.' },
+        {
+          type: 'change-criteria',
+          stepId: skill,
+          criterionSessions: 9,
+          criterionScore: 10,
+          reason: 'x'
+        }
+      ]
+    })
+
+    expect(applied).toBe(false)
+    expect(handlers.getCurrent()?.path.steps[1]).toMatchObject({ criterionSessions: 3 })
+    expect(handlers.getCurrent()?.path.steps).toHaveLength(2)
+  })
+
+  it('refuses a skill that does not exist', () => {
+    const pathId = handlers.save(path())
+    const [rest] = stepIds()
+
+    const applied = handlers.applyAdjustments({
+      pathId,
+      skillIds: known,
+      adjustments: [
+        {
+          type: 'add-step',
+          afterStepId: rest,
+          step: {
+            title: 'Yoga',
+            description: '',
+            kind: 'skill',
+            skillId: 'yoga_flow',
+            criterionSessions: 2,
+            criterionScore: 70
+          },
+          reason: 'x'
+        }
+      ]
+    })
+
+    expect(applied).toBe(false)
+  })
+
+  it('refuses a review of a path that is no longer the one on show', () => {
+    const old = handlers.save(path('Antigua'))
+    handlers.save(path('Nueva'))
+    const oldStep = repository.get(old)?.steps[1]?.id ?? 0
+
+    const applied = handlers.applyAdjustments({
+      pathId: old,
+      skillIds: known,
+      adjustments: [
+        {
+          type: 'change-criteria',
+          stepId: oldStep,
+          criterionSessions: 2,
+          criterionScore: 50,
+          reason: 'x'
+        }
+      ]
+    })
+
+    expect(applied).toBe(false)
+  })
+
+  it.each([
+    ['no adjustments', { adjustments: [] }],
+    [
+      'more than five',
+      { adjustments: Array(6).fill({ type: 'remove-step', stepId: 1, reason: 'x' }) }
+    ],
+    ['an unknown kind', { adjustments: [{ type: 'delete-all' }] }],
+    ['a field that is not listed', { adjustments: [], video: 'x' }]
+  ])('rejects %s', (_name, bad) => {
+    const pathId = handlers.save(path())
+
+    expect(() => handlers.applyAdjustments({ pathId, skillIds: known, ...bad })).toThrow()
+  })
+})

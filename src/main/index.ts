@@ -5,6 +5,7 @@ import { APP_NAME } from '@shared/app'
 import icon from '../../resources/icon.png?asset'
 import { ApiKeyStore, createKeyFile } from './ai/keyStore'
 import { ConfiguredLlmClient } from './ai/provider'
+import { loadReviewSource } from './ai/reviewData'
 import { openDatabase, type Database } from './db/database'
 import { PathProgressService } from './db/pathProgressService'
 import { PathRepository } from './db/pathRepository'
@@ -80,7 +81,8 @@ app.whenReady().then(() => {
   registerAiIpc(keyStore)
   const settings = new SettingsRepository(database)
   const paths = new PathRepository(database)
-  registerPathsIpc(paths, new PathProgressService(paths, sessions))
+  const progress = new PathProgressService(paths, sessions)
+  registerPathsIpc(paths, progress)
   registerSettingsIpc(settings, sessions, paths, keyStore)
   registerCoachIpc({
     // The provider and the key are read again on every question, so a change in Settings counts at once.
@@ -88,7 +90,8 @@ app.whenReady().then(() => {
       () => settings.getAll(),
       () => keyStore.get()
     ),
-    getSettings: () => settings.getAll()
+    getSettings: () => settings.getAll(),
+    loadReview: () => loadReviewSource(progress, sessions)
   })
 
   app.on('browser-window-created', (_, window) => {

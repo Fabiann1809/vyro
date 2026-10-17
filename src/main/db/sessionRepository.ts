@@ -104,8 +104,13 @@ export class SessionRepository {
   }
 
   // How many times each rule was failed, the most frequent first.
-  errorCounts(skillId?: string): ErrorCount[] {
-    const where = skillId === undefined ? '' : 'WHERE s.skill_id = ?'
+  // Only the sessions that began after `since` (milliseconds since 1970), when it is given.
+  errorCounts(skillId?: string, since?: number): ErrorCount[] {
+    const conditions = [
+      ...(skillId === undefined ? [] : ['s.skill_id = ?']),
+      ...(since === undefined ? [] : ['s.started_at > ?'])
+    ]
+    const where = conditions.length === 0 ? '' : `WHERE ${conditions.join(' AND ')}`
     const rows = this.db
       .prepare(
         `SELECT e.rule_id, COUNT(*) AS count
@@ -116,7 +121,10 @@ export class SessionRepository {
          GROUP BY e.rule_id
          ORDER BY count DESC, e.rule_id`
       )
-      .all(...(skillId === undefined ? [] : [skillId])) as Array<{ rule_id: string; count: number }>
+      .all(
+        ...(skillId === undefined ? [] : [skillId]),
+        ...(since === undefined ? [] : [since])
+      ) as Array<{ rule_id: string; count: number }>
     return rows.map((row) => ({ ruleId: row.rule_id, count: row.count }))
   }
 

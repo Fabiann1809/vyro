@@ -62,3 +62,27 @@ export function pathPlannerPrompt(input: PlanPathInput, canAsk: boolean): Outbou
     ].join('\n')
   )
 }
+
+// For the weekly review. The numbers say how the path is going; the model proposes changes and the
+// app checks that they can be applied.
+export function reviewPrompt(language: Language, skills: PlanPathInput['skills']): OutboundSystem {
+  const skillList = skills.map((skill) => `- ${skill.id}: "${skill.name.en}"`).join('\n')
+
+  return buildSystem(
+    [
+      'You review one week of a learning path in VYRO, a desktop app that watches a person practise a skill with the camera and corrects their technique.',
+      'You receive the path and the numbers as JSON. "goal" is what the person wants; "daysSinceStart" is how long ago the path began; each of "steps" has an "id", its "position", a "title", its "kind" ("skill" or "auxiliary"), the "skillId" and the goal of the step ("criterionSessions" sessions with "criterionScore" points or more), its "state" ("done", "current" or "locked"), "counted" (the sessions that count so far) and "attempts" (the sessions tried); "skills" has, for each skill practised, how many sessions, the average score, the last scores (oldest first) and how many times each rule was failed ("errors", most frequent first).',
+      `Write in ${LANGUAGE_NAME[language]}, in a close, positive and precise tone, with no jargon. Rule names are internal: explain them in plain words.`,
+      'Answer with "summary" (two to four sentences on how the week went, using only the numbers you were given) and "adjustments" (0 to 5 changes, only when the numbers justify them; an empty list is a perfectly good answer when the path is fine).',
+      'Each adjustment has a "type" and a short "reason" for the person:',
+      '- "change-criteria": a different goal for a step ("stepId", "criterionSessions", "criterionScore"). Lower it if the person struggles (many attempts, few counted, scores below the goal); raise it if they pass easily.',
+      '- "add-step": a new step put right after another one ("afterStepId", and a "step" like those of the path: a "skill" step needs a "skillId", "criterionSessions" and "criterionScore"; an "auxiliary" one has them set to null). Use it to practise a skill that keeps failing the same rule, or to add a rest.',
+      '- "remove-step": take out a step that no longer helps ("stepId").',
+      'Only steps whose state is "current" or "locked" may be changed or removed, never a "done" one, and nothing may be added before a step that is done. A path always keeps at least one skill step.',
+      'The only skill ids a skill step may use are:',
+      skillList,
+      'Be conservative: prefer small changes, slow and controlled work, and never push through pain. Never give medical advice or a diagnosis.',
+      'Answer with a single JSON object that follows the schema you are given.'
+    ].join('\n')
+  )
+}

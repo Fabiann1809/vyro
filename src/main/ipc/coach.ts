@@ -10,11 +10,14 @@ import {
 } from '@shared/coach'
 import { IPC } from '@shared/ipc'
 import { planPathInputSchema, type PlanPathResult } from '@shared/pathPlan'
+import { reviewPathInputSchema, type PathReview } from '@shared/pathReview'
 import type { AppSettings } from '@shared/settings'
 import { coachSystemPrompt, summarySystemPrompt } from '../ai/coachPrompts'
 import { LlmError } from '../ai/errors'
 import type { LlmClient } from '../ai/llmClient'
 import { generatePathTurn } from '../ai/pathGenerator'
+import { buildReviewDigest, type ReviewSource } from '../ai/reviewData'
+import { generateReview } from '../ai/reviewGenerator'
 import { buildMessages, textTurn } from '../ai/outbound'
 import { generateWithRepair } from '../ai/repair'
 
@@ -25,6 +28,13 @@ const summarySchema = z.object({
 })
 const CHAT_MAX_TOKENS = 1500
 const SUMMARY_MAX_TOKENS = 1000
+
+// A reason to answer with a failure that is not the model's.
+class CoachFailure extends Error {
+  constructor(readonly kind: CoachErrorKind) {
+    super(kind)
+  }
+}
 
 const failed = (kind: CoachErrorKind, retryAfterSeconds?: number): CoachResult<never> => ({
   ok: false,
@@ -38,10 +48,14 @@ const failed = (kind: CoachErrorKind, retryAfterSeconds?: number): CoachResult<n
 export function createCoachHandlers(deps: {
   llm: LlmClient
   getSettings: () => Pick<AppSettings, 'aiEnabled'>
+  // The path being followed and its numbers, or null if there is none to review.
+  loadReview: () => ReviewSource | null
+  now?: () => number
 }): {
   chat: (input: unknown) => Promise<CoachResult<CoachChatReply>>
   summarize: (input: unknown) => Promise<CoachResult<CoachSummaryReply>>
   planPath: (input: unknown) => Promise<CoachResult<PlanPathResult>>
+  reviewPath: (input: unknown) => Promise<CoachResult<PathReview>>
 } {
   let busy = false
 
@@ -59,6 +73,7 @@ export function createCoachHandlers(deps: {
     try {
       return { ok: true, value: await ask(parsed.data) }
     } catch (error) {
+      if (error instanceof CoachFailure) return failed(error.kind)
       return error instanceof LlmError
         ? failed(error.kind, error.retryAfterSeconds)
         : failed('unknown')
@@ -101,7 +116,19 @@ export function createCoachHandlers(deps: {
     },
 
     planPath: (input) =>
-      guarded(planPathInputSchema.safeParse(input), (plan) => generatePathTurn(deps.llm, plan))
+      guarded(planPathInputSchema.safeParse(input), (plan) => generatePathTurn(deps.llm, plan)),
+
+    reviewPath: (input) =>
+      guarded(reviewPathInputSchema.safeParse(input), ({ language, skills }) => {
+        const source = deps.loadReview()
+        if (!source) throw new CoachFailure('no-path')
+        return generateReview(deps.llm, {
+          digest: buildReviewDigest(source, (deps.now ?? Date.now)()),
+          path: source.current.path,
+          skills,
+          language
+        })
+      })
   }
 }
 
@@ -111,4 +138,5 @@ export function registerCoachIpc(deps: Parameters<typeof createCoachHandlers>[0]
   ipcMain.handle(IPC.coachChat, (_event, input: unknown) => handlers.chat(input))
   ipcMain.handle(IPC.coachSummarize, (_event, input: unknown) => handlers.summarize(input))
   ipcMain.handle(IPC.coachPlanPath, (_event, input: unknown) => handlers.planPath(input))
+  ipcMain.handle(IPC.coachReviewPath, (_event, input: unknown) => handlers.reviewPath(input))
 }

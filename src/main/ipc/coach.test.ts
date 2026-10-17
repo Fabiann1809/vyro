@@ -7,6 +7,10 @@ import type {
   CoachSummaryReply
 } from '@shared/coach'
 import type { PlanPathInput, PlanPathResult } from '@shared/pathPlan'
+import { evaluatePath } from '@shared/pathProgress'
+import type { PathReview } from '@shared/pathReview'
+import type { LearningPath } from '@shared/paths'
+import { buildReviewDigest, type ReviewSource } from '../ai/reviewData'
 import { LlmError } from '../ai/errors'
 import type { GenerateRequest, LlmClient } from '../ai/llmClient'
 import { createCoachHandlers } from './coach'
@@ -20,10 +24,15 @@ const input: CoachChatInput = {
   language: 'es'
 }
 
+const REVIEW_NOW = 1_000 + 3 * 24 * 60 * 60 * 1000
+
 interface Setup {
   chat: (input: unknown) => Promise<CoachResult<CoachChatReply>>
   summarize: (input: unknown) => Promise<CoachResult<CoachSummaryReply>>
   planPath: (input: unknown) => Promise<CoachResult<PlanPathResult>>
+  reviewPath: (input: unknown) => Promise<CoachResult<PathReview>>
+  // The path that a review would look at; null for none.
+  review: { source: ReviewSource | null }
   requests: GenerateRequest<unknown>[]
   answer: (outcome: unknown) => void
   enabled: { value: boolean }
@@ -43,11 +52,23 @@ function setup(...outcomes: unknown[]): Setup {
       return value instanceof Error ? Promise.reject(value) : Promise.resolve(value as T)
     }
   }
-  const { chat, summarize, planPath } = createCoachHandlers({
+  const review: Setup['review'] = { source: null }
+  const { chat, summarize, planPath, reviewPath } = createCoachHandlers({
     llm,
-    getSettings: () => ({ aiEnabled: enabled.value })
+    getSettings: () => ({ aiEnabled: enabled.value }),
+    loadReview: () => review.source,
+    now: () => REVIEW_NOW
   })
-  return { chat, summarize, planPath, requests, answer: (outcome) => queue.push(outcome), enabled }
+  return {
+    chat,
+    summarize,
+    planPath,
+    reviewPath,
+    review,
+    requests,
+    answer: (outcome) => queue.push(outcome),
+    enabled
+  }
 }
 
 let ctx: Setup
@@ -419,5 +440,102 @@ describe('coach path planning handler', () => {
 
     expect(await planning.planPath(withImage)).toEqual({ ok: false, error: { kind: 'blocked' } })
     expect(planning.requests).toEqual([])
+  })
+})
+
+const reviewedPath: LearningPath = {
+  id: 7,
+  goal: 'Mejorar mi sentadilla',
+  createdAt: 1_000,
+  status: 'active',
+  steps: [
+    {
+      id: 11,
+      position: 1,
+      title: 'Sentadilla lenta',
+      description: 'Descripción que no sale',
+      kind: 'skill',
+      skillId: 'squat',
+      criterionSessions: 3,
+      criterionScore: 80,
+      doneAt: null
+    }
+  ]
+}
+const reviewSource: ReviewSource = {
+  current: { path: reviewedPath, progress: evaluatePath(reviewedPath, []) },
+  sessions: [],
+  errorsBySkill: {}
+}
+const reviewInput = {
+  language: 'es',
+  skills: [{ id: 'squat', name: { es: 'Sentadilla', en: 'Squat' }, ruleIds: ['depth'] }]
+}
+const reviewReply = { summary: 'Semana tranquila.', adjustments: [] }
+
+describe('coach path review handler', () => {
+  it('reviews the path being followed and gives back the review with its path', async () => {
+    const reviewing = setup(reviewReply)
+    reviewing.review.source = reviewSource
+
+    expect(await reviewing.reviewPath(reviewInput)).toEqual({
+      ok: true,
+      value: { pathId: 7, summary: 'Semana tranquila.', adjustments: [] }
+    })
+  })
+
+  it('builds the numbers itself, from what it has, and sends only those', async () => {
+    const reviewing = setup(reviewReply)
+    reviewing.review.source = reviewSource
+
+    await reviewing.reviewPath(reviewInput)
+
+    const [lead, json] = (reviewing.requests[0]?.messages[0]?.content ?? '').split('\n')
+    expect(lead).toBe('Review this week of the learning path.')
+    expect(JSON.parse(json ?? '')).toEqual(buildReviewDigest(reviewSource, REVIEW_NOW))
+    expect(json).not.toContain('Descripción que no sale')
+  })
+
+  it('says there is no path to review, without asking the model', async () => {
+    const reviewing = setup(reviewReply)
+
+    expect(await reviewing.reviewPath(reviewInput)).toEqual({
+      ok: false,
+      error: { kind: 'no-path' }
+    })
+    expect(reviewing.requests).toEqual([])
+  })
+
+  it.each([
+    ['no skills', { ...reviewInput, skills: [] }],
+    ['a field that is not listed', { ...reviewInput, digest: { goal: 'x' } }],
+    ['something that is not an object', 'hola']
+  ])('rejects a request with %s, so the page cannot bring its own numbers', async (_name, bad) => {
+    const reviewing = setup(reviewReply)
+    reviewing.review.source = reviewSource
+
+    expect(await reviewing.reviewPath(bad)).toEqual({ ok: false, error: { kind: 'invalid-input' } })
+    expect(reviewing.requests).toEqual([])
+  })
+
+  it('does not ask while the AI coach is off', async () => {
+    const reviewing = setup(reviewReply)
+    reviewing.review.source = reviewSource
+    reviewing.enabled.value = false
+
+    expect(await reviewing.reviewPath(reviewInput)).toEqual({
+      ok: false,
+      error: { kind: 'not-enabled' }
+    })
+  })
+
+  it('answers a failure as data', async () => {
+    const failing = setup(new LlmError('rate-limit', { retryAfterSeconds: 4 }))
+    failing.review.source = reviewSource
+
+    expect(await failing.reviewPath(reviewInput)).toEqual({
+      ok: false,
+      error: { kind: 'rate-limit', retryAfterSeconds: 4 }
+    })
   })
 })

@@ -3,6 +3,7 @@ import { t } from '@renderer/i18n'
 import type { PathStep } from '@shared/paths'
 import type { CurrentPath, StepProgress } from '@shared/pathProgress'
 import { useNavigation } from './navigation'
+import { PathReviewPanel } from './PathReviewPanel'
 import { PathStepCard } from './PathStepCard'
 import { useSession } from './sessionStore'
 
@@ -139,6 +140,8 @@ export function ActivePath({
           )
         })}
       </ol>
+
+      {!progress.completed && <PathReviewPanel path={path} onApplied={onChanged} />}
     </section>
   )
 }

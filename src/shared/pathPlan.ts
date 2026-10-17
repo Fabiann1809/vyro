@@ -8,28 +8,29 @@ import type { PathToSave } from './paths'
 
 export const MAX_QUESTIONS = 3
 
-const skillId = z.string().regex(/^[a-z][a-z0-9_]{0,63}$/)
+export const skillIdSchema = z.string().regex(/^[a-z][a-z0-9_]{0,63}$/)
+const skillId = skillIdSchema
 
 // The skills that exist, so that a path only uses skills that can really be measured.
+export const plannerSkillsSchema = z
+  .array(
+    z
+      .object({
+        id: skillId,
+        name: z.object({ es: z.string().min(1).max(60), en: z.string().min(1).max(60) }).strict(),
+        // What the skill corrects, by the internal names of its rules.
+        ruleIds: z.array(skillId).max(20)
+      })
+      .strict()
+  )
+  .min(1)
+  .max(50)
+
 export const planPathInputSchema = z
   .object({
     turns: coachTurnsSchema,
     language: z.enum(['es', 'en']),
-    skills: z
-      .array(
-        z
-          .object({
-            id: skillId,
-            name: z
-              .object({ es: z.string().min(1).max(60), en: z.string().min(1).max(60) })
-              .strict(),
-            // What the skill corrects, by the internal names of its rules.
-            ruleIds: z.array(skillId).max(20)
-          })
-          .strict()
-      )
-      .min(1)
-      .max(50)
+    skills: plannerSkillsSchema
   })
   .strict()
 

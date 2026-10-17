@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { PathStepToSave, PathToSave } from '@shared/paths'
+import type { Adjustment } from '@shared/pathReview'
 import { openDatabase, type Database } from './database'
 import { PathRepository } from './pathRepository'
 
@@ -223,5 +224,146 @@ describe('what the table refuses by itself', () => {
         "INSERT INTO path_steps (path_id, position, title, description, kind) VALUES (99, 1, 't', '', 'auxiliary')"
       )
     ).toThrow()
+  })
+})
+
+describe('applying the adjustments of a review', () => {
+  // Three steps: skill squat, rest, skill pushup.
+  const setup = (): { pathId: number; ids: number[] } => {
+    const pathId = repository.create(path(), 1_000)
+    return { pathId, ids: repository.get(pathId)?.steps.map((step) => step.id) ?? [] }
+  }
+  const titles = (pathId: number): string[] =>
+    repository.get(pathId)?.steps.map((step) => step.title) ?? []
+  const positions = (pathId: number): number[] =>
+    repository.get(pathId)?.steps.map((step) => step.position) ?? []
+
+  const newStep = (title: string): PathStepToSave => auxiliaryStep(title)
+
+  it('changes the goal of a step and nothing else', () => {
+    const { pathId, ids } = setup()
+    const change: Adjustment = {
+      type: 'change-criteria',
+      stepId: ids[0] ?? 0,
+      criterionSessions: 5,
+      criterionScore: 60,
+      reason: 'Más práctica.'
+    }
+
+    repository.applyAdjustments(pathId, [change])
+
+    expect(repository.get(pathId)?.steps[0]).toMatchObject({
+      criterionSessions: 5,
+      criterionScore: 60,
+      title: 'Practicar squat'
+    })
+    expect(titles(pathId)).toHaveLength(3)
+  })
+
+  it('removes a step and closes the gap in the positions', () => {
+    const { pathId, ids } = setup()
+
+    repository.applyAdjustments(pathId, [
+      { type: 'remove-step', stepId: ids[1] ?? 0, reason: 'Sobra.' }
+    ])
+
+    expect(titles(pathId)).toEqual(['Practicar squat', 'Practicar pushup'])
+    expect(positions(pathId)).toEqual([1, 2])
+  })
+
+  it('adds a step right after another one and renumbers', () => {
+    const { pathId, ids } = setup()
+
+    repository.applyAdjustments(pathId, [
+      { type: 'add-step', afterStepId: ids[0] ?? 0, step: newStep('Nuevo'), reason: 'Falta.' }
+    ])
+
+    expect(titles(pathId)).toEqual([
+      'Practicar squat',
+      'Nuevo',
+      'Descansar un día',
+      'Practicar pushup'
+    ])
+    expect(positions(pathId)).toEqual([1, 2, 3, 4])
+  })
+
+  it('adds a step at the end', () => {
+    const { pathId, ids } = setup()
+
+    repository.applyAdjustments(pathId, [
+      { type: 'add-step', afterStepId: ids[2] ?? 0, step: newStep('Final'), reason: 'Falta.' }
+    ])
+
+    expect(titles(pathId).at(-1)).toBe('Final')
+  })
+
+  it('keeps the given order for several steps added after the same one', () => {
+    const { pathId, ids } = setup()
+
+    repository.applyAdjustments(pathId, [
+      { type: 'add-step', afterStepId: ids[0] ?? 0, step: newStep('Uno'), reason: 'a' },
+      { type: 'add-step', afterStepId: ids[0] ?? 0, step: newStep('Dos'), reason: 'b' }
+    ])
+
+    expect(titles(pathId).slice(0, 3)).toEqual(['Practicar squat', 'Uno', 'Dos'])
+  })
+
+  it('does everything of one review together', () => {
+    const { pathId, ids } = setup()
+
+    repository.applyAdjustments(pathId, [
+      { type: 'remove-step', stepId: ids[1] ?? 0, reason: 'a' },
+      {
+        type: 'change-criteria',
+        stepId: ids[2] ?? 0,
+        criterionSessions: 4,
+        criterionScore: 65,
+        reason: 'b'
+      },
+      { type: 'add-step', afterStepId: ids[0] ?? 0, step: newStep('Entre medias'), reason: 'c' }
+    ])
+
+    expect(titles(pathId)).toEqual(['Practicar squat', 'Entre medias', 'Practicar pushup'])
+    expect(positions(pathId)).toEqual([1, 2, 3])
+    expect(repository.get(pathId)?.steps[2]).toMatchObject({ criterionSessions: 4 })
+  })
+
+  it('leaves the done steps as they were', () => {
+    const { pathId, ids } = setup()
+    repository.setStepDone(ids[0] ?? 0, 7_000)
+
+    repository.applyAdjustments(pathId, [
+      { type: 'add-step', afterStepId: ids[0] ?? 0, step: newStep('Nuevo'), reason: 'a' }
+    ])
+
+    expect(repository.get(pathId)?.steps[0]).toMatchObject({
+      title: 'Practicar squat',
+      doneAt: 7_000
+    })
+  })
+
+  it('changes nothing if one of the adjustments cannot be applied', () => {
+    const { pathId, ids } = setup()
+
+    expect(() =>
+      repository.applyAdjustments(pathId, [
+        { type: 'remove-step', stepId: ids[1] ?? 0, reason: 'a' },
+        // Hung from the step that was just removed.
+        { type: 'add-step', afterStepId: ids[1] ?? 0, step: newStep('Huérfano'), reason: 'b' }
+      ])
+    ).toThrow()
+
+    expect(titles(pathId)).toEqual(['Practicar squat', 'Descansar un día', 'Practicar pushup'])
+    expect(positions(pathId)).toEqual([1, 2, 3])
+  })
+
+  it('does not touch the steps of another path', () => {
+    const { pathId } = setup()
+    const other = repository.create(path('Otra'), 2_000)
+    const otherStep = repository.get(other)?.steps[1]?.id ?? 0
+
+    repository.applyAdjustments(pathId, [{ type: 'remove-step', stepId: otherStep, reason: 'a' }])
+
+    expect(titles(other)).toHaveLength(3)
   })
 })

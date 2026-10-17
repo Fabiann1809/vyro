@@ -105,6 +105,25 @@ describe('SessionRepository', () => {
     ])
   })
 
+  it('counts only the errors of the sessions that began after a moment', () => {
+    repository.save(session({ startedAt: 1_000 }))
+    repository.save(
+      session({
+        startedAt: 5_000,
+        reps: [{ index: 1, quality: 'bad', durationMs: 2000, failedRuleIds: ['depth'] }]
+      })
+    )
+
+    expect(repository.errorCounts('squat', 2_000)).toEqual([{ ruleId: 'depth', count: 1 }])
+    expect(repository.errorCounts(undefined, 2_000)).toEqual([{ ruleId: 'depth', count: 1 }])
+    expect(repository.errorCounts('squat', 9_000)).toEqual([])
+    // Without a moment, all of them.
+    expect(repository.errorCounts('squat')).toEqual([
+      { ruleId: 'depth', count: 2 },
+      { ruleId: 'torso_lean', count: 2 }
+    ])
+  })
+
   it('saves nothing when a repetition cannot be saved', () => {
     const broken = session({
       reps: [

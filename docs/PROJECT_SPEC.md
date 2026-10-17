@@ -260,7 +260,7 @@ están menos detalladas que las anteriores y se afinarán al llegar a ellas.
 - [x] **T10.3 Generador de ruta.** Conversación con hasta tres preguntas aclaratorias y ruta en JSON validado, con reintento si la salida no cumple el esquema. Si la habilidad no tiene señal medible, el chat la rechaza, explica por qué y sugiere la parte medible. *Hecho cuando:* con un LLM falso se obtiene una ruta válida, una salida inválida se repara o falla con mensaje claro, y una habilidad fuera de alcance se rechaza.
 - [x] **T10.4 Pantalla de ruta.** Pasos con habilidad medible (llevan a la calibración) y pasos auxiliares (descanso, teoría breve) marcados como tales. *Hecho cuando:* se recorre una ruta de ejemplo con ambos tipos de paso.
 - [x] **T10.5 Avance por criterio.** Función pura que decide si un paso está cumplido a partir de las sesiones guardadas (por ejemplo, 3 sesiones con 80 o más). *Hecho cuando:* las pruebas cubren cumplido, incompleto y sin datos, y el siguiente paso se desbloquea.
-- [ ] **T10.6 Plan semanal adaptativo.** Revisión semanal con el historial numérico y propuesta de ajustes que el usuario acepta o rechaza. *Hecho cuando:* una propuesta aceptada cambia la ruta y una rechazada no la toca.
+- [x] **T10.6 Plan semanal adaptativo.** Revisión semanal con el historial numérico y propuesta de ajustes que el usuario acepta o rechaza. *Hecho cuando:* una propuesta aceptada cambia la ruta y una rechazada no la toca.
 
 ### Fase 11 — Habilidades generadas (canal cuerpo)
 - [ ] **T11.1 Habilidades en tiempo de ejecución.** Migración v3 (`custom_skills`), IPC para listarlas y el cargador junta las incluidas con las guardadas. *Hecho cuando:* una habilidad guardada aparece en Inicio tras reiniciar sin recompilar.
