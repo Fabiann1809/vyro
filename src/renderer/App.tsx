@@ -49,7 +49,7 @@ function App(): React.JSX.Element {
   const screen = useNavigation((state) => state.screen)
 
   return (
-    <div className="flex h-screen flex-col bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div className="flex h-screen flex-col bg-bg text-t1">
       {!isImmersive(screen) && <NavBar />}
       <main className="flex flex-1 items-center justify-center overflow-auto">
         <CurrentScreen screen={screen} />

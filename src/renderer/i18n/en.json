@@ -416,5 +416,9 @@
   "settings.ai.consent.notAdvice": "The paths and skills that the AI proposes are not medical or professional advice. Do not use them if you feel pain, and stop if something does not feel right.",
   "settings.ai.consent.off": "You can turn it off whenever you want on this same screen.",
   "settings.ai.consent.accept": "I accept and turn it on",
-  "settings.ai.consent.cancel": "Cancel"
+  "settings.ai.consent.cancel": "Cancel",
+  "channel.body": "Body",
+  "channel.hands": "Hands",
+  "channel.object": "Object",
+  "channel.audio": "Audio"
 }

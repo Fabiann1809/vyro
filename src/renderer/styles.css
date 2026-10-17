@@ -1,7 +1,234 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/onest';
+@import '@fontsource-variable/unbounded';
 
 /* The theme is a data attribute on the root element, set by useAppliedAppearance. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* Colours of the interface, from the design in docs/DESIGN_SYSTEM.md. Dark is the default, also before
+   the theme attribute is set. Utilities such as bg-card or text-mut read these through @theme below. */
+:root,
+:root[data-theme='dark'] {
+  --bg: #0d0f14;
+  --side: #0a0c10;
+  --card: #14171e;
+  --card2: #151820;
+  --sunk: #0f1217;
+  --fill: #232835;
+  --seg: #262b36;
+  --track: #2a2f3a;
+  --empty: #1b1f27;
+  --lock: #171a21;
+  --t1: #eceef3;
+  --t2: #e3e6ec;
+  --t3: #d5d8e0;
+  --t4: #c9cdd6;
+  --mut: #9aa1b0;
+  --mut2: #7c8394;
+  /* Only for things that carry no text: icons and thin marks (3:1 is enough there). */
+  --mut3: #6b7281;
+  --inv: #0d0f14;
+  --line: #ffffff;
+  --brand: oklch(0.87 0.18 125);
+  --on-brand: #0d0f14;
+  --accent: oklch(0.9 0.14 125);
+  --good: oklch(0.87 0.18 125);
+  --warn: oklch(0.84 0.14 85);
+  --bad: oklch(0.68 0.17 25);
+  --good-text: oklch(0.87 0.18 125);
+  --warn-text: oklch(0.84 0.14 85);
+  --bad-text: oklch(0.74 0.15 25);
+  --ch-body: oklch(0.74 0.13 255);
+  --ch-hands: oklch(0.74 0.13 310);
+  --ch-object: oklch(0.74 0.13 60);
+  --ch-audio: oklch(0.74 0.13 190);
+}
+
+:root[data-theme='light'] {
+  --bg: #f2f1ec;
+  --side: #eae9e3;
+  --card: #ffffff;
+  --card2: #f8f7f3;
+  --sunk: #eeede7;
+  --fill: #e7e6e0;
+  --seg: #ffffff;
+  --track: #d6d5cf;
+  --empty: #e7e6e0;
+  --lock: #eae9e3;
+  --t1: #14161b;
+  --t2: #23262d;
+  --t3: #2e323a;
+  --t4: #3d424b;
+  --mut: #5f6573;
+  --mut2: #646a77;
+  --mut3: #757b87;
+  --inv: #ffffff;
+  --line: #0d0f14;
+  --brand: oklch(0.87 0.18 125);
+  --on-brand: #0d0f14;
+  --accent: oklch(0.48 0.14 130);
+  --good: oklch(0.62 0.17 130);
+  --warn: oklch(0.65 0.14 75);
+  --bad: oklch(0.58 0.19 25);
+  --good-text: oklch(0.46 0.14 130);
+  --warn-text: oklch(0.5 0.11 70);
+  --bad-text: oklch(0.5 0.17 25);
+  --ch-body: oklch(0.5 0.15 255);
+  --ch-hands: oklch(0.5 0.15 310);
+  --ch-object: oklch(0.5 0.12 60);
+  --ch-audio: oklch(0.48 0.1 190);
+}
+
+@theme inline {
+  --font-sans: 'Onest Variable', system-ui, sans-serif;
+  --font-display: 'Unbounded Variable', 'Onest Variable', system-ui, sans-serif;
+  --color-bg: var(--bg);
+  --color-side: var(--side);
+  --color-card: var(--card);
+  --color-card2: var(--card2);
+  --color-sunk: var(--sunk);
+  --color-fill: var(--fill);
+  --color-seg: var(--seg);
+  --color-track: var(--track);
+  --color-empty: var(--empty);
+  --color-lock: var(--lock);
+  --color-t1: var(--t1);
+  --color-t2: var(--t2);
+  --color-t3: var(--t3);
+  --color-t4: var(--t4);
+  --color-mut: var(--mut);
+  --color-mut2: var(--mut2);
+  --color-mut3: var(--mut3);
+  --color-inv: var(--inv);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-on-brand: var(--on-brand);
+  --color-accent: var(--accent);
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  --color-good-text: var(--good-text);
+  --color-warn-text: var(--warn-text);
+  --color-bad-text: var(--bad-text);
+  --color-ch-body: var(--ch-body);
+  --color-ch-hands: var(--ch-hands);
+  --color-ch-object: var(--ch-object);
+  --color-ch-audio: var(--ch-audio);
+}
+
+body {
+  background: var(--bg);
+  color: var(--t1);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Movement of the interface. Each one is a short entrance or a sign of life; with less motion asked
+   for, the rules at the end of this file switch every animation off. */
+@keyframes vy-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes vy-fade {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes vy-breath {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.07);
+  }
+}
+@keyframes vy-ring {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+@keyframes vy-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+@keyframes vy-check {
+  from {
+    stroke-dashoffset: 20;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes vy-beat {
+  0% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes vy-node {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 10px color-mix(in oklab, var(--brand) 0%, transparent);
+  }
+}
+@keyframes vy-burst {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+@keyframes vy-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@utility anim-up {
+  animation: vy-up 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@utility anim-fade {
+  animation: vy-fade 240ms ease-out both;
+}
+@utility anim-beat {
+  animation: vy-beat 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
 
 /* Someone using the keyboard must always see where the focus is (at least 3:1 against the page). */
 :focus-visible {

@@ -416,5 +416,9 @@
   "settings.ai.consent.notAdvice": "Las rutas y habilidades que propone la IA no son consejo médico ni de un profesional. No las uses si sientes dolor y detente si algo no se siente bien.",
   "settings.ai.consent.off": "Puedes apagarlo cuando quieras en esta misma pantalla.",
   "settings.ai.consent.accept": "Acepto y activar",
-  "settings.ai.consent.cancel": "Cancelar"
+  "settings.ai.consent.cancel": "Cancelar",
+  "channel.body": "Cuerpo",
+  "channel.hands": "Manos",
+  "channel.object": "Objeto",
+  "channel.audio": "Audio"
 }
