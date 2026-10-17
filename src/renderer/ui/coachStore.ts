@@ -19,7 +19,7 @@ interface CoachState {
 // The conversation lives only in memory: it is never written to disk, and it ends with the app.
 export const useCoach = create<CoachState>(() => ({ turns: [], pending: false, error: null }))
 
-type CoachApi = Pick<VyroApi, 'coach'>
+type CoachApi = { coach: Pick<VyroApi['coach'], 'chat'> }
 
 // What is sent: the most recent turns, starting with the user's (a conversation cannot open
 // with the coach's own words).

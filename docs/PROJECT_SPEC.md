@@ -252,7 +252,7 @@ están menos detalladas que las anteriores y se afinarán al llegar a ellas.
 - [x] **T9.5 Constructor de datos permitidos.** Una sola función arma lo que sale a la API, con lista blanca de campos. *Hecho cuando:* una prueba demuestra que ni landmarks, ni imágenes, ni audio, ni campos no listados pueden salir, con cualquiera de los proveedores.
 - [x] **T9.6 Puente IPC del coach.** API tipada y validada en el preload. *Hecho cuando:* el renderer pide una respuesta al coach sin acceso a Node ni a la clave.
 - [x] **T9.7 Pantalla de chat.** Mensajes, entrada, estados (sin clave, sin red, cargando, error), teclado y lector de pantalla, es/en. *Hecho cuando:* con un cliente falso se conversa de punta a punta y cada estado se ve bien.
-- [ ] **T9.8 Resumen de sesión con IA.** Botón en el resumen que pide un texto natural a partir de las métricas numéricas. *Hecho cuando:* con clave muestra el resumen y la prueba confirma que solo se envían números.
+- [x] **T9.8 Resumen de sesión con IA.** Botón en el resumen que pide un texto natural a partir de las métricas numéricas. *Hecho cuando:* con clave muestra el resumen y la prueba confirma que solo se envían números.
 
 ### Fase 10 — Rutas de aprendizaje
 - [ ] **T10.1 Modelo de ruta.** Migración v2 (`learning_paths`, `path_steps`), tipos compartidos y repositorios. *Hecho cuando:* las pruebas con SQLite en memoria pasan y "borrar datos" también las vacía.

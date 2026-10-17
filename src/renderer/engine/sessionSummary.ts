@@ -1,3 +1,4 @@
+import type { SessionDigest } from '@shared/coach'
 import type { SessionToSave } from '@shared/sessions'
 import type { RepQuality, RepResult } from './repEvaluator'
 
@@ -77,5 +78,29 @@ export function buildSessionToSave(
       durationMs: Math.round(result.durationMs),
       failedRuleIds: result.failed.map((outcome) => outcome.ruleId)
     }))
+  }
+}
+
+// The numbers of a session, for the AI coach: counts, the score and the names of the rules that
+// failed, nothing else. A session with no repetition has nothing to say, so no digest (null).
+export function buildSessionDigest(
+  skillId: string,
+  startedAt: number,
+  durationMs: number,
+  results: readonly RepResult[]
+): SessionDigest | null {
+  if (results.length === 0) return null
+
+  const summary = summarizeSession(results)
+  return {
+    skillId,
+    startedAt,
+    durationSeconds: Math.round(durationMs / 1000),
+    repCount: results.length,
+    goodCount: summary.good,
+    needsWorkCount: summary.needsWork,
+    badCount: summary.bad,
+    score: summary.score,
+    errors: summary.errors.map(({ ruleId, count }) => ({ ruleId, count }))
   }
 }

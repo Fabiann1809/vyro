@@ -143,7 +143,7 @@ test('the coach answers a question with data, and only the typed bridge reaches 
     off: { ok: false, error: { kind: 'not-enabled' } },
     noKey: { ok: false, error: { kind: 'no-key' } },
     invalid: { ok: false, error: { kind: 'invalid-input' } },
-    methods: ['chat']
+    methods: ['chat', 'summarize']
   })
 })
 
@@ -157,12 +157,15 @@ interface FakeProvider {
   }>
   // The next answers, in order; when they run out it answers with the default reply.
   script: Array<{ status: number; headers?: Record<string, string> }>
+  // What the model answers from now on, as the JSON it writes.
+  setAnswer: (answer: Record<string, unknown>) => void
   close: () => Promise<void>
 }
 
 async function startFakeProvider(reply: string): Promise<FakeProvider> {
   const received: FakeProvider['received'] = []
   const script: FakeProvider['script'] = []
+  let answer: Record<string, unknown> = { reply }
   const server: Server = createServer((request, response) => {
     let raw = ''
     request.on('data', (chunk: Buffer) => (raw += chunk.toString()))
@@ -174,9 +177,7 @@ async function startFakeProvider(reply: string): Promise<FakeProvider> {
         JSON.stringify(
           next.status === 200
             ? {
-                choices: [
-                  { message: { content: JSON.stringify({ reply }) }, finish_reason: 'stop' }
-                ]
+                choices: [{ message: { content: JSON.stringify(answer) }, finish_reason: 'stop' }]
               }
             : { error: { message: 'no' } }
         )
@@ -190,6 +191,9 @@ async function startFakeProvider(reply: string): Promise<FakeProvider> {
     url: `http://127.0.0.1:${port}/v1`,
     received,
     script,
+    setAnswer: (next) => {
+      answer = next
+    },
     close: () => new Promise<void>((resolve) => server.close(() => resolve()))
   }
 }
@@ -301,6 +305,60 @@ test.describe('AI coach screen', () => {
     await expect(page.getByRole('alert')).toContainText('El proveedor tuvo un problema')
     await page.getByRole('button', { name: 'Reintentar' }).click()
     await expect(page.getByText(REPLY)).toBeVisible()
+  })
+
+  test('asks for the summary of a session and sends only its numbers', async () => {
+    provider.setAnswer({ summary: 'Buena sesión.', tip: 'Baja un poco más.' })
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+
+    const session = {
+      skillId: 'squat',
+      startedAt: 1_700_000_000_000,
+      durationSeconds: 600,
+      repCount: 12,
+      goodCount: 8,
+      needsWorkCount: 3,
+      badCount: 1,
+      score: 79,
+      errors: [{ ruleId: 'depth', count: 4 }]
+    }
+    const ask = (input: unknown): Promise<unknown> =>
+      page.evaluate(
+        (value) =>
+          (
+            window as unknown as { api: { coach: { summarize: (i: unknown) => Promise<unknown> } } }
+          ).api.coach.summarize(value),
+        input
+      )
+
+    expect(await ask({ session, language: 'es' })).toEqual({
+      ok: true,
+      value: { summary: 'Buena sesión.', tip: 'Baja un poco más.' }
+    })
+
+    // Exactly the digest reached the provider, as numbers and internal names.
+    expect(provider.received).toHaveLength(1)
+    const messages = provider.received[0]?.body['messages'] as Array<{
+      role: string
+      content: string
+    }>
+    const [, userMessage] = messages
+    const [lead, json] = (userMessage?.content ?? '').split('\n')
+    expect(lead).toBe('Summarise this training session.')
+    expect(JSON.parse(json ?? '')).toEqual(session)
+
+    // A session with anything else in it is refused before it can leave.
+    const tampered = {
+      ...session,
+      landmarks: [{ x: 0.1, y: 0.2 }],
+      frame: 'data:image/png;base64,AAAA'
+    }
+    expect(await ask({ session: tampered, language: 'es' })).toEqual({
+      ok: false,
+      error: { kind: 'invalid-input' }
+    })
+    expect(provider.received).toHaveLength(1)
   })
 
   test('writes a new line with Shift + Enter instead of sending', async () => {

@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { sessionDigestSchema, type SessionDigest } from '@shared/coach'
 import { LlmError } from './errors'
 import type { ChatMessage } from './llmClient'
 
@@ -18,25 +18,7 @@ export interface OutboundMessage extends ChatMessage {
 }
 export type OutboundSystem = string & { readonly [sealed]: true }
 
-const identifier = z.string().min(1).max(64)
-const count = z.number().int().min(0).max(100_000)
-
-export const sessionDigestSchema = z
-  .object({
-    skillId: identifier,
-    // Milliseconds since 1970.
-    startedAt: z.number().int().min(0),
-    durationSeconds: z.number().int().min(0).max(86_400),
-    repCount: count,
-    goodCount: count,
-    needsWorkCount: count,
-    badCount: count,
-    score: z.number().int().min(0).max(100).nullable(),
-    errors: z.array(z.object({ ruleId: identifier, count }).strict()).max(50)
-  })
-  .strict()
-
-export type SessionDigest = z.infer<typeof sessionDigestSchema>
+export { sessionDigestSchema, type SessionDigest }
 
 const MAX_SESSIONS_IN_HISTORY = 200
 

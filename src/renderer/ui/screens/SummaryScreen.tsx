@@ -1,7 +1,8 @@
-import { summarizeSession } from '@renderer/engine/sessionSummary'
+import { buildSessionDigest, summarizeSession } from '@renderer/engine/sessionSummary'
 import type { RepQuality } from '@renderer/engine/repEvaluator'
 import { localize, t, type MessageKey } from '@renderer/i18n'
 import { bundledSkills } from '@renderer/skills'
+import { CoachSummary } from '../CoachSummary'
 import { useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
 
@@ -44,6 +45,12 @@ export function SummaryScreen(): React.JSX.Element {
 
   const summary = summarizeSession(finished.results)
   const topError = summary.errors[0]
+  const digest = buildSessionDigest(
+    finished.skillId,
+    finished.startedAt,
+    finished.durationMs,
+    finished.results
+  )
 
   return (
     <section className="flex w-full max-w-3xl flex-col gap-6 p-8">
@@ -116,6 +123,8 @@ export function SummaryScreen(): React.JSX.Element {
           </div>
         </>
       )}
+
+      {digest && <CoachSummary key={digest.startedAt} digest={digest} />}
 
       <div className="flex flex-wrap gap-3">
         <button

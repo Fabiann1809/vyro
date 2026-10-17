@@ -126,7 +126,7 @@ export function TrainingScreen(): React.JSX.Element {
   const end = useCallback(() => {
     if (skill) {
       const results = runRef.current?.results ?? []
-      finishSession({ skillId: skill.id, durationMs: elapsedMs, results })
+      finishSession({ skillId: skill.id, startedAt, durationMs: elapsedMs, results })
 
       const toSave = buildSessionToSave(skill.id, startedAt, elapsedMs, results)
       if (toSave) {

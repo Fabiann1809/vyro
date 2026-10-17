@@ -13,17 +13,22 @@ describe('session store', () => {
   it('keeps the session that just ended for the summary', () => {
     expect(useSession.getState().finished).toBeNull()
 
-    useSession.getState().finishSession({ skillId: 'squat', durationMs: 60_000, results: [] })
+    useSession
+      .getState()
+      .finishSession({ skillId: 'squat', startedAt: 1, durationMs: 60_000, results: [] })
 
     expect(useSession.getState().finished).toEqual({
       skillId: 'squat',
+      startedAt: 1,
       durationMs: 60_000,
       results: []
     })
   })
 
   it('starts saving a finished session and records how it went', () => {
-    useSession.getState().finishSession({ skillId: 'squat', durationMs: 1, results: [] })
+    useSession
+      .getState()
+      .finishSession({ skillId: 'squat', startedAt: 1, durationMs: 1, results: [] })
     expect(useSession.getState().saveStatus).toBe('saving')
 
     useSession.getState().setSaveStatus('saved')

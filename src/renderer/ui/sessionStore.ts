@@ -3,6 +3,8 @@ import type { RepResult } from '@renderer/engine/repEvaluator'
 
 export interface FinishedSession {
   skillId: string
+  // Milliseconds since 1970.
+  startedAt: number
   durationMs: number
   results: readonly RepResult[]
 }

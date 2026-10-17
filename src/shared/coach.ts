@@ -67,3 +67,37 @@ export type CoachChatInput = z.infer<typeof coachChatInputSchema>
 export interface CoachChatReply {
   reply: string
 }
+
+const identifier = z.string().min(1).max(64)
+const count = z.number().int().min(0).max(100_000)
+
+// The numbers of one training session: the only thing about a session that may go to an AI
+// provider. Strict on purpose: a field that is not listed is refused, not quietly dropped.
+export const sessionDigestSchema = z
+  .object({
+    skillId: identifier,
+    // Milliseconds since 1970.
+    startedAt: z.number().int().min(0),
+    durationSeconds: z.number().int().min(0).max(86_400),
+    repCount: count,
+    goodCount: count,
+    needsWorkCount: count,
+    badCount: count,
+    score: z.number().int().min(0).max(100).nullable(),
+    errors: z.array(z.object({ ruleId: identifier, count }).strict()).max(50)
+  })
+  .strict()
+
+export type SessionDigest = z.infer<typeof sessionDigestSchema>
+
+export const coachSummaryInputSchema = z
+  .object({ session: sessionDigestSchema, language: z.enum(['es', 'en']) })
+  .strict()
+
+export type CoachSummaryInput = z.infer<typeof coachSummaryInputSchema>
+
+export interface CoachSummaryReply {
+  summary: string
+  // One concrete thing to try next time.
+  tip: string
+}

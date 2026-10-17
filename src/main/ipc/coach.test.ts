@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { CoachChatInput, CoachResult, CoachChatReply } from '@shared/coach'
+import type {
+  CoachChatInput,
+  CoachChatReply,
+  CoachResult,
+  CoachSummaryInput,
+  CoachSummaryReply
+} from '@shared/coach'
 import { LlmError } from '../ai/errors'
 import type { GenerateRequest, LlmClient } from '../ai/llmClient'
 import { createCoachHandlers } from './coach'
@@ -15,6 +21,7 @@ const input: CoachChatInput = {
 
 interface Setup {
   chat: (input: unknown) => Promise<CoachResult<CoachChatReply>>
+  summarize: (input: unknown) => Promise<CoachResult<CoachSummaryReply>>
   requests: GenerateRequest<unknown>[]
   answer: (outcome: unknown) => void
   enabled: { value: boolean }
@@ -34,8 +41,11 @@ function setup(...outcomes: unknown[]): Setup {
       return value instanceof Error ? Promise.reject(value) : Promise.resolve(value as T)
     }
   }
-  const { chat } = createCoachHandlers({ llm, getSettings: () => ({ aiEnabled: enabled.value }) })
-  return { chat, requests, answer: (outcome) => queue.push(outcome), enabled }
+  const { chat, summarize } = createCoachHandlers({
+    llm,
+    getSettings: () => ({ aiEnabled: enabled.value })
+  })
+  return { chat, summarize, requests, answer: (outcome) => queue.push(outcome), enabled }
 }
 
 let ctx: Setup
@@ -189,5 +199,130 @@ describe('coach chat handler', () => {
 
     expect((await twice.chat(input)).ok).toBe(false)
     expect((await twice.chat(input)).ok).toBe(true)
+  })
+})
+
+const session: CoachSummaryInput['session'] = {
+  skillId: 'squat',
+  startedAt: 1_700_000_000_000,
+  durationSeconds: 600,
+  repCount: 12,
+  goodCount: 8,
+  needsWorkCount: 3,
+  badCount: 1,
+  score: 79,
+  errors: [
+    { ruleId: 'depth', count: 4 },
+    { ruleId: 'torso_lean', count: 2 }
+  ]
+}
+const summaryInput: CoachSummaryInput = { session, language: 'es' }
+const summaryReply = { summary: 'Buena sesión.', tip: 'Baja un poco más.' }
+
+describe('coach summary handler', () => {
+  it('asks for a summary and gives back the text and the tip', async () => {
+    const summarizing = setup(summaryReply)
+
+    expect(await summarizing.summarize(summaryInput)).toEqual({ ok: true, value: summaryReply })
+  })
+
+  it('uses the quick model and asks for the language of the user', async () => {
+    const summarizing = setup(summaryReply)
+
+    await summarizing.summarize({ ...summaryInput, language: 'en' })
+
+    expect(summarizing.requests[0]?.tier).toBe('fast')
+    expect(summarizing.requests[0]?.system).toContain('Write in English')
+  })
+
+  it('sends only numbers and the internal names of the skill and its rules', async () => {
+    const summarizing = setup(summaryReply)
+
+    await summarizing.summarize(summaryInput)
+
+    const [message] = summarizing.requests[0]?.messages ?? []
+    const [, json] = (message?.content ?? '').split('\n')
+    const sent = JSON.parse(json ?? '') as unknown
+
+    expect(sent).toEqual(session)
+    // Every value is a number, nothing, or a short internal name: no free text can travel here.
+    const leaves: unknown[] = []
+    const walk = (value: unknown): void => {
+      if (Array.isArray(value)) value.forEach(walk)
+      else if (value !== null && typeof value === 'object') Object.values(value).forEach(walk)
+      else leaves.push(value)
+    }
+    walk(sent)
+    for (const leaf of leaves) {
+      expect(leaf === null || typeof leaf === 'number' || /^[a-z0-9_]+$/.test(String(leaf))).toBe(
+        true
+      )
+    }
+  })
+
+  it.each([
+    ['landmarks', { landmarks: [{ x: 0.1, y: 0.2 }] }],
+    ['a picture', { frame: 'data:image/png;base64,AAAA' }],
+    ['audio', { audio: [0.1, 0.2] }],
+    ['a name', { userName: 'Ana' }]
+  ])('rejects a session that carries %s, and sends nothing', async (_name, extra) => {
+    const summarizing = setup(summaryReply)
+
+    const result = await summarizing.summarize({
+      session: { ...session, ...extra },
+      language: 'es'
+    })
+
+    expect(result).toEqual({ ok: false, error: { kind: 'invalid-input' } })
+    expect(summarizing.requests).toEqual([])
+  })
+
+  it.each([
+    ['text where a number goes', { ...session, goodCount: 'many' }],
+    ['a score above 100', { ...session, score: 101 }],
+    ['an empty skill', { ...session, skillId: '' }],
+    [
+      'a rule name that is a sentence',
+      { ...session, errors: [{ ruleId: 'x'.repeat(65), count: 1 }] }
+    ]
+  ])('rejects %s', async (_name, bad) => {
+    const summarizing = setup(summaryReply)
+
+    expect(await summarizing.summarize({ session: bad, language: 'es' })).toEqual({
+      ok: false,
+      error: { kind: 'invalid-input' }
+    })
+    expect(summarizing.requests).toEqual([])
+  })
+
+  it('does not ask while the AI coach is off', async () => {
+    const summarizing = setup(summaryReply)
+    summarizing.enabled.value = false
+
+    expect(await summarizing.summarize(summaryInput)).toEqual({
+      ok: false,
+      error: { kind: 'not-enabled' }
+    })
+    expect(summarizing.requests).toEqual([])
+  })
+
+  it('answers a failure as data, like the chat does', async () => {
+    const failing = setup(new LlmError('rate-limit', { retryAfterSeconds: 9 }))
+
+    expect(await failing.summarize(summaryInput)).toEqual({
+      ok: false,
+      error: { kind: 'rate-limit', retryAfterSeconds: 9 }
+    })
+  })
+
+  it('takes turns with the chat: only one question at a time', async () => {
+    let finish: (value: unknown) => void = () => undefined
+    const both = setup(() => new Promise((resolve) => (finish = resolve)))
+    const chatting = both.chat(input)
+
+    expect(await both.summarize(summaryInput)).toEqual({ ok: false, error: { kind: 'busy' } })
+
+    finish({ reply: 'listo' })
+    await chatting
   })
 })

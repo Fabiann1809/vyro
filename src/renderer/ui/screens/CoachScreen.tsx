@@ -1,46 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { t, type MessageKey } from '@renderer/i18n'
-import { MAX_COACH_TURN_LENGTH, type CoachError, type CoachErrorKind } from '@shared/coach'
+import { t } from '@renderer/i18n'
+import { MAX_COACH_TURN_LENGTH } from '@shared/coach'
 import { AI_PROVIDERS } from '@shared/aiProviders'
+import { CoachErrorNotice } from '../CoachErrorNotice'
 import { resetCoach, retryCoach, sendToCoach, useCoach } from '../coachStore'
 import { useNavigation } from '../navigation'
 import { useSettings } from '../settingsStore'
-
-const ERROR_TEXT: Record<CoachErrorKind, MessageKey> = {
-  'no-key': 'coach.error.no-key',
-  auth: 'coach.error.auth',
-  'rate-limit': 'coach.error.rate-limit',
-  timeout: 'coach.error.timeout',
-  network: 'coach.error.network',
-  server: 'coach.error.server',
-  request: 'coach.error.request',
-  refused: 'coach.error.refused',
-  cancelled: 'coach.error.cancelled',
-  'not-configured': 'coach.error.not-configured',
-  blocked: 'coach.error.blocked',
-  'invalid-response': 'coach.error.invalid-response',
-  truncated: 'coach.error.truncated',
-  unknown: 'coach.error.unknown',
-  'not-enabled': 'coach.error.not-enabled',
-  busy: 'coach.error.busy',
-  'invalid-input': 'coach.error.invalid-input'
-}
-
-// A different try will not help: something has to change in Settings first.
-const NEEDS_SETTINGS: ReadonlySet<CoachErrorKind> = new Set([
-  'no-key',
-  'auth',
-  'not-configured',
-  'not-enabled',
-  'request'
-])
-
-function errorMessage(error: CoachError): string {
-  if (error.kind === 'rate-limit' && error.retryAfterSeconds !== undefined) {
-    return t('coach.error.rate-limit-wait', { seconds: Math.ceil(error.retryAfterSeconds) })
-  }
-  return t(ERROR_TEXT[error.kind])
-}
 
 export function CoachScreen(): React.JSX.Element {
   const go = useNavigation((state) => state.go)
@@ -170,28 +135,11 @@ export function CoachScreen(): React.JSX.Element {
       </div>
 
       {error && (
-        <div role="alert" className="flex flex-wrap items-center gap-3">
-          <span aria-hidden="true">⚠</span>
-          <p>{errorMessage(error)}</p>
-          {NEEDS_SETTINGS.has(error.kind) ? (
-            <button
-              type="button"
-              onClick={() => go('settings')}
-              className="rounded-md bg-slate-200 px-3 py-1.5 dark:bg-slate-800"
-            >
-              {t('coach.openSettings')}
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => void retryCoach(window.api, language)}
-              disabled={pending}
-              className="rounded-md bg-slate-200 px-3 py-1.5 disabled:opacity-50 dark:bg-slate-800"
-            >
-              {t('coach.retry')}
-            </button>
-          )}
-        </div>
+        <CoachErrorNotice
+          error={error}
+          onRetry={() => void retryCoach(window.api, language)}
+          retryDisabled={pending}
+        />
       )}
 
       <form

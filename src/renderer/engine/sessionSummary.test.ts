@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RepQuality, RepResult, RuleOutcome } from './repEvaluator'
-import { buildSessionToSave, summarizeSession } from './sessionSummary'
+import { buildSessionDigest, buildSessionToSave, summarizeSession } from './sessionSummary'
 
 const failure = (ruleId: string): RuleOutcome => ({
   ruleId,
@@ -88,5 +88,36 @@ describe('buildSessionToSave', () => {
         { index: 2, quality: 'bad', durationMs: 2000, failedRuleIds: ['depth', 'torso'] }
       ]
     })
+  })
+})
+
+describe('buildSessionDigest', () => {
+  it('has nothing to say about a session without repetitions', () => {
+    expect(buildSessionDigest('squat', 1000, 60_000, [])).toBeNull()
+  })
+
+  it('is made of counts, the score and the names of the failed rules', () => {
+    const results = [rep('good'), rep('needs-work', ['torso']), rep('bad', ['depth', 'torso'])]
+
+    expect(buildSessionDigest('squat', 1000, 60_400, results)).toEqual({
+      skillId: 'squat',
+      startedAt: 1000,
+      durationSeconds: 60,
+      repCount: 3,
+      goodCount: 1,
+      needsWorkCount: 1,
+      badCount: 1,
+      score: 50,
+      errors: [
+        { ruleId: 'torso', count: 2 },
+        { ruleId: 'depth', count: 1 }
+      ]
+    })
+  })
+
+  it('carries no text of the rules, only their names', () => {
+    const digest = buildSessionDigest('squat', 1, 1000, [rep('bad', ['depth'])])
+
+    expect(JSON.stringify(digest)).not.toContain('corrige')
   })
 })
