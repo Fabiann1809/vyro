@@ -4,11 +4,13 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { APP_NAME } from '@shared/app'
 import icon from '../../resources/icon.png?asset'
 import { ApiKeyStore, createKeyFile } from './ai/keyStore'
+import { ConfiguredLlmClient } from './ai/provider'
 import { openDatabase, type Database } from './db/database'
 import { SessionRepository } from './db/sessionRepository'
 import { SettingsRepository } from './db/settingsRepository'
 import { registerAiIpc } from './ipc/ai'
 import { registerCameraIpc } from './ipc/camera'
+import { registerCoachIpc } from './ipc/coach'
 import { registerSessionsIpc } from './ipc/sessions'
 import { registerSettingsIpc } from './ipc/settings'
 import { setupSessionSecurity, setupWindowSecurity } from './security'
@@ -73,7 +75,16 @@ app.whenReady().then(() => {
     createKeyFile(join(app.getPath('userData'), 'ai-key.bin'))
   )
   registerAiIpc(keyStore)
-  registerSettingsIpc(new SettingsRepository(database), sessions, keyStore)
+  const settings = new SettingsRepository(database)
+  registerSettingsIpc(settings, sessions, keyStore)
+  registerCoachIpc({
+    // The provider and the key are read again on every question, so a change in Settings counts at once.
+    llm: new ConfiguredLlmClient(
+      () => settings.getAll(),
+      () => keyStore.get()
+    ),
+    getSettings: () => settings.getAll()
+  })
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

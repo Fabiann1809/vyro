@@ -1,22 +1,6 @@
-export type LlmErrorKind =
-  | 'no-key'
-  | 'auth'
-  | 'rate-limit'
-  | 'timeout'
-  | 'network'
-  | 'server'
-  | 'request'
-  | 'refused'
-  | 'cancelled'
-  // The provider choice is incomplete or unsafe (for example, a custom provider without a model).
-  | 'not-configured'
-  // The data to send did not pass the privacy check, so nothing was sent.
-  | 'blocked'
-  // The model answered, but not with what the schema asks for. Worth asking again.
-  | 'invalid-response'
-  // The answer was cut off by the token limit: asking again as is would cut it off again.
-  | 'truncated'
-  | 'unknown'
+import type { LlmErrorKind } from '@shared/coach'
+
+export type { LlmErrorKind }
 
 // Fixed texts. They never carry the provider's own message, which could echo parts of the
 // request, and so never carry the API key either.

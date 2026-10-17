@@ -116,6 +116,36 @@ test('remembers the language after the app is closed and opened again', async ()
   await expect(second.getByRole('heading', { level: 1, name: 'Home' })).toBeVisible()
 })
 
+test('the coach answers a question with data, and only the typed bridge reaches it', async () => {
+  const page = await launch()
+
+  const run = (): Promise<unknown> =>
+    page.evaluate(async () => {
+      const api = (
+        window as unknown as {
+          api: {
+            coach: { chat: (input: unknown) => Promise<unknown> }
+            settings: { set: (patch: unknown) => Promise<void> }
+          }
+        }
+      ).api
+      const question = { turns: [{ role: 'user', text: 'Quiero mejorar' }], language: 'es' }
+      const off = await api.coach.chat(question)
+      await api.settings.set({ aiEnabled: true })
+      const noKey = await api.coach.chat(question)
+      const invalid = await api.coach.chat({ turns: [], language: 'es' })
+      return { off, noKey, invalid, methods: Object.keys(api.coach) }
+    })
+
+  // Off by default; on without a key; and a request that makes no sense. None reaches the network.
+  expect(await run()).toEqual({
+    off: { ok: false, error: { kind: 'not-enabled' } },
+    noKey: { ok: false, error: { kind: 'no-key' } },
+    invalid: { ok: false, error: { kind: 'invalid-input' } },
+    methods: ['chat']
+  })
+})
+
 // The system key store is only dependable on the Windows runner: Linux CI has no keyring and a
 // macOS runner may have no unlocked keychain. The logic itself is covered by the unit tests.
 test.describe('API key', () => {

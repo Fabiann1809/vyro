@@ -1,4 +1,5 @@
 import type { AiKeyStatus } from './ai'
+import type { CoachChatInput, CoachChatReply, CoachResult } from './coach'
 import type { CameraAccessStatus } from './camera'
 import type { AppSettings, SettingsPatch } from './settings'
 import type { ErrorCount, SessionDetail, SessionQuery, SessionRow, SessionToSave } from './sessions'
@@ -15,7 +16,8 @@ export const IPC = {
   dataDeleteAll: 'data:delete-all',
   aiKeyStatus: 'ai:key-status',
   aiKeySave: 'ai:key-save',
-  aiKeyClear: 'ai:key-clear'
+  aiKeyClear: 'ai:key-clear',
+  coachChat: 'coach:chat'
 } as const
 
 // The only API the renderer can call. Everything else stays in the main process.
@@ -41,6 +43,10 @@ export interface VyroApi {
     keyStatus: () => Promise<AiKeyStatus>
     saveKey: (key: string) => Promise<void>
     clearKey: () => Promise<void>
+  }
+  coach: {
+    // Failures come back as data (a kind of error), never as text from the provider.
+    chat: (input: CoachChatInput) => Promise<CoachResult<CoachChatReply>>
   }
   data: {
     // Empties the database: sessions and settings.

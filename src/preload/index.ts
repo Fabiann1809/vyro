@@ -23,6 +23,9 @@ const api: VyroApi = {
     saveKey: (key) => ipcRenderer.invoke(IPC.aiKeySave, key),
     clearKey: () => ipcRenderer.invoke(IPC.aiKeyClear)
   },
+  coach: {
+    chat: (input) => ipcRenderer.invoke(IPC.coachChat, input)
+  },
   data: {
     deleteAll: () => ipcRenderer.invoke(IPC.dataDeleteAll)
   }
