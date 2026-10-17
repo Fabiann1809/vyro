@@ -1,10 +1,16 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
+import { planObjectsForLater } from '@shared/feasibilityFixtures'
 import type { GenerateSkillInput } from '@shared/skillGeneration'
 import { parseSkillConfig } from '@shared/skill/skillLoader'
 import { parseJsonAnswer } from './answer'
 import type { GenerateRequest, LlmClient } from './llmClient'
 import { generateSkill, readSkillText } from './skillGenerator'
-import { EXAMPLE_AUDIO_SKILL, EXAMPLE_HAND_SKILL, EXAMPLE_SKILL } from './skillPrompts'
+import {
+  EXAMPLE_AUDIO_SKILL,
+  EXAMPLE_HAND_SKILL,
+  EXAMPLE_OBJECT_SKILL,
+  EXAMPLE_SKILL
+} from './skillPrompts'
 
 const input = (overrides: Partial<GenerateSkillInput> = {}): GenerateSkillInput => ({
   description: 'Quiero aprender la postura del perro boca abajo',
@@ -54,6 +60,65 @@ describe('the example in the prompt', () => {
     expect(parseSkillConfig(EXAMPLE_HAND_SKILL).ok).toBe(true)
     expect(readSkillText(JSON.stringify(EXAMPLE_HAND_SKILL), [], ['hands'])).toMatchObject({
       ok: true
+    })
+  })
+})
+
+describe('a skill that looks at an object', () => {
+  const hold = {
+    ...EXAMPLE_OBJECT_SKILL,
+    id: 'custom_guitar_hold',
+    name: { es: 'Sujetar la guitarra', en: 'Holding the guitar' }
+  }
+  const needs = { channels: ['body', 'object'], objects: ['guitar'] }
+
+  it('has an example that is valid and passes the limits of generated skills', () => {
+    expect(parseSkillConfig(EXAMPLE_OBJECT_SKILL).ok).toBe(true)
+    expect(
+      readSkillText(JSON.stringify(EXAMPLE_OBJECT_SKILL), [], ['body', 'object'], ['guitar'])
+    ).toMatchObject({ ok: true })
+  })
+
+  it('is generated and validated when the coach says it needs the guitar', async () => {
+    const model = scriptedModel(answer(hold, needs))
+
+    const result = await generateSkill(
+      model,
+      input({ description: 'Quiero sujetar bien la guitarra' })
+    )
+
+    expect(result).toMatchObject({
+      kind: 'skill',
+      skill: { id: 'custom_guitar_hold', object: 'guitar' }
+    })
+  })
+
+  it('is declined, not repaired, when the coach also needs an object with no detector', async () => {
+    const model = scriptedModel(
+      answer(hold, { channels: ['body', 'object'], objects: ['guitar', 'violin'] }),
+      answer(hold, needs)
+    )
+
+    // The first answer needs a violin too, which has no detector: it is declined, not repaired.
+    const result = await generateSkill(model, input())
+
+    expect(result).toMatchObject({ kind: 'out-of-scope', reasons: ['unsupported-object'] })
+    expect(model.requests).toHaveLength(1)
+  })
+
+  it('reports that the object is not listed in the requirement', () => {
+    const read = readSkillText(JSON.stringify(hold), [], ['body', 'object'], ['violin'])
+
+    expect(read).toMatchObject({ ok: false })
+    expect(!read.ok && read.problems.join()).toContain('"requirement.objects"')
+  })
+
+  it('declines an object that has no detector, such as a dumbbell', async () => {
+    const model = scriptedModel(answer('', { channels: ['body', 'object'], objects: ['dumbbell'] }))
+
+    expect(await generateSkill(model, input())).toMatchObject({
+      kind: 'out-of-scope',
+      reasons: ['unsupported-object']
     })
   })
 })
@@ -310,6 +375,9 @@ describe('a skill that has to be fixed', () => {
   })
 })
 
+let restore: (() => void) | undefined
+afterEach(() => restore?.())
+
 describe('what VYRO cannot coach', () => {
   it('declines it without reading the skill, which may even be empty', async () => {
     const model = scriptedModel(answer('', { channels: [], outOfScope: ['invisible-outcome'] }))
@@ -323,13 +391,14 @@ describe('what VYRO cannot coach', () => {
   })
 
   it('says what has not arrived yet when it needs an object, and does not read the skill', async () => {
+    restore = planObjectsForLater()
     const model = scriptedModel(
       answer('not even json', { channels: ['body', 'object'], objects: ['guitar'] })
     )
 
     expect(await generateSkill(model, input())).toEqual({
       kind: 'planned',
-      pending: [{ channel: 'object', phase: 15 }],
+      pending: [{ channel: 'object', phase: 20 }],
       measurable: ['body', 'object']
     })
   })

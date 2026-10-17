@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { DETECTABLE_OBJECTS } from './skill/objects'
 
 // Can VYRO coach this skill? The rule (D14): only if its success leaves a signal that the camera or
 // the microphone can measure. This module decides it from a description of what the skill needs,
@@ -63,14 +64,13 @@ export const CHANNEL_REGISTRY: ChannelRegistry = {
   body: { status: 'supported', phase: null },
   hands: { status: 'supported', phase: null },
   audio: { status: 'supported', phase: null },
-  object: { status: 'planned', phase: 15 }
+  object: { status: 'supported', phase: null }
 }
 
-// The objects that have (or will have) a trained detector.
-export const OBJECT_REGISTRY: ObjectRegistry = {
-  dumbbell: { status: 'planned', phase: 15 },
-  guitar: { status: 'planned', phase: 15 }
-}
+// The objects that have (or will have) a trained detector. Any other object is out of scope.
+export const OBJECT_REGISTRY: ObjectRegistry = Object.fromEntries(
+  DETECTABLE_OBJECTS.map((name) => [name, { status: 'supported', phase: null }])
+)
 
 export type ChannelStatus = 'supported' | 'planned' | 'out-of-scope'
 

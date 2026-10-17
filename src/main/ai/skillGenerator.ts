@@ -33,7 +33,9 @@ export function readSkillText(
   text: string,
   usedIds: readonly string[],
   // The channels the coach said the skill needs: it may not measure with any other.
-  declared?: readonly Channel[]
+  declared?: readonly Channel[],
+  // The objects the coach said the skill needs: it may look at no other.
+  declaredObjects?: readonly string[]
 ): SkillText {
   const source = withoutFence(text)
   if (source === '') return { ok: false, problems: ['The skill is empty: write the whole JSON.'] }
@@ -67,6 +69,15 @@ export function readSkillText(
       ]
     }
   }
+  const object = parsed.skill.object
+  if (object && declaredObjects && !declaredObjects.includes(object)) {
+    return {
+      ok: false,
+      problems: [
+        `object: "${object}" is not listed in "requirement.objects". List every object the skill looks at.`
+      ]
+    }
+  }
   return { ok: true, skill: parsed.skill, config: config as Record<string, unknown> }
 }
 
@@ -83,7 +94,12 @@ export async function generateSkill(
 ): Promise<SkillGeneration> {
   const schema = answerSchema.superRefine((value, context) => {
     if (assessFeasibility(value.requirement).verdict !== 'supported') return
-    const read = readSkillText(value.skill, input.existingSkillIds, value.requirement.channels)
+    const read = readSkillText(
+      value.skill,
+      input.existingSkillIds,
+      value.requirement.channels,
+      value.requirement.objects
+    )
     if (!read.ok) {
       for (const message of read.problems) {
         context.addIssue({ code: 'custom', path: ['skill'], message })
@@ -118,7 +134,12 @@ export async function generateSkill(
   }
 
   // It was read once already inside the schema; reading it again gives the skill itself.
-  const read = readSkillText(answer.skill, input.existingSkillIds, answer.requirement.channels)
+  const read = readSkillText(
+    answer.skill,
+    input.existingSkillIds,
+    answer.requirement.channels,
+    answer.requirement.objects
+  )
   if (!read.ok) throw new Error('A skill that was already checked cannot be read.')
   return { kind: 'skill', skill: read.skill, config: read.config }
 }

@@ -303,7 +303,7 @@ están menos detalladas que las anteriores y se afinarán al llegar a ellas.
 - [x] **T15.5 Esquema y métricas de objeto.** Posición del objeto respecto a la muñeca y al cuerpo (`objectOffset`) y si está acostado o derecho (`objectAspect`, ancho entre alto de su caja: el detector da una caja sin inclinación, así que no hay ángulo de su eje). *Hecho cuando:* las pruebas con cajas conocidas dan los valores esperados.
 - [ ] **T15.6 (aplazada) Curl de bíceps con mancuerna.** Necesita un detector de mancuerna, que no se entrena en esta ronda. Habilidad con objeto y fixtures. *Hecho cuando:* ≥ 90 % de acierto en conteo y ≥ 80 % en errores sobre los fixtures.
 - [x] **T15.7 Postura con guitarra.** Inclinación del mástil y altura de la guitarra combinadas con cuerpo, manos y audio. *Hecho cuando:* una habilidad usa los cuatro canales.
-- [ ] **T15.8 Objetos en el chat y en el generador.** Solo los objetos entrenados; cualquier otro se rechaza con un mensaje claro. *Hecho cuando:* con un LLM falso un objeto no soportado se rechaza y uno soportado se acepta.
+- [x] **T15.8 Objetos en el chat y en el generador.** Solo los objetos entrenados; cualquier otro se rechaza con un mensaje claro. *Hecho cuando:* con un LLM falso un objeto no soportado se rechaza y uno soportado se acepta.
 
 ### Aplazado
 Vista frontal, detección de fatiga, clips de errores, modelos propios que juzguen técnica, firma de código y auto-actualización, módulos de comunidad.

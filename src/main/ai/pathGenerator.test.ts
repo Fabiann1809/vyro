@@ -1,5 +1,6 @@
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
+import { planObjectsForLater } from '@shared/feasibilityFixtures'
 import type { PlanPathInput } from '@shared/pathPlan'
 import { parseJsonAnswer } from './answer'
 import { LlmError } from './errors'
@@ -103,7 +104,7 @@ describe('a path for a skill that can be coached', () => {
     const system = String(request?.system)
     expect(system).toContain('in English')
     expect(system).toContain('- squat: "Squat" / "Sentadilla"; it corrects: depth, torso_lean')
-    expect(system).toContain('dumbbell, guitar')
+    expect(system).toContain('guitar')
   })
 
   it('does not accept a path that has to be fixed, and asks the model to fix it', async () => {
@@ -250,8 +251,12 @@ describe('a skill that VYRO cannot coach', () => {
   })
 })
 
+let restore: (() => void) | undefined
+afterEach(() => restore?.())
+
 describe('a skill that needs a channel that has not arrived yet', () => {
   it('says what is pending and in which phase, and what could be measured already', async () => {
+    restore = planObjectsForLater()
     const model = scriptedModel(
       proposal([skillStep('squat')], {
         channels: ['body', 'hands', 'audio', 'object'],
@@ -263,7 +268,7 @@ describe('a skill that needs a channel that has not arrived yet', () => {
 
     expect(result).toEqual({
       kind: 'planned',
-      pending: [{ channel: 'object', phase: 15 }],
+      pending: [{ channel: 'object', phase: 20 }],
       measurable: ['body', 'hands', 'audio', 'object']
     })
   })

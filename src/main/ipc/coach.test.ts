@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { planObjectsForLater } from '@shared/feasibilityFixtures'
 import type {
   CoachChatInput,
   CoachChatReply,
@@ -576,6 +577,9 @@ const generateInput = {
   existingSkillIds: ['squat', 'pushup']
 }
 
+let restore: (() => void) | undefined
+afterEach(() => restore?.())
+
 describe('coach skill generation handler', () => {
   it('keeps the skill as a draft in the main process and gives back only its id', async () => {
     const generating = setup(skillAnswer())
@@ -621,13 +625,14 @@ describe('coach skill generation handler', () => {
   })
 
   it('says what has not arrived yet, and keeps nothing', async () => {
+    restore = planObjectsForLater()
     const generating = setup(skillAnswer('', { channels: ['object'], objects: ['guitar'] }))
 
     expect(await generating.generateSkill(generateInput)).toEqual({
       ok: true,
       value: {
         kind: 'planned',
-        pending: [{ channel: 'object', phase: 15 }],
+        pending: [{ channel: 'object', phase: 20 }],
         measurable: ['object']
       }
     })
