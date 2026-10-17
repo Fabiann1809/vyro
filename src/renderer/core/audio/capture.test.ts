@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
+import { tone } from './syntheticSound'
 import {
   AudioCapture,
   buildMicrophoneConstraints,
+  measureSound,
   type AudioContextLike,
   type AudioFeatures,
   type CaptureDeps
@@ -97,7 +99,7 @@ describe('AudioCapture', () => {
       deps,
       extract: (samples) => {
         buffers.push(samples)
-        return { levelDb: 0, peak: 0 }
+        return { levelDb: 0, peak: 0, pitchHz: 0, pitchClarity: 0 }
       }
     })
     tick()
@@ -116,7 +118,7 @@ describe('AudioCapture', () => {
       deps,
       extract: (_samples, rate) => {
         rates.push(rate)
-        return { levelDb: 0, peak: 0 }
+        return { levelDb: 0, peak: 0, pitchHz: 0, pitchClarity: 0 }
       }
     })
     tick()
@@ -171,6 +173,23 @@ describe('AudioCapture', () => {
       'close',
       'constructor'
     ])
+  })
+})
+
+describe('measureSound', () => {
+  it('reports the note and how loud it is', () => {
+    const features = measureSound(tone(440, 0.1).subarray(0, 2048), 48_000)
+
+    expect(features.pitchHz).toBeCloseTo(440, 0)
+    expect(features.pitchClarity).toBeGreaterThan(0.9)
+    expect(features.levelDb).toBeLessThan(0)
+  })
+
+  it('reports no pitch for silence, with only numbers', () => {
+    const features = measureSound(new Float32Array(2048), 48_000)
+
+    expect(features).toMatchObject({ pitchHz: 0, pitchClarity: 0 })
+    expect(Object.values(features).every((value) => typeof value === 'number')).toBe(true)
   })
 })
 

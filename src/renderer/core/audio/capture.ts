@@ -1,4 +1,5 @@
 import { levelDb, peakLevel } from './level'
+import { detectPitch } from './pitch'
 
 // What the rest of the app learns about the sound: numbers, and nothing else. The sound itself
 // (the samples) never leaves this file: it is read into one buffer, measured, and overwritten by the
@@ -9,16 +10,34 @@ export interface AudioFeatures {
   levelDb: number
   // The largest sample, 0..1.
   peak: number
+  // The pitch in hertz, or 0 when the sound has none (silence, noise).
+  pitchHz: number
+  // How sure the pitch is, 0..1; 0 when there is none.
+  pitchClarity: number
 }
 
 // Turns the samples of one reading into numbers. It receives a buffer that is reused, so it must not
 // keep it.
 export type FeatureExtractor = (samples: Float32Array, sampleRate: number) => AudioFeatures
 
+// Only how loud it is: cheap, for a meter.
 export const measureLevel: FeatureExtractor = (samples) => ({
   levelDb: levelDb(samples),
-  peak: peakLevel(samples)
+  peak: peakLevel(samples),
+  pitchHz: 0,
+  pitchClarity: 0
 })
+
+// How loud it is and which note: for the skills that listen to an instrument.
+export const measureSound: FeatureExtractor = (samples, sampleRate) => {
+  const pitch = detectPitch(samples, sampleRate)
+  return {
+    levelDb: levelDb(samples),
+    peak: peakLevel(samples),
+    pitchHz: pitch?.frequency ?? 0,
+    pitchClarity: pitch?.clarity ?? 0
+  }
+}
 
 // The few parts of the Web Audio API that are used, so that they can be faked in tests.
 export type AudioContextLike = Pick<
