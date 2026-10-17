@@ -36,6 +36,9 @@ const api: VyroApi = {
     archive: (pathId) => ipcRenderer.invoke(IPC.pathsArchive, pathId),
     applyAdjustments: (input) => ipcRenderer.invoke(IPC.pathsApplyAdjustments, input)
   },
+  skills: {
+    listCustom: () => ipcRenderer.invoke(IPC.skillsListCustom)
+  },
   data: {
     deleteAll: () => ipcRenderer.invoke(IPC.dataDeleteAll)
   }

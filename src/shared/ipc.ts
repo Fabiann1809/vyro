@@ -1,4 +1,5 @@
 import type { AiKeyStatus } from './ai'
+import type { CustomSkillSource } from './customSkills'
 import type { PathToSave } from './paths'
 import type { CurrentPath } from './pathProgress'
 import type { PlanPathInput, PlanPathResult } from './pathPlan'
@@ -35,7 +36,8 @@ export const IPC = {
   pathsSave: 'paths:save',
   pathsSetStepDone: 'paths:set-step-done',
   pathsArchive: 'paths:archive',
-  pathsApplyAdjustments: 'paths:apply-adjustments'
+  pathsApplyAdjustments: 'paths:apply-adjustments',
+  skillsListCustom: 'skills:list-custom'
 } as const
 
 // The only API the renderer can call. Everything else stays in the main process.
@@ -83,6 +85,11 @@ export interface VyroApi {
     archive: (pathId: number) => Promise<boolean>
     // Applies the adjustments that the person accepted; false if the path changed in the meantime.
     applyAdjustments: (input: ApplyAdjustmentsInput) => Promise<boolean>
+  }
+  skills: {
+    // The skills made after the app was built that the person has approved. They are JSON that the
+    // page validates itself before using.
+    listCustom: () => Promise<CustomSkillSource[]>
   }
   data: {
     // Empties the database: sessions and settings.

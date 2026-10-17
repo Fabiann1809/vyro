@@ -1,5 +1,6 @@
 import { createServer, type Server } from 'node:http'
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { DatabaseSync } from 'node:sqlite'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
@@ -145,6 +146,65 @@ test('the coach answers a question with data, and only the typed bridge reaches 
     invalid: { ok: false, error: { kind: 'invalid-input' } },
     methods: ['chat', 'summarize', 'planPath', 'reviewPath']
   })
+})
+
+test('shows a skill that was saved in the database after the app was built, and only the approved ones', async () => {
+  // Opening the app once creates the database and brings it to the current version.
+  await (await launch()).title()
+  await app?.close()
+
+  // Skills saved later, as the generator will save them: one approved, one draft, one damaged.
+  const squat = JSON.parse(readFileSync('src/renderer/skills/squat.json', 'utf-8')) as object
+  const db = new DatabaseSync(join(userData, 'vyro.db'))
+  const insert = db.prepare(
+    'INSERT INTO custom_skills (id, config_json, status, created_at) VALUES (?, ?, ?, ?)'
+  )
+  const named = (id: string, name: string): string =>
+    JSON.stringify({ ...squat, id, name: { es: name, en: name } })
+  insert.run('custom_yoga', named('custom_yoga', 'Yoga suave'), 'approved', 1)
+  insert.run('custom_draft', named('custom_draft', 'Aún sin aprobar'), 'draft', 2)
+  insert.run('custom_broken', '{esto no es json', 'approved', 3)
+  db.close()
+
+  const page = await launch()
+
+  await expect(page.getByRole('button', { name: 'Yoga suave' })).toBeVisible()
+  // The ones that come with the app are still there, and the others are not offered.
+  await expect(page.getByRole('button', { name: 'Sentadilla' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Aún sin aprobar' })).toHaveCount(0)
+
+  // It can be practised like any other.
+  await page.getByRole('button', { name: 'Yoga suave' }).click()
+  await expect(
+    page.getByRole('heading', { level: 1, name: /Calibración · Yoga suave/ })
+  ).toBeVisible()
+})
+
+test('goes back to the skills of the app when all the data is deleted', async () => {
+  await (await launch()).title()
+  await app?.close()
+  const squat = JSON.parse(readFileSync('src/renderer/skills/squat.json', 'utf-8')) as object
+  const db = new DatabaseSync(join(userData, 'vyro.db'))
+  db.prepare(
+    'INSERT INTO custom_skills (id, config_json, status, created_at) VALUES (?, ?, ?, ?)'
+  ).run(
+    'custom_yoga',
+    JSON.stringify({ ...squat, id: 'custom_yoga', name: { es: 'Yoga suave', en: 'Gentle yoga' } }),
+    'approved',
+    1
+  )
+  db.close()
+  const page = await launch()
+  await expect(page.getByRole('button', { name: 'Yoga suave' })).toBeVisible()
+
+  await nav(page, 'Ajustes').click()
+  await page.getByRole('button', { name: 'Borrar todos los datos' }).click()
+  await page.getByRole('button', { name: 'Sí, borrar todo' }).click()
+  await expect(page.getByText('Datos borrados.')).toBeVisible()
+  await nav(page, 'Inicio').click()
+
+  await expect(page.getByRole('button', { name: 'Yoga suave' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Sentadilla' })).toBeVisible()
 })
 
 // A stand-in for an AI provider, on this computer: it answers like an OpenAI-compatible server and

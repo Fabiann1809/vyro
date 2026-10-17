@@ -6,9 +6,10 @@ import {
   type SettingsPatch
 } from '@shared/settings'
 import { useSettings } from './settingsStore'
+import { loadCustomSkills } from './skillsStore'
 import { useTheme } from './theme'
 
-type SettingsApi = Pick<VyroApi, 'settings' | 'data'>
+type SettingsApi = Pick<VyroApi, 'settings' | 'data' | 'skills'>
 
 export function currentSettings(): AppSettings {
   const store = useSettings.getState()
@@ -84,4 +85,6 @@ export async function startSettingsSync(api: SettingsApi): Promise<void> {
 export async function deleteAllData(api: SettingsApi): Promise<void> {
   await api.data.deleteAll()
   applySettings(DEFAULT_SETTINGS)
+  // The skills made later are gone with the rest of the data.
+  await loadCustomSkills(api)
 }

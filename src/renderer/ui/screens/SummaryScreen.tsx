@@ -1,10 +1,10 @@
 import { buildSessionDigest, summarizeSession } from '@renderer/engine/sessionSummary'
 import type { RepQuality } from '@renderer/engine/repEvaluator'
 import { localize, t, type MessageKey } from '@renderer/i18n'
-import { bundledSkills } from '@renderer/skills'
 import { CoachSummary } from '../CoachSummary'
 import { useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
+import { useSkills } from '../skillsStore'
 
 // Never colour alone: each quality has its own symbol and its own words.
 const QUALITY: Record<RepQuality, { symbol: string; label: MessageKey }> = {
@@ -26,7 +26,8 @@ export function SummaryScreen(): React.JSX.Element {
   const go = useNavigation((state) => state.go)
   const finished = useSession((state) => state.finished)
   const saveStatus = useSession((state) => state.saveStatus)
-  const skill = bundledSkills.skills.find((candidate) => candidate.id === finished?.skillId)
+  const skills = useSkills((state) => state.skills)
+  const skill = skills.find((candidate) => candidate.id === finished?.skillId)
 
   if (!finished || !skill) {
     return (

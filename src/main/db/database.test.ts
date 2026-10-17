@@ -28,6 +28,7 @@ describe('openDatabase', () => {
     const db = openDatabase(':memory:')
 
     expect(tables(db)).toEqual([
+      'custom_skills',
       'learning_paths',
       'path_steps',
       'rep_errors',

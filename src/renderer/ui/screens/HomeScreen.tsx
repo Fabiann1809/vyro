@@ -1,15 +1,16 @@
 import { localize, t } from '@renderer/i18n'
-import { bundledSkills } from '@renderer/skills'
 import { SessionList } from '../SessionList'
 import { useNavigation } from '../navigation'
 import { useSessionList } from '../useSessionList'
 import { useSession } from '../sessionStore'
+import { useSkills } from '../skillsStore'
 
 const RECENT_SESSIONS = 3
 
 export function HomeScreen(): React.JSX.Element {
   const go = useNavigation((state) => state.go)
   const selectSkill = useSession((state) => state.selectSkill)
+  const skills = useSkills((state) => state.skills)
   const { status, sessions } = useSessionList({ limit: RECENT_SESSIONS })
 
   const start = (skillId: string): void => {
@@ -25,7 +26,7 @@ export function HomeScreen(): React.JSX.Element {
       </div>
 
       <ul className="grid grid-cols-3 gap-4">
-        {bundledSkills.skills.map((skill) => (
+        {skills.map((skill) => (
           <li key={skill.id}>
             <button
               type="button"

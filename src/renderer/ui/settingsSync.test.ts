@@ -8,6 +8,7 @@ interface FakeApi {
     set: Mock<(patch: SettingsPatch) => Promise<void>>
   }
   data: { deleteAll: Mock<() => Promise<void>> }
+  skills: { listCustom: Mock<() => Promise<never[]>> }
 }
 
 function fakeApi(stored: AppSettings = DEFAULT_SETTINGS): FakeApi {
@@ -16,7 +17,8 @@ function fakeApi(stored: AppSettings = DEFAULT_SETTINGS): FakeApi {
       get: vi.fn(() => Promise.resolve(stored)),
       set: vi.fn<(patch: SettingsPatch) => Promise<void>>(() => Promise.resolve())
     },
-    data: { deleteAll: vi.fn(() => Promise.resolve()) }
+    data: { deleteAll: vi.fn(() => Promise.resolve()) },
+    skills: { listCustom: vi.fn(() => Promise.resolve([])) }
   }
 }
 

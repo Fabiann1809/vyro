@@ -70,5 +70,16 @@ export const MIGRATIONS: readonly Migration[] = [
       );
       CREATE INDEX path_steps_by_path ON path_steps (path_id, position);
     `
+  },
+  {
+    version: 3,
+    sql: `
+      CREATE TABLE custom_skills (
+        id TEXT PRIMARY KEY,
+        config_json TEXT NOT NULL,
+        status TEXT NOT NULL CHECK (status IN ('draft', 'approved')),
+        created_at INTEGER NOT NULL
+      );
+    `
   }
 ]

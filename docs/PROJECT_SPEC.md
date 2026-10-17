@@ -263,7 +263,7 @@ están menos detalladas que las anteriores y se afinarán al llegar a ellas.
 - [x] **T10.6 Plan semanal adaptativo.** Revisión semanal con el historial numérico y propuesta de ajustes que el usuario acepta o rechaza. *Hecho cuando:* una propuesta aceptada cambia la ruta y una rechazada no la toca.
 
 ### Fase 11 — Habilidades generadas (canal cuerpo)
-- [ ] **T11.1 Habilidades en tiempo de ejecución.** Migración v3 (`custom_skills`), IPC para listarlas y el cargador junta las incluidas con las guardadas. *Hecho cuando:* una habilidad guardada aparece en Inicio tras reiniciar sin recompilar.
+- [x] **T11.1 Habilidades en tiempo de ejecución.** Migración v3 (`custom_skills`), IPC para listarlas y el cargador junta las incluidas con las guardadas. *Hecho cuando:* una habilidad guardada aparece en Inicio tras reiniciar sin recompilar.
 - [ ] **T11.2 Generador de habilidad.** El LLM produce el JSON de la habilidad; se valida con `parseSkillConfig` y se repara con el error devuelto (máximo dos intentos). Solo canales soportados; mensajes en es y en. *Hecho cuando:* con un LLM falso, una salida inválida se repara y una irreparable se rechaza con mensaje claro.
 - [ ] **T11.3 Límites de seguridad.** Rechazar habilidades con umbrales fuera de rangos plausibles o sin ninguna regla de seguridad; ids con prefijo `custom_`; marca de experimental. *Hecho cuando:* las pruebas cubren cada rechazo.
 - [ ] **T11.4 Vista previa y aprobación.** Pantalla que explica en lenguaje claro qué medirá y qué corregirá, con aviso de que es experimental, y botones para probar o descartar. Avisa si el sistema no tiene voz en el idioma. *Hecho cuando:* una habilidad no aprobada nunca llega a Inicio.

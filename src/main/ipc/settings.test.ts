@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import { ApiKeyStore, type KeyFile } from '../ai/keyStore'
 import { openDatabase } from '../db/database'
+import { CustomSkillRepository } from '../db/customSkillRepository'
 import { PathRepository } from '../db/pathRepository'
 import { SessionRepository } from '../db/sessionRepository'
 import { SettingsRepository } from '../db/settingsRepository'
@@ -14,11 +15,13 @@ let handlers: ReturnType<typeof createSettingsHandlers>
 let sessions: SessionRepository
 let keyStore: ApiKeyStore
 let paths: PathRepository
+let customSkills: CustomSkillRepository
 
 beforeEach(() => {
   const db = openDatabase(':memory:')
   sessions = new SessionRepository(db)
   paths = new PathRepository(db)
+  customSkills = new CustomSkillRepository(db)
   let keyFile: Buffer | null = null
   const file: KeyFile = {
     read: () => keyFile,
@@ -33,7 +36,13 @@ beforeEach(() => {
     },
     file
   )
-  handlers = createSettingsHandlers(new SettingsRepository(db), sessions, paths, keyStore)
+  handlers = createSettingsHandlers(
+    new SettingsRepository(db),
+    sessions,
+    paths,
+    customSkills,
+    keyStore
+  )
 })
 
 describe('settings handlers', () => {
@@ -82,8 +91,11 @@ describe('settings handlers', () => {
       1
     )
 
+    customSkills.save('custom_yoga', { id: 'custom_yoga' }, 'approved', 1)
+
     handlers.deleteAllData()
 
+    expect(customSkills.list()).toEqual([])
     expect(paths.list()).toEqual([])
     expect(keyStore.status().hasKey).toBe(false)
     expect(sessions.list()).toEqual([])

@@ -7,6 +7,7 @@ import { ApiKeyStore, createKeyFile } from './ai/keyStore'
 import { ConfiguredLlmClient } from './ai/provider'
 import { loadReviewSource } from './ai/reviewData'
 import { openDatabase, type Database } from './db/database'
+import { CustomSkillRepository } from './db/customSkillRepository'
 import { PathProgressService } from './db/pathProgressService'
 import { PathRepository } from './db/pathRepository'
 import { SessionRepository } from './db/sessionRepository'
@@ -17,6 +18,7 @@ import { registerCoachIpc } from './ipc/coach'
 import { registerPathsIpc } from './ipc/paths'
 import { registerSessionsIpc } from './ipc/sessions'
 import { registerSettingsIpc } from './ipc/settings'
+import { registerSkillsIpc } from './ipc/skills'
 import { setupSessionSecurity, setupWindowSecurity } from './security'
 
 let database: Database | undefined
@@ -83,7 +85,9 @@ app.whenReady().then(() => {
   const paths = new PathRepository(database)
   const progress = new PathProgressService(paths, sessions)
   registerPathsIpc(paths, progress)
-  registerSettingsIpc(settings, sessions, paths, keyStore)
+  const customSkills = new CustomSkillRepository(database)
+  registerSkillsIpc(customSkills)
+  registerSettingsIpc(settings, sessions, paths, customSkills, keyStore)
   registerCoachIpc({
     // The provider and the key are read again on every question, so a change in Settings counts at once.
     llm: new ConfiguredLlmClient(

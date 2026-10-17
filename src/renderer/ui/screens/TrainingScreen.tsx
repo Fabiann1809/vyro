@@ -6,13 +6,13 @@ import type { RepQuality } from '@renderer/engine/repEvaluator'
 import { buildSessionToSave } from '@renderer/engine/sessionSummary'
 import { TrainingRun, type TrainingSnapshot } from '@renderer/engine/trainingRun'
 import { localize, t, type MessageKey } from '@renderer/i18n'
-import { bundledSkills } from '@renderer/skills'
 import { voice } from '@renderer/voice'
 import { VoicePolicy } from '@renderer/voice/voicePolicy'
 import { CameraStage } from '../CameraStage'
 import { useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
 import { useSettings } from '../settingsStore'
+import { useSkills } from '../skillsStore'
 
 const MESSAGE_VISIBLE_MS = 4000
 
@@ -66,7 +66,8 @@ export function TrainingScreen(): React.JSX.Element {
   const skillId = useSession((state) => state.skillId)
   const finishSession = useSession((state) => state.finishSession)
   const setSaveStatus = useSession((state) => state.setSaveStatus)
-  const skill = bundledSkills.skills.find((candidate) => candidate.id === skillId)
+  const skills = useSkills((state) => state.skills)
+  const skill = skills.find((candidate) => candidate.id === skillId)
 
   const runRef = useRef<TrainingRun | null>(null)
   const policyRef = useRef<VoicePolicy | null>(null)

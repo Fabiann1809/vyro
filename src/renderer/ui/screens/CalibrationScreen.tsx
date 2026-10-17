@@ -5,10 +5,10 @@ import { evaluateFraming, type CheckState, type FramingReport } from '@renderer/
 import type { Landmark } from '@renderer/core/landmarks'
 import { sampleLuminance } from '@renderer/core/lighting'
 import { localize, t, type MessageKey } from '@renderer/i18n'
-import { bundledSkills } from '@renderer/skills'
 import { CameraStage } from '../CameraStage'
 import { useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
+import { useSkills } from '../skillsStore'
 
 const LUMINANCE_EVERY_MS = 500
 
@@ -57,7 +57,8 @@ const sameCountdown = (a: CalibrationState, b: CalibrationState): boolean =>
 export function CalibrationScreen(): React.JSX.Element {
   const go = useNavigation((state) => state.go)
   const skillId = useSession((state) => state.skillId)
-  const skill = bundledSkills.skills.find((candidate) => candidate.id === skillId)
+  const skills = useSkills((state) => state.skills)
+  const skill = skills.find((candidate) => candidate.id === skillId)
 
   const flowRef = useRef(new CalibrationFlow())
   const luminanceRef = useRef<{ value: number | null; at: number }>({ value: null, at: -Infinity })

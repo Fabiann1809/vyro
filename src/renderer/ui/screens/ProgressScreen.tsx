@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { localize, t } from '@renderer/i18n'
-import { bundledSkills } from '@renderer/skills'
 import { ProgressCharts } from '../ProgressCharts'
 import { SessionList } from '../SessionList'
 import { useNavigation } from '../navigation'
 import { useSessionList } from '../useSessionList'
+import { useSkills } from '../skillsStore'
 
 export function ProgressScreen(): React.JSX.Element {
   const go = useNavigation((state) => state.go)
+  const skills = useSkills((state) => state.skills)
   // undefined = every skill
   const [skillId, setSkillId] = useState<string | undefined>(undefined)
   const { status, sessions } = useSessionList({ skillId })
@@ -24,7 +25,7 @@ export function ProgressScreen(): React.JSX.Element {
           className="rounded bg-slate-200 px-3 py-2 dark:bg-slate-800"
         >
           <option value="">{t('progress.allSkills')}</option>
-          {bundledSkills.skills.map((skill) => (
+          {skills.map((skill) => (
             <option key={skill.id} value={skill.id}>
               {localize(skill.name)}
             </option>
