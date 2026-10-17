@@ -102,3 +102,9 @@ Format: **context → decision → consequences**.
 - **Decision:** train a small detector with MediaPipe Model Maker for a short list of objects, starting with the guitar only. Training images are never committed; their source and license are documented.
 - **Consequences:** this reopens "own models" only for object detection. Models that judge technique remain out of scope; rules do that.
 
+## D17 — The interface follows the Claude Design prototype
+
+- **Context:** the first interface was a set of plain screens that did not show what VYRO had become (an AI coach, learning paths and four measurement channels).
+- **Decision:** the chat with the coach becomes the home screen, a dashboard replaces the progress screen, and the rest follows the prototype in `docs/DESIGN_SYSTEM.md`. Charts are drawn by hand in SVG from pure functions, so the chart library is dropped at the end. Fonts are bundled, never loaded from the network. The planner and the free chat share one conversation on the home screen.
+- **Consequences:** the dashboard shows what is stored today (scores, repetition quality, failed rules and their channel). Charts of raw angles or cents need numeric metrics per session, which are not stored yet; that would be a later data change, not part of this phase.
+
