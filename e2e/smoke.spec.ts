@@ -187,6 +187,29 @@ test('shows the streak, the score and what fails most, from the saved sessions',
   await expect(page.getByText('Tu puntuación: 60')).toBeVisible()
 })
 
+test('explains how it works from the side bar and leads back to the chat', async () => {
+  const page = await launch()
+
+  await nav(page, 'Cómo funciona').click()
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Cómo funciona VYRO' })).toBeVisible()
+  for (const step of [
+    'Dime qué quieres aprender',
+    'Armo tu ruta',
+    'Te miro y te escucho',
+    'Ves cómo mejoras'
+  ]) {
+    await expect(page.getByRole('heading', { name: step })).toBeVisible()
+  }
+  await expect(page.getByRole('heading', { name: 'Privado' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Hablar con el coach' }).click()
+  await expect(
+    page.getByRole('heading', { level: 1, name: '¿Qué quieres aprender?' })
+  ).toBeVisible()
+  await expect(page.getByLabel('Tu mensaje')).toBeFocused()
+})
+
 test('a skill of the hands is calibrated with the hands, not the body', async () => {
   const page = await launch()
 
