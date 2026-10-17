@@ -2,7 +2,7 @@ import { createServer, type Server } from 'node:http'
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { DatabaseSync } from 'node:sqlite'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import {
   _electron as electron,
   expect,
@@ -29,9 +29,13 @@ test.afterEach(async () => {
   rmSync(userData, { recursive: true, force: true })
 })
 
-async function launch(): Promise<Page> {
+async function launch(
+  options: { before?: string[]; env?: Record<string, string> } = {}
+): Promise<Page> {
   app = await electron.launch({
+    env: { ...process.env, ...options.env } as Record<string, string>,
     args: [
+      ...(options.before ?? []),
       '.',
       `--user-data-dir=${userData}`,
       // The Linux runners cannot set up Chromium's own sandbox; the renderer sandbox stays on.
@@ -385,6 +389,79 @@ test.describe('AI coach screen', () => {
 
     await expect(again.getByRole('alert')).toContainText('límite diario')
     expect(provider.received).toHaveLength(1)
+  })
+
+  test('goes through chat, path and a generated skill with no network but the fake provider', async () => {
+    const netLog = join(userData, 'net.jsonl')
+    const page = await launch({
+      // Every address but this computer fails to resolve, for the page; the watcher notes what Node asks.
+      before: [
+        '-r',
+        resolve('e2e/netLog.cjs'),
+        '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1'
+      ],
+      env: { VYRO_NET_LOG: netLog }
+    })
+    await turnOnWithFakeProvider(page)
+
+    // Chat.
+    await nav(page, 'Coach').click()
+    await page.getByLabel('Tu mensaje').fill('Quiero mejorar mi sentadilla')
+    await page.getByRole('button', { name: 'Enviar' }).click()
+    await expect(page.getByText(REPLY)).toBeVisible()
+
+    // Path: it asks, then proposes, and the person keeps it.
+    await nav(page, 'Ruta').click()
+    provider.setAnswer({
+      action: 'ask',
+      requirement: { channels: ['body'] },
+      question: '¿Qué nivel tienes?'
+    })
+    await page.getByLabel('Qué quieres aprender').fill('Quiero mejorar mi sentadilla')
+    await page.getByLabel('Qué quieres aprender').press('Enter')
+    await expect(page.getByText('¿Qué nivel tienes?')).toBeVisible()
+    provider.setAnswer({
+      action: 'propose',
+      requirement: { channels: ['body'] },
+      path: {
+        goal: 'Mejorar mi sentadilla',
+        steps: [
+          {
+            title: 'Sentadilla lenta',
+            description: 'Baja en tres segundos.',
+            kind: 'skill',
+            skillId: 'squat',
+            criterionSessions: 2,
+            criterionScore: 75
+          }
+        ]
+      }
+    })
+    await page.getByLabel('Qué quieres aprender').fill('Principiante')
+    await page.getByLabel('Qué quieres aprender').press('Enter')
+    await page.getByRole('button', { name: 'Guardar ruta' }).click()
+    await expect(page.getByText('Sentadilla lenta')).toBeVisible()
+
+    // A skill made by the AI, approved and offered in Home.
+    const squat = JSON.parse(readFileSync('src/renderer/skills/squat.json', 'utf-8')) as object
+    const yoga = { ...squat, id: 'custom_yoga', name: { es: 'Yoga suave', en: 'Gentle yoga' } }
+    provider.setAnswer({ requirement: { channels: ['body'] }, skill: JSON.stringify(yoga) })
+    await nav(page, 'Coach').click()
+    await page.getByRole('button', { name: 'Crear habilidad' }).click()
+    await page.getByLabel('Qué habilidad quieres crear').fill('Quiero aprender yoga suave')
+    await page.getByRole('button', { name: 'Enviar' }).click()
+    await page.getByRole('button', { name: 'Aprobar y probar' }).click()
+    await page.getByRole('button', { name: 'Cancelar' }).click()
+    await expect(page.getByRole('button', { name: 'Yoga suave' })).toBeVisible()
+
+    // Nothing was asked of any address but the fake provider.
+    const requests = readFileSync(netLog, 'utf-8')
+      .split(String.fromCharCode(10))
+      .filter(Boolean)
+      .map((line) => JSON.parse(line) as { via: string; url: string })
+      .filter((entry) => entry.via !== 'loaded')
+    expect(requests.length).toBeGreaterThanOrEqual(4)
+    for (const request of requests) expect(request.url.startsWith(provider.url)).toBe(true)
   })
 
   test('keeps the whole conversation in what it sends next, and starts over when asked', async () => {
