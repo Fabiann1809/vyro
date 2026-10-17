@@ -1,11 +1,18 @@
+import type { FrameBudget } from './frameBudget'
 import {
   toObservations,
-  type HandBudget,
   type HandDetector,
   type HandObservation,
   type HandsFrameData
 } from './handFrame'
 import type { Landmark } from './landmarks'
+import {
+  toBox,
+  type BoxSmoother,
+  type ObjectBox,
+  type ObjectDetectorLike,
+  type ObjectsFrameData
+} from './objectFrame'
 
 export interface PoseFrame {
   timestampMs: number
@@ -16,6 +23,8 @@ export interface PoseFrame {
   landmarks: Landmark[] | null
   // Only when hands are being looked for.
   hands?: HandsFrameData
+  // Only when an object is being looked for.
+  objects?: ObjectsFrameData
 }
 
 // The two small interfaces below are all the loop needs, so it can be tested without a camera.
@@ -35,7 +44,16 @@ export interface PoseDetector<S> {
 // Looking for hands as well, with a time budget so that the body keeps its frame rate.
 export interface HandsOptions<S> {
   detector: HandDetector<S>
-  budget: HandBudget
+  budget: FrameBudget
+}
+
+// Looking for an object as well, with its own time budget and a smoother for its box.
+export interface ObjectsOptions<S> {
+  detector: ObjectDetectorLike<S>
+  budget: FrameBudget
+  smoother: BoxSmoother
+  // The size of the picture the model sees, to turn its pixel boxes into 0..1.
+  sizeOf: (source: S) => { width: number; height: number }
 }
 
 export interface DetectionHandlers {
@@ -50,12 +68,14 @@ export function startDetectionLoop<S extends FrameSource>(
   detector: PoseDetector<S>,
   handlers: DetectionHandlers,
   clock: () => number = () => performance.now(),
-  hands?: HandsOptions<S>
+  hands?: HandsOptions<S>,
+  objects?: ObjectsOptions<S>
 ): () => void {
   let handle = 0
   let stopped = false
   let lastTimestamp = -1
   let lastHands: HandObservation[] = []
+  let lastBox: ObjectBox | null = null
 
   const onVideoFrame = (_now: number, metadata: FrameMetadata): void => {
     if (stopped) return
@@ -82,12 +102,29 @@ export function startDetectionLoop<S extends FrameSource>(
         handsFrame = { observations: lastHands, fresh, latencyMs }
       }
 
+      let objectsFrame: ObjectsFrameData | undefined
+      if (objects) {
+        const spentMs = bodyLatencyMs + (handsFrame?.latencyMs ?? 0)
+        const fresh = objects.budget.shouldRun(spentMs)
+        let latencyMs = 0
+        if (fresh) {
+          const objectStartedAt = clock()
+          const { width, height } = objects.sizeOf(source)
+          const found = toBox(objects.detector.detectForVideo(source, timestampMs), width, height)
+          lastBox = objects.smoother.smooth(found)
+          latencyMs = clock() - objectStartedAt
+          objects.budget.record(latencyMs)
+        }
+        objectsFrame = { box: lastBox, fresh, latencyMs }
+      }
+
       handlers.onFrame({
         timestampMs,
         latencyMs: bodyLatencyMs,
         presentedFrames: metadata.presentedFrames,
         landmarks: result.landmarks[0] ?? null,
-        ...(handsFrame ? { hands: handsFrame } : {})
+        ...(handsFrame ? { hands: handsFrame } : {}),
+        ...(objectsFrame ? { objects: objectsFrame } : {})
       })
     } catch (error) {
       stopped = true

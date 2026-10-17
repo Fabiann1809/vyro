@@ -7,22 +7,26 @@ const REFRESH_MS = 500
 // Development-only readout of how fast the camera and the pose model run.
 export function DebugPanel({
   stats,
-  handStats
+  handStats,
+  objectStats
 }: {
   stats: RefObject<FrameStats>
   handStats?: RefObject<FrameStats>
+  objectStats?: RefObject<FrameStats>
 }): React.JSX.Element | null {
   const [snapshot, setSnapshot] = useState<FrameStatsSnapshot | null>(null)
   const [hands, setHands] = useState<FrameStatsSnapshot | null>(null)
+  const [objects, setObjects] = useState<FrameStatsSnapshot | null>(null)
 
   useEffect(() => {
     const timer = setInterval(() => {
       const now = performance.now()
       setSnapshot(stats.current.snapshot(now))
       if (handStats) setHands(handStats.current.snapshot(now))
+      if (objectStats) setObjects(objectStats.current.snapshot(now))
     }, REFRESH_MS)
     return () => clearInterval(timer)
-  }, [stats, handStats])
+  }, [stats, handStats, objectStats])
 
   if (!snapshot) return null
 
@@ -44,6 +48,14 @@ export function DebugPanel({
           {t('debug.hands', {
             fps: hands.detectionFps.toFixed(1),
             avg: hands.averageLatencyMs.toFixed(1)
+          })}
+        </div>
+      )}
+      {objects && (
+        <div>
+          {t('debug.objects', {
+            fps: objects.detectionFps.toFixed(1),
+            avg: objects.averageLatencyMs.toFixed(1)
           })}
         </div>
       )}

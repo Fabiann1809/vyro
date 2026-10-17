@@ -53,35 +53,3 @@ export function toObservations(result: HandsResultLike): HandObservation[] {
     ]
   })
 }
-
-const DEFAULT_FRAME_BUDGET_MS = 33
-const DEFAULT_MAX_SKIPPED = 2
-const COST_WEIGHT = 0.3
-
-// Decides, frame by frame, whether there is time to look for hands too. The body comes first: if the
-// body took long and hands usually take long, hands are skipped (and the last ones reused), but never
-// more than a few frames in a row, so they do not go stale for long.
-export class HandBudget {
-  private cost = 0
-  private skipped = 0
-
-  constructor(
-    private readonly frameBudgetMs: number = DEFAULT_FRAME_BUDGET_MS,
-    private readonly maxSkipped: number = DEFAULT_MAX_SKIPPED
-  ) {}
-
-  shouldRun(bodyLatencyMs: number): boolean {
-    if (bodyLatencyMs + this.cost <= this.frameBudgetMs || this.skipped >= this.maxSkipped) {
-      this.skipped = 0
-      return true
-    }
-    this.skipped++
-    return false
-  }
-
-  // The average cost of looking for hands, which gives more weight to the latest frames.
-  record(latencyMs: number): void {
-    this.cost =
-      this.cost === 0 ? latencyMs : this.cost * (1 - COST_WEIGHT) + latencyMs * COST_WEIGHT
-  }
-}

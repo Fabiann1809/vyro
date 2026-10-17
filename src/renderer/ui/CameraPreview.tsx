@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { FrameStats } from '@renderer/core/frameStats'
 import { LandmarkRecorder, recordingFileName, serializeRecording } from '@renderer/core/recording'
-import { drawHands, drawSkeleton } from '@renderer/core/skeleton'
+import { drawHands, drawObjectBox, drawSkeleton } from '@renderer/core/skeleton'
 import { LandmarkSmoother } from '@renderer/core/smoothing'
 import { cameraSettingsUrl } from '@shared/camera'
 import { t } from '@renderer/i18n'
@@ -12,18 +12,21 @@ import { RecorderControls } from './RecorderControls'
 import { useCamera } from './useCamera'
 import { usePoseDetection } from './usePoseDetection'
 import { useHandLandmarker } from './useHandLandmarker'
+import { useObjectDetector } from './useObjectDetector'
 import { usePoseLandmarker } from './usePoseLandmarker'
 
 export function CameraPreview(): React.JSX.Element {
   const { status, stream, devices, activeDeviceId, errorKind, selectDevice, retry } = useCamera()
   const pose = usePoseLandmarker()
-  // Hands are shown in development only, until a skill needs them.
+  // Hands and the object are shown in development only, until a skill needs them.
   const hands = useHandLandmarker(import.meta.env.DEV)
+  const objects = useObjectDetector(import.meta.env.DEV)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const smootherRef = useRef(new LandmarkSmoother())
   const statsRef = useRef(new FrameStats())
   const handStatsRef = useRef(new FrameStats())
+  const objectStatsRef = useRef(new FrameStats())
   const recorderRef = useRef<LandmarkRecorder | null>(null)
 
   const startRecording = useCallback((label: string) => {
@@ -63,6 +66,9 @@ export function CameraPreview(): React.JSX.Element {
         if (frame.hands?.fresh) {
           handStatsRef.current.add({ ...frame, latencyMs: frame.hands.latencyMs })
         }
+        if (frame.objects?.fresh) {
+          objectStatsRef.current.add({ ...frame, latencyMs: frame.objects.latencyMs })
+        }
         // Raw model output, before smoothing: fixtures must show what the model really said.
         recorderRef.current?.add(frame)
       }
@@ -79,8 +85,10 @@ export function CameraPreview(): React.JSX.Element {
       const landmarks = smootherRef.current.smooth(frame.landmarks, frame.timestampMs)
       drawSkeleton(ctx, landmarks, canvas.width, canvas.height)
       if (frame.hands) drawHands(ctx, frame.hands.observations, canvas.width, canvas.height)
+      if (frame.objects) drawObjectBox(ctx, frame.objects.box, canvas.width, canvas.height)
     },
-    hands.hands?.landmarker ?? null
+    hands.hands?.landmarker ?? null,
+    objects.objects?.detector ?? null
   )
 
   // A stale skeleton must not stay on screen when the camera stops or changes.
@@ -89,6 +97,7 @@ export function CameraPreview(): React.JSX.Element {
     smootherRef.current.reset()
     statsRef.current.reset()
     handStatsRef.current.reset()
+    objectStatsRef.current.reset()
     const canvas = canvasRef.current
     canvas?.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height)
   }, [status])
@@ -115,7 +124,9 @@ export function CameraPreview(): React.JSX.Element {
           muted
           className="block max-h-[70vh] rounded-lg bg-black"
         />
-        {import.meta.env.DEV && <DebugPanel stats={statsRef} handStats={handStatsRef} />}
+        {import.meta.env.DEV && (
+          <DebugPanel stats={statsRef} handStats={handStatsRef} objectStats={objectStatsRef} />
+        )}
         <canvas
           ref={canvasRef}
           aria-hidden="true"

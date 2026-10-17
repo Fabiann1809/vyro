@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import { startDetectionLoop, type FrameSource, type PoseFrame } from './detectionLoop'
-import { HandBudget, type HandsResultLike } from './handFrame'
+import { FrameBudget } from './frameBudget'
+import type { HandsResultLike } from './handFrame'
 import type { Landmark } from './landmarks'
+import { BoxSmoother, type ObjectsResultLike } from './objectFrame'
 
 interface FakeSource {
   source: FrameSource
@@ -188,7 +190,7 @@ describe('startDetectionLoop with hands', () => {
       clock,
       {
         detector: { detectForVideo: detectHands },
-        budget: new HandBudget(options.budgetMs ?? 33, 1)
+        budget: new FrameBudget(options.budgetMs ?? 33, 1)
       }
     )
     return { emitFrame, frames, detectHands }
@@ -229,5 +231,138 @@ describe('startDetectionLoop with hands', () => {
     expect(detectHands).toHaveBeenCalledTimes(1)
     expect(frames[1]?.hands).toMatchObject({ fresh: false, latencyMs: 0 })
     expect(frames[1]?.hands?.observations).toHaveLength(2)
+  })
+})
+
+describe('startDetectionLoop with an object', () => {
+  // The model gives pixels of a 640x480 picture.
+  const found = (originX: number, score = 0.9): ObjectsResultLike => ({
+    detections: [
+      {
+        boundingBox: { originX, originY: 96, width: 128, height: 96 },
+        categories: [{ categoryName: 'Guitar', score }]
+      }
+    ]
+  })
+
+  function setup(options: { times?: number[]; answers: ObjectsResultLike[] }): {
+    emitFrame: () => void
+    frames: PoseFrame[]
+    detectObject: ReturnType<typeof vi.fn>
+  } {
+    const { source, emitFrame } = createFakeSource()
+    const frames: PoseFrame[] = []
+    const answers = [...options.answers]
+    const detectObject = vi.fn(() => answers.shift() ?? { detections: [] })
+    const times = [...(options.times ?? [])]
+    let now = 0
+    const clock = (): number => times.shift() ?? (now += 1)
+    startDetectionLoop(
+      source,
+      { detectForVideo: () => ({ landmarks: [[point]] }) },
+      { onFrame: (frame) => frames.push(frame), onError: vi.fn() },
+      clock,
+      undefined,
+      {
+        detector: { detectForVideo: detectObject },
+        budget: new FrameBudget(33, 1),
+        smoother: new BoxSmoother(0.5),
+        sizeOf: () => ({ width: 640, height: 480 })
+      }
+    )
+    return { emitFrame, frames, detectObject }
+  }
+
+  it('reports the box of the object in 0..1 of the picture', () => {
+    const { emitFrame, frames } = setup({ answers: [found(320)] })
+
+    emitFrame()
+
+    expect(frames[0]?.objects).toMatchObject({
+      box: { x: 0.5, y: 0.2, width: 0.2, height: 0.2 },
+      fresh: true
+    })
+  })
+
+  it('follows the object as it moves, frame after frame', () => {
+    const { emitFrame, frames } = setup({ answers: [found(100), found(140), found(180)] })
+
+    emitFrame()
+    emitFrame()
+    emitFrame()
+
+    const xs = frames.map((frame) => frame.objects?.box?.x ?? 0)
+    expect(xs[1]).toBeGreaterThan(xs[0] ?? 0)
+    expect(xs[2]).toBeGreaterThan(xs[1] ?? 0)
+    // It lags a little behind the raw box (180 px = 0.28) because it is smoothed.
+    expect(xs[2]).toBeLessThan(180 / 640)
+  })
+
+  it('has no box when the model sees no object', () => {
+    const { emitFrame, frames } = setup({ answers: [{ detections: [] }] })
+
+    emitFrame()
+
+    expect(frames[0]?.objects).toMatchObject({ box: null, fresh: true })
+  })
+
+  it('does not look for an object when nothing asked for it', () => {
+    const { source, emitFrame } = createFakeSource()
+    const frames: PoseFrame[] = []
+    startDetectionLoop(
+      source,
+      { detectForVideo: () => ({ landmarks: [] }) },
+      { onFrame: (frame) => frames.push(frame), onError: vi.fn() }
+    )
+
+    emitFrame()
+
+    expect(frames[0]?.objects).toBeUndefined()
+  })
+
+  it('reuses the last box when the body leaves no time, and says it is not fresh', () => {
+    // Frame 1: body 1 ms, object 40 ms. Frame 2: the body takes 10 ms and the object is known to be slow.
+    const { emitFrame, frames, detectObject } = setup({
+      times: [0, 1, 1, 41, 100, 110],
+      answers: [found(320), found(500)]
+    })
+
+    emitFrame()
+    emitFrame()
+
+    expect(detectObject).toHaveBeenCalledTimes(1)
+    expect(frames[1]?.objects).toMatchObject({ fresh: false, latencyMs: 0 })
+    expect(frames[1]?.objects?.box?.x).toBe(frames[0]?.objects?.box?.x)
+  })
+
+  it('looks for hands and the object in the same frame', () => {
+    const { source, emitFrame } = createFakeSource()
+    const frames: PoseFrame[] = []
+    startDetectionLoop(
+      source,
+      { detectForVideo: () => ({ landmarks: [[point]] }) },
+      { onFrame: (frame) => frames.push(frame), onError: vi.fn() },
+      undefined,
+      {
+        detector: {
+          detectForVideo: () => ({
+            landmarks: [[point]],
+            handedness: [[{ categoryName: 'Left', score: 1 }]]
+          })
+        },
+        budget: new FrameBudget()
+      },
+      {
+        detector: { detectForVideo: () => found(320) },
+        budget: new FrameBudget(),
+        smoother: new BoxSmoother(),
+        sizeOf: () => ({ width: 640, height: 480 })
+      }
+    )
+
+    emitFrame()
+
+    expect(frames[0]?.hands?.observations).toHaveLength(1)
+    expect(frames[0]?.objects?.box).not.toBeNull()
   })
 })

@@ -17,6 +17,7 @@
   "debug.camera": "Cámara: {fps} fps",
   "debug.detection": "Detección: {fps} fps",
   "debug.hands": "Manos: {fps} fps ({avg} ms)",
+  "debug.objects": "Objeto: {fps} fps ({avg} ms)",
   "debug.latency": "Latencia: {avg} ms (máx. {max} ms)",
   "recorder.label": "Etiqueta de la grabación",
   "recorder.start": "Grabar",

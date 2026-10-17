@@ -1,4 +1,5 @@
 import type { HandObservation } from './handFrame'
+import type { ObjectBox } from './objectFrame'
 import { HAND_LANDMARK as H, POSE_LANDMARK as P, type Landmark } from './landmarks'
 import { isVisible } from './visibility'
 
@@ -95,6 +96,21 @@ export const HAND_CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
   [H.PINKY_PIP, H.PINKY_DIP],
   [H.PINKY_DIP, H.PINKY_TIP]
 ]
+
+const OBJECT_COLOR = 'rgba(251, 191, 36, 0.95)'
+
+// Draws the box of the object over what is already drawn. Passing null draws nothing.
+export function drawObjectBox(
+  ctx: CanvasRenderingContext2D,
+  box: ObjectBox | null,
+  width: number,
+  height: number
+): void {
+  if (!box) return
+  ctx.lineWidth = Math.max(2, width / 320)
+  ctx.strokeStyle = OBJECT_COLOR
+  ctx.strokeRect(box.x * width, box.y * height, box.width * width, box.height * height)
+}
 
 // Draws the hands over the body, which drawSkeleton has just drawn (it clears the canvas first).
 export function drawHands(
