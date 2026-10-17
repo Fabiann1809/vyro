@@ -17,6 +17,7 @@ const ERROR_TEXT: Record<CoachErrorKind, MessageKey> = {
   truncated: 'coach.error.truncated',
   unknown: 'coach.error.unknown',
   'not-enabled': 'coach.error.not-enabled',
+  'no-consent': 'coach.error.no-consent',
   busy: 'coach.error.busy',
   'invalid-input': 'coach.error.invalid-input',
   'no-path': 'coach.error.no-path'
@@ -28,6 +29,7 @@ const NEEDS_SETTINGS: ReadonlySet<CoachErrorKind> = new Set([
   'auth',
   'not-configured',
   'not-enabled',
+  'no-consent',
   'request'
 ])
 

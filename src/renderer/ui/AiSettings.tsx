@@ -32,6 +32,8 @@ export function AiSettings(): React.JSX.Element {
   const [modelDraft, setModelDraft] = useState(settings.aiModel ?? '')
   const [urlDraft, setUrlDraft] = useState(settings.aiBaseUrl ?? '')
   const [urlInvalid, setUrlInvalid] = useState(false)
+  // The consent is asked the first time the switch is turned on.
+  const [askingConsent, setAskingConsent] = useState(false)
   // Bumped to ask for the status again after the key changes.
   const [statusVersion, setStatusVersion] = useState(0)
 
@@ -160,11 +162,47 @@ export function AiSettings(): React.JSX.Element {
           type="checkbox"
           checked={settings.aiEnabled && canEnable}
           disabled={!canEnable}
-          onChange={(event) => settings.setAiEnabled(event.target.checked)}
+          onChange={(event) => {
+            if (event.target.checked && !settings.aiConsent) setAskingConsent(true)
+            else settings.setAiEnabled(event.target.checked)
+          }}
           className="size-5"
         />
         {t('settings.ai.enabled')}
       </label>
+      {askingConsent && (
+        <div
+          role="alertdialog"
+          aria-label={t('settings.ai.consent.title')}
+          className="flex flex-col gap-3 rounded-lg border border-slate-400 p-4"
+        >
+          <p className="font-semibold">{t('settings.ai.consent.title')}</p>
+          <p>{t('settings.ai.consent.sends')}</p>
+          <p>{t('settings.ai.consent.to', { provider: t(PROVIDER_LABEL[settings.aiProvider]) })}</p>
+          <p>{t('settings.ai.consent.notAdvice')}</p>
+          <p>{t('settings.ai.consent.off')}</p>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                settings.setAiConsent(true)
+                settings.setAiEnabled(true)
+                setAskingConsent(false)
+              }}
+              className="rounded-md bg-emerald-700 px-4 py-2 text-white"
+            >
+              {t('settings.ai.consent.accept')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setAskingConsent(false)}
+              className="rounded-md bg-slate-200 px-4 py-2 dark:bg-slate-800"
+            >
+              {t('settings.ai.consent.cancel')}
+            </button>
+          </div>
+        </div>
+      )}
       {!canEnable && (
         <p className="text-slate-600 dark:text-slate-400">{t('settings.ai.needKey')}</p>
       )}

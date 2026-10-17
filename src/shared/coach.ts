@@ -26,6 +26,8 @@ export type CoachErrorKind =
   | LlmErrorKind
   // The user has not turned the AI coach on.
   | 'not-enabled'
+  // The person has not accepted yet what is sent and to whom.
+  | 'no-consent'
   // Another question is still being answered.
   | 'busy'
   // The page sent something that is not a valid request.

@@ -24,6 +24,7 @@ export function currentSettings(): AppSettings {
     textSize: store.textSize,
     reduceMotion: store.reduceMotion,
     aiEnabled: store.aiEnabled,
+    aiConsent: store.aiConsent,
     aiProvider: store.aiProvider,
     aiModel: store.aiModel,
     aiBaseUrl: store.aiBaseUrl
@@ -53,6 +54,7 @@ export function applySettings(settings: AppSettings): void {
     store.setTextSize(settings.textSize)
     store.setReduceMotion(settings.reduceMotion)
     store.setAiEnabled(settings.aiEnabled)
+    store.setAiConsent(settings.aiConsent)
     store.setAiProvider(settings.aiProvider)
     store.setAiModel(settings.aiModel)
     store.setAiBaseUrl(settings.aiBaseUrl)

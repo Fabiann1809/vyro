@@ -134,14 +134,17 @@ test('the coach answers a question with data, and only the typed bridge reaches 
       const question = { turns: [{ role: 'user', text: 'Quiero mejorar' }], language: 'es' }
       const off = await api.coach.chat(question)
       await api.settings.set({ aiEnabled: true })
+      const noConsent = await api.coach.chat(question)
+      await api.settings.set({ aiConsent: true })
       const noKey = await api.coach.chat(question)
       const invalid = await api.coach.chat({ turns: [], language: 'es' })
-      return { off, noKey, invalid, methods: Object.keys(api.coach) }
+      return { off, noConsent, noKey, invalid, methods: Object.keys(api.coach) }
     })
 
   // Off by default; on without a key; and a request that makes no sense. None reaches the network.
   expect(await run()).toEqual({
     off: { ok: false, error: { kind: 'not-enabled' } },
+    noConsent: { ok: false, error: { kind: 'no-consent' } },
     noKey: { ok: false, error: { kind: 'no-key' } },
     invalid: { ok: false, error: { kind: 'invalid-input' } },
     methods: ['chat', 'summarize', 'planPath', 'reviewPath', 'generateSkill']
@@ -275,8 +278,39 @@ test.describe('AI coach screen', () => {
     await page.getByLabel('Proveedor').selectOption('ollama')
     await page.getByLabel('Dirección del servicio').fill(provider.url)
     await page.getByLabel('Dirección del servicio').blur()
-    await page.getByLabel('Activar el coach con IA').check()
+    await page.getByLabel('Activar el coach con IA').click()
+    await page.getByRole('button', { name: 'Acepto y activar' }).click()
   }
+
+  test('asks for consent the first time the AI is turned on, and only then turns it on', async () => {
+    const page = await launch()
+    await nav(page, 'Ajustes').click()
+    await page.getByLabel('Proveedor').selectOption('ollama')
+
+    await page.getByLabel('Activar el coach con IA').click()
+    await expect(
+      page.getByRole('alertdialog', { name: 'Antes de activar el coach con IA' })
+    ).toBeVisible()
+    await expect(page.getByText(/Nunca video, imágenes, puntos del cuerpo ni audio/)).toBeVisible()
+    await expect(page.getByText(/no son consejo médico/)).toBeVisible()
+    await expect(
+      page.getByText(/pueden usar lo que reciben para mejorar sus productos/)
+    ).toBeVisible()
+
+    // Cancelling leaves it off.
+    await page.getByRole('button', { name: 'Cancelar' }).click()
+    await expect(page.getByLabel('Activar el coach con IA')).not.toBeChecked()
+
+    await page.getByLabel('Activar el coach con IA').click()
+    await page.getByRole('button', { name: 'Acepto y activar' }).click()
+    await expect(page.getByLabel('Activar el coach con IA')).toBeChecked()
+
+    // It is not asked again.
+    await page.getByLabel('Activar el coach con IA').uncheck()
+    await page.getByLabel('Activar el coach con IA').click()
+    await expect(page.getByRole('alertdialog')).toHaveCount(0)
+    await expect(page.getByLabel('Activar el coach con IA')).toBeChecked()
+  })
 
   test('invites to turn it on when it is off, and goes to the settings', async () => {
     const page = await launch()

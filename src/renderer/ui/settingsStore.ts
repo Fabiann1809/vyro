@@ -13,6 +13,7 @@ interface SettingsState {
   textSize: TextSize
   reduceMotion: boolean
   aiEnabled: boolean
+  aiConsent: boolean
   aiProvider: AiProviderId
   aiModel: string | null
   aiBaseUrl: string | null
@@ -23,6 +24,7 @@ interface SettingsState {
   setTextSize: (textSize: TextSize) => void
   setReduceMotion: (reduceMotion: boolean) => void
   setAiEnabled: (aiEnabled: boolean) => void
+  setAiConsent: (aiConsent: boolean) => void
   setAiProvider: (aiProvider: AiProviderId) => void
   setAiModel: (aiModel: string | null) => void
   setAiBaseUrl: (aiBaseUrl: string | null) => void
@@ -38,6 +40,7 @@ export const useSettings = create<SettingsState>((set) => ({
   textSize: DEFAULT_SETTINGS.textSize,
   reduceMotion: DEFAULT_SETTINGS.reduceMotion,
   aiEnabled: DEFAULT_SETTINGS.aiEnabled,
+  aiConsent: DEFAULT_SETTINGS.aiConsent,
   aiProvider: DEFAULT_SETTINGS.aiProvider,
   aiModel: DEFAULT_SETTINGS.aiModel,
   aiBaseUrl: DEFAULT_SETTINGS.aiBaseUrl,
@@ -52,6 +55,7 @@ export const useSettings = create<SettingsState>((set) => ({
   setTextSize: (textSize) => set({ textSize }),
   setReduceMotion: (reduceMotion) => set({ reduceMotion }),
   setAiEnabled: (aiEnabled) => set({ aiEnabled }),
+  setAiConsent: (aiConsent) => set({ aiConsent }),
   setAiProvider: (aiProvider) => set({ aiProvider }),
   setAiModel: (aiModel) => set({ aiModel }),
   setAiBaseUrl: (aiBaseUrl) => set({ aiBaseUrl })

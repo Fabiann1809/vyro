@@ -17,6 +17,8 @@ export interface AppSettings {
   reduceMotion: boolean
   // The AI coach is off until the user turns it on (and has saved a key).
   aiEnabled: boolean
+  // The person read what is sent and to whom, and accepted. Without it nothing is sent.
+  aiConsent: boolean
   aiProvider: AiProviderId
   // A model the user typed, for every kind of request; null uses the provider's own choice.
   aiModel: string | null
@@ -34,6 +36,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   textSize: 'normal',
   reduceMotion: false,
   aiEnabled: false,
+  aiConsent: false,
   aiProvider: 'claude',
   aiModel: null,
   aiBaseUrl: null
@@ -49,6 +52,7 @@ export const settingSchemas = {
   textSize: z.enum(['normal', 'large', 'extra-large']),
   reduceMotion: z.boolean(),
   aiEnabled: z.boolean(),
+  aiConsent: z.boolean(),
   aiProvider: z.enum(AI_PROVIDER_IDS as [AiProviderId, ...AiProviderId[]]),
   aiModel: z.string().trim().min(1).max(100).nullable(),
   aiBaseUrl: z.string().max(300).refine(isSafeAiBaseUrl, 'Not a safe address').nullable()

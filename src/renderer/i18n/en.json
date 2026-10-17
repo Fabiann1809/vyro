@@ -330,5 +330,13 @@
   "settings.skills.confirm": "Yes, delete",
   "settings.skills.cancel": "Cancel",
   "settings.skills.done": "Skill deleted.",
-  "settings.skills.failed": "The skill could not be deleted."
+  "settings.skills.failed": "The skill could not be deleted.",
+  "coach.error.no-consent": "Before using the AI coach you have to accept what is sent. Turn it on again in Settings.",
+  "settings.ai.consent.title": "Before turning on the AI coach",
+  "settings.ai.consent.sends": "Only the text you write and numbers from your sessions (scores, repetitions and rule names) are sent. Never video, images, body points or audio.",
+  "settings.ai.consent.to": "It is sent to {provider}, with your own key. Some free providers may use what they receive to improve their products.",
+  "settings.ai.consent.notAdvice": "The paths and skills that the AI proposes are not medical or professional advice. Do not use them if you feel pain, and stop if something does not feel right.",
+  "settings.ai.consent.off": "You can turn it off whenever you want on this same screen.",
+  "settings.ai.consent.accept": "I accept and turn it on",
+  "settings.ai.consent.cancel": "Cancel"
 }

@@ -49,7 +49,7 @@ const failed = (kind: CoachErrorKind, retryAfterSeconds?: number): CoachResult<n
 // wrote ever goes back.
 export function createCoachHandlers(deps: {
   llm: LlmClient
-  getSettings: () => Pick<AppSettings, 'aiEnabled'>
+  getSettings: () => Pick<AppSettings, 'aiEnabled' | 'aiConsent'>
   // The path being followed and its numbers, or null if there is none to review.
   loadReview: () => ReviewSource | null
   // The skills made later: the ids that are taken, and where a new one is kept as a draft.
@@ -71,7 +71,10 @@ export function createCoachHandlers(deps: {
   ): Promise<CoachResult<Answer>> {
     if (!parsed.success) return failed('invalid-input')
     // The page cannot get an answer by skipping its own switch: it is checked here too.
-    if (!deps.getSettings().aiEnabled) return failed('not-enabled')
+    const { aiEnabled, aiConsent } = deps.getSettings()
+    if (!aiEnabled) return failed('not-enabled')
+    // Nothing leaves the computer until the person has accepted what is sent and to whom.
+    if (!aiConsent) return failed('no-consent')
     if (busy) return failed('busy')
 
     busy = true

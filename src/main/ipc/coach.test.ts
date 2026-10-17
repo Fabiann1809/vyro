@@ -41,6 +41,7 @@ interface Setup {
   requests: GenerateRequest<unknown>[]
   answer: (outcome: unknown) => void
   enabled: { value: boolean }
+  consent: { value: boolean }
 }
 
 // A model that answers with the outcomes it is given in order: an Error is thrown, any other
@@ -49,6 +50,7 @@ function setup(...outcomes: unknown[]): Setup {
   const requests: GenerateRequest<unknown>[] = []
   const queue = [...outcomes]
   const enabled = { value: true }
+  const consent = { value: true }
   const llm: LlmClient = {
     generate: <T>(request: GenerateRequest<T>): Promise<T> => {
       requests.push(request as GenerateRequest<unknown>)
@@ -61,7 +63,7 @@ function setup(...outcomes: unknown[]): Setup {
   const skills: Setup['skills'] = { used: [], drafts: [] }
   const { chat, summarize, planPath, reviewPath, generateSkill } = createCoachHandlers({
     llm,
-    getSettings: () => ({ aiEnabled: enabled.value }),
+    getSettings: () => ({ aiEnabled: enabled.value, aiConsent: consent.value }),
     loadReview: () => review.source,
     customSkills: {
       usedIds: () => skills.used,
@@ -79,7 +81,8 @@ function setup(...outcomes: unknown[]): Setup {
     skills,
     requests,
     answer: (outcome) => queue.push(outcome),
-    enabled
+    enabled,
+    consent
   }
 }
 
@@ -121,6 +124,13 @@ describe('coach chat handler', () => {
     await ctx.chat(input)
 
     expect(ctx.requests[0]?.system).toContain('Always answer in Spanish.')
+  })
+
+  it('sends nothing until the person has accepted what is sent', async () => {
+    ctx.consent.value = false
+
+    expect(await ctx.chat(input)).toEqual({ ok: false, error: { kind: 'no-consent' } })
+    expect(ctx.requests).toEqual([])
   })
 
   it('does not ask the model while the AI coach is off', async () => {

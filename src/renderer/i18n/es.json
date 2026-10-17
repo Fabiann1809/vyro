@@ -330,5 +330,13 @@
   "settings.skills.confirm": "Sí, eliminar",
   "settings.skills.cancel": "Cancelar",
   "settings.skills.done": "Habilidad eliminada.",
-  "settings.skills.failed": "No se pudo eliminar la habilidad."
+  "settings.skills.failed": "No se pudo eliminar la habilidad.",
+  "coach.error.no-consent": "Antes de usar el coach con IA tienes que aceptar qué se envía. Actívalo de nuevo en Ajustes.",
+  "settings.ai.consent.title": "Antes de activar el coach con IA",
+  "settings.ai.consent.sends": "Se envía solo el texto que escribes y números de tus sesiones (puntajes, repeticiones y nombres de reglas). Nunca video, imágenes, puntos del cuerpo ni audio.",
+  "settings.ai.consent.to": "Se envía a {provider}, con tu propia clave. Algunos proveedores gratuitos pueden usar lo que reciben para mejorar sus productos.",
+  "settings.ai.consent.notAdvice": "Las rutas y habilidades que propone la IA no son consejo médico ni de un profesional. No las uses si sientes dolor y detente si algo no se siente bien.",
+  "settings.ai.consent.off": "Puedes apagarlo cuando quieras en esta misma pantalla.",
+  "settings.ai.consent.accept": "Acepto y activar",
+  "settings.ai.consent.cancel": "Cancelar"
 }
