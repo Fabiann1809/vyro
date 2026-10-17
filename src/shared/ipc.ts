@@ -1,4 +1,5 @@
 import type { AiKeyStatus } from './ai'
+import type { LearningPath, PathToSave } from './paths'
 import type { PlanPathInput, PlanPathResult } from './pathPlan'
 import type {
   CoachChatInput,
@@ -26,7 +27,11 @@ export const IPC = {
   aiKeyClear: 'ai:key-clear',
   coachChat: 'coach:chat',
   coachSummarize: 'coach:summarize',
-  coachPlanPath: 'coach:plan-path'
+  coachPlanPath: 'coach:plan-path',
+  pathsGetActive: 'paths:get-active',
+  pathsSave: 'paths:save',
+  pathsSetStepDone: 'paths:set-step-done',
+  pathsArchive: 'paths:archive'
 } as const
 
 // The only API the renderer can call. Everything else stays in the main process.
@@ -60,6 +65,15 @@ export interface VyroApi {
     summarize: (input: CoachSummaryInput) => Promise<CoachResult<CoachSummaryReply>>
     // One step of planning a learning path: a question, a path, or why it cannot be done.
     planPath: (input: PlanPathInput) => Promise<CoachResult<PlanPathResult>>
+  }
+  paths: {
+    // The path being followed, or null.
+    getActive: () => Promise<LearningPath | null>
+    // Saves a path and makes it the active one; returns its id.
+    save: (path: PathToSave) => Promise<number>
+    // Whether the step exists.
+    setStepDone: (stepId: number, done: boolean) => Promise<boolean>
+    archive: (pathId: number) => Promise<boolean>
   }
   data: {
     // Empties the database: sessions and settings.

@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { CameraPreview } from './ui/CameraPreview'
 import { NavBar } from './ui/NavBar'
 import { isImmersive, useNavigation, type Screen } from './ui/navigation'
+import { PathScreen } from './ui/screens/PathScreen'
 import { CoachScreen } from './ui/screens/CoachScreen'
 import { CalibrationScreen } from './ui/screens/CalibrationScreen'
 import { ProgressScreen } from './ui/screens/ProgressScreen'
@@ -24,6 +25,8 @@ function CurrentScreen({ screen }: { screen: Screen }): React.JSX.Element {
       return <SummaryScreen />
     case 'progress':
       return <ProgressScreen />
+    case 'path':
+      return <PathScreen />
     case 'coach':
       return <CoachScreen />
     case 'settings':

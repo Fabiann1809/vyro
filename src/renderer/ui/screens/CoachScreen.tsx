@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { t } from '@renderer/i18n'
-import { MAX_COACH_TURN_LENGTH } from '@shared/coach'
 import { AI_PROVIDERS } from '@shared/aiProviders'
 import { CoachErrorNotice } from '../CoachErrorNotice'
 import { resetCoach, retryCoach, sendToCoach, useCoach } from '../coachStore'
+import { ConversationLog, MessageBox } from '../Conversation'
 import { useNavigation } from '../navigation'
 import { useSettings } from '../settingsStore'
 
@@ -14,8 +14,6 @@ export function CoachScreen(): React.JSX.Element {
   const [draft, setDraft] = useState('')
   // Whether a key is saved, when the provider needs one. Null until it is known.
   const [hasKey, setHasKey] = useState<boolean | null>(null)
-  const endRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const needsKey = AI_PROVIDERS[aiProvider].requiresKey
 
@@ -33,16 +31,6 @@ export function CoachScreen(): React.JSX.Element {
       cancelled = true
     }
   }, [aiProvider])
-
-  // Instant, not animated: it is a jump to the last message, and some people ask for no motion.
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ block: 'end' })
-  }, [turns.length, pending, error])
-
-  // Back to the box, ready to type, once an answer has arrived.
-  useEffect(() => {
-    if (!pending) inputRef.current?.focus()
-  }, [pending])
 
   const send = (): void => {
     const text = draft
@@ -101,38 +89,13 @@ export function CoachScreen(): React.JSX.Element {
       </header>
       <p className="text-sm text-slate-600 dark:text-slate-400">{t('coach.private')}</p>
 
-      <div
-        role="log"
-        aria-label={t('coach.log')}
-        aria-live="polite"
-        aria-relevant="additions"
-        className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto rounded-lg border border-slate-300 p-4 dark:border-slate-700"
-      >
-        {turns.length === 0 && !pending && (
-          <p className="text-slate-600 dark:text-slate-400">{t('coach.intro')}</p>
-        )}
-        {turns.map((turn, index) => (
-          <div
-            key={index}
-            className={`max-w-[85%] rounded-lg px-4 py-2 ${
-              turn.role === 'user'
-                ? 'self-end bg-slate-200 dark:bg-slate-800'
-                : 'self-start border border-slate-300 dark:border-slate-700'
-            }`}
-          >
-            <p className="text-sm font-semibold">
-              {turn.role === 'user' ? t('coach.you') : t('coach.coach')}
-            </p>
-            <p className="whitespace-pre-wrap">{turn.text}</p>
-          </div>
-        ))}
-        {pending && (
-          <p role="status" className="text-slate-600 dark:text-slate-400">
-            {t('coach.thinking')}
-          </p>
-        )}
-        <div ref={endRef} />
-      </div>
+      <ConversationLog
+        turns={turns}
+        pending={pending}
+        pendingText={t('coach.thinking')}
+        introText={t('coach.intro')}
+        label={t('coach.log')}
+      />
 
       {error && (
         <CoachErrorNotice
@@ -142,40 +105,13 @@ export function CoachScreen(): React.JSX.Element {
         />
       )}
 
-      <form
-        className="flex items-end gap-3"
-        onSubmit={(event) => {
-          event.preventDefault()
-          send()
-        }}
-      >
-        <label className="flex flex-1 flex-col gap-1">
-          <span className="text-sm">{t('coach.input.label')}</span>
-          <textarea
-            ref={inputRef}
-            rows={2}
-            maxLength={MAX_COACH_TURN_LENGTH}
-            value={draft}
-            disabled={pending}
-            onChange={(event) => setDraft(event.target.value)}
-            onKeyDown={(event) => {
-              // Enter sends; Shift + Enter writes a new line. Not while an input method is composing.
-              if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
-                event.preventDefault()
-                send()
-              }
-            }}
-            className="rounded bg-slate-200 px-3 py-2 disabled:opacity-60 dark:bg-slate-800"
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={pending || draft.trim() === ''}
-          className="rounded-md bg-emerald-700 px-5 py-2 text-white disabled:opacity-50"
-        >
-          {t('coach.send')}
-        </button>
-      </form>
+      <MessageBox
+        label={t('coach.input.label')}
+        value={draft}
+        onChange={setDraft}
+        onSend={send}
+        disabled={pending}
+      />
     </section>
   )
 }

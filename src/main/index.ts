@@ -12,6 +12,7 @@ import { SettingsRepository } from './db/settingsRepository'
 import { registerAiIpc } from './ipc/ai'
 import { registerCameraIpc } from './ipc/camera'
 import { registerCoachIpc } from './ipc/coach'
+import { registerPathsIpc } from './ipc/paths'
 import { registerSessionsIpc } from './ipc/sessions'
 import { registerSettingsIpc } from './ipc/settings'
 import { setupSessionSecurity, setupWindowSecurity } from './security'
@@ -77,7 +78,9 @@ app.whenReady().then(() => {
   )
   registerAiIpc(keyStore)
   const settings = new SettingsRepository(database)
-  registerSettingsIpc(settings, sessions, new PathRepository(database), keyStore)
+  const paths = new PathRepository(database)
+  registerPathsIpc(paths)
+  registerSettingsIpc(settings, sessions, paths, keyStore)
   registerCoachIpc({
     // The provider and the key are read again on every question, so a change in Settings counts at once.
     llm: new ConfiguredLlmClient(

@@ -4,6 +4,7 @@ import { NAV_SCREENS, useNavigation, type Screen } from './navigation'
 const LABEL: Partial<Record<Screen, MessageKey>> = {
   home: 'nav.home',
   progress: 'nav.progress',
+  path: 'nav.path',
   coach: 'nav.coach',
   settings: 'nav.settings',
   lab: 'nav.lab'

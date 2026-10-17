@@ -419,6 +419,127 @@ test.describe('AI coach screen', () => {
     })
   })
 
+  test('creates a path with the planner, follows both kinds of step, and keeps it after a restart', async () => {
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+    await nav(page, 'Ruta').click()
+
+    // The planner asks first, then proposes.
+    provider.setAnswer({
+      action: 'ask',
+      requirement: { channels: ['body'] },
+      question: '¿Qué nivel tienes?'
+    })
+    await page.getByLabel('Qué quieres aprender').fill('Quiero mejorar mi sentadilla')
+    await page.getByLabel('Qué quieres aprender').press('Enter')
+    await expect(page.getByText('¿Qué nivel tienes?')).toBeVisible()
+
+    provider.setAnswer({
+      action: 'propose',
+      requirement: { channels: ['body'] },
+      path: {
+        goal: 'Mejorar mi sentadilla',
+        steps: [
+          {
+            title: 'Sentadilla lenta',
+            description: 'Baja en tres segundos.',
+            kind: 'skill',
+            skillId: 'squat',
+            criterionSessions: 3,
+            criterionScore: 75
+          },
+          {
+            title: 'Descansar un día',
+            description: 'Deja que los músculos se recuperen.',
+            kind: 'auxiliary',
+            skillId: null,
+            criterionSessions: null,
+            criterionScore: null
+          }
+        ]
+      }
+    })
+    await page.getByLabel('Qué quieres aprender').fill('Principiante')
+    await page.getByLabel('Qué quieres aprender').press('Enter')
+
+    // The proposal, with the two kinds of step told apart in words.
+    await expect(
+      page.getByRole('heading', { name: 'Esta es la ruta que te propongo' })
+    ).toBeVisible()
+    await expect(page.getByText('Habilidad medible')).toBeVisible()
+    await expect(page.getByText('Auxiliar')).toBeVisible()
+    await page.getByRole('button', { name: 'Guardar ruta' }).click()
+
+    // The path being followed: the first step is the next one.
+    await expect(page.getByRole('heading', { level: 1, name: 'Mi ruta' })).toBeVisible()
+    await expect(page.getByText('Mejorar mi sentadilla')).toBeVisible()
+    await expect(page.getByText('Pasos hechos: 0 de 2')).toBeVisible()
+    await expect(
+      page.getByRole('listitem').filter({ hasText: 'Sentadilla lenta' })
+    ).toHaveAttribute('aria-current', 'step')
+    await expect(page.getByText('Habilidad: Sentadilla')).toBeVisible()
+    await expect(page.getByText('Meta: 3 sesiones con 75 puntos o más')).toBeVisible()
+
+    // The planner was told which skills exist, and nothing else about the person.
+    const first = provider.received[0]?.body['messages'] as Array<{ role: string; content: string }>
+    expect(first[0]?.content).toContain('- squat: "Squat" / "Sentadilla"')
+    expect(first[0]?.content).toContain('- pushup:')
+    expect(first.slice(1)).toEqual([{ role: 'user', content: 'Quiero mejorar mi sentadilla' }])
+
+    // An auxiliary step is marked by hand, and can be undone.
+    await page.getByRole('button', { name: 'Marcar como hecho' }).click()
+    await expect(page.getByText('Pasos hechos: 1 de 2')).toBeVisible()
+    await expect(page.getByText(/Hecho el /)).toBeVisible()
+    await page.getByRole('button', { name: 'Deshacer' }).click()
+    await expect(page.getByText('Pasos hechos: 0 de 2')).toBeVisible()
+    await page.getByRole('button', { name: 'Marcar como hecho' }).click()
+
+    // It is still there, with its progress, after closing the app and opening it again.
+    await app?.close()
+    const again = await launch()
+    await nav(again, 'Ruta').click()
+    await expect(again.getByText('Mejorar mi sentadilla')).toBeVisible()
+    await expect(again.getByText('Pasos hechos: 1 de 2')).toBeVisible()
+
+    // A measurable step leads to the calibration of its skill.
+    await again.getByRole('button', { name: 'Practicar' }).click()
+    await expect(
+      again.getByRole('heading', { level: 1, name: /Calibración · Sentadilla/ })
+    ).toBeVisible()
+  })
+
+  test('explains why a path cannot be made, and lets the person start again', async () => {
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+    await nav(page, 'Ruta').click()
+    provider.setAnswer({
+      action: 'ask',
+      requirement: { channels: [], outOfScope: ['invisible-outcome'] },
+      question: '¿Qué tipo de meditación?'
+    })
+
+    await page.getByLabel('Qué quieres aprender').fill('Quiero aprender a meditar')
+    await page.getByLabel('Qué quieres aprender').press('Enter')
+
+    await expect(page.getByRole('heading', { name: 'VYRO no puede entrenar eso' })).toBeVisible()
+    await expect(page.getByText('El resultado no se puede ver ni oír')).toBeVisible()
+    // The app decided, not the model: the question it asked was never shown.
+    await expect(page.getByText('¿Qué tipo de meditación?')).toHaveCount(0)
+
+    await page.getByRole('button', { name: 'Empezar de nuevo' }).click()
+    await expect(page.getByLabel('Qué quieres aprender')).toBeVisible()
+  })
+
+  test('invites to turn the AI on before making a path', async () => {
+    const page = await launch()
+
+    await nav(page, 'Ruta').click()
+
+    await expect(page.getByText('Para crear una ruta, activa el coach con IA')).toBeVisible()
+    await page.getByRole('button', { name: 'Ir a Ajustes' }).click()
+    await expect(page.getByRole('heading', { level: 1, name: 'Ajustes' })).toBeVisible()
+  })
+
   test('writes a new line with Shift + Enter instead of sending', async () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)

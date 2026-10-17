@@ -141,6 +141,11 @@ export class PathRepository {
     return changes > 0
   }
 
+  // Closes the paths that are being followed, to make room for a new one.
+  archiveActive(): void {
+    this.db.exec("UPDATE learning_paths SET status = 'archived' WHERE status = 'active'")
+  }
+
   delete(pathId: number): boolean {
     const { changes } = this.db.prepare('DELETE FROM learning_paths WHERE id = ?').run(pathId)
     return changes > 0
