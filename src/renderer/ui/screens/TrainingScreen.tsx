@@ -341,22 +341,7 @@ export function TrainingScreen(): React.JSX.Element {
               withHands={channels.includes('hands')}
               withObjects={channels.includes('object')}
               videoClassName="max-h-[74vh] rounded-[1.875rem]"
-            >
-              <div className="absolute top-5 right-5 rounded-3xl bg-bg/85 px-6.5 py-4 text-center">
-                <RepCounter count={snapshot.repCount} />
-              </div>
-              <div role="status" aria-live="assertive">
-                {banner && (
-                  <CorrectionBand
-                    key={banner.id}
-                    text={banner.text}
-                    channel={banner.channel}
-                    praise={banner.praise}
-                  />
-                )}
-              </div>
-              {interruption}
-            </CameraStage>
+            ></CameraStage>
           ) : (
             <div className="relative flex w-full max-w-xl flex-col items-center gap-6 p-8">
               <RepCounter count={snapshot.repCount} />
@@ -373,6 +358,26 @@ export function TrainingScreen(): React.JSX.Element {
               </div>
               {interruption}
             </div>
+          )}
+
+          {/* These do not depend on the camera: with none, the counter and the messages still show. */}
+          {useCamera && (
+            <>
+              <div className="absolute top-5 right-5 rounded-3xl bg-bg/85 px-6.5 py-4 text-center">
+                <RepCounter count={snapshot.repCount} />
+              </div>
+              <div role="status" aria-live="assertive">
+                {banner && (
+                  <CorrectionBand
+                    key={banner.id}
+                    text={banner.text}
+                    channel={banner.channel}
+                    praise={banner.praise}
+                  />
+                )}
+              </div>
+              {interruption}
+            </>
           )}
         </div>
 

@@ -350,31 +350,38 @@ export function CalibrationScreen(): React.JSX.Element {
                   className="pointer-events-none absolute inset-y-[6%] left-1/2 w-[28%] -translate-x-1/2 rounded-3xl border-2 border-dashed border-white/60"
                 />
               )}
-              {counting && (
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 rounded-[1.875rem] bg-bg/55"
-                >
-                  <p
-                    key={countdown.remaining}
-                    className="anim-beat font-display text-[13.75rem] leading-none font-bold"
-                  >
-                    {countdown.remaining}
-                  </p>
-                  <p className="text-2xl text-t4">{t('calibration.get.ready')}</p>
-                </div>
-              )}
-              {!counting && (
-                <div className="absolute right-6 bottom-6 left-6 rounded-3xl bg-bg/85 px-7.5 py-4.5">
-                  {status}
-                </div>
-              )}
-              {counting && status}
             </CameraStage>
           ) : (
             <div className="flex w-full max-w-xl flex-col items-center gap-6 p-8">
               {microphone.status === 'listening' && <LevelMeter levelDb={levelDb} />}
               {problem}
+              {status}
+            </div>
+          )}
+
+          {/* What is said to the person does not depend on the camera: with none, it still shows. */}
+          {useCamera && counting && (
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 bg-bg/55"
+            >
+              <p
+                key={countdown.remaining}
+                className="anim-beat font-display text-[13.75rem] leading-none font-bold"
+              >
+                {countdown.remaining}
+              </p>
+              <p className="text-2xl text-t4">{t('calibration.get.ready')}</p>
+            </div>
+          )}
+          {useCamera && (
+            <div
+              className={
+                counting
+                  ? 'sr-only'
+                  : 'absolute right-6 bottom-6 left-6 rounded-3xl bg-bg/85 px-7.5 py-4.5'
+              }
+            >
               {status}
             </div>
           )}
