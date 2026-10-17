@@ -33,7 +33,7 @@ export function HBars({ rows }: { rows: readonly HBarRow[] }): React.JSX.Element
               {row.mark}
               {row.label}
             </span>
-            <span className="text-mut">{row.value}</span>
+            <span className="shrink-0 whitespace-nowrap text-mut">{row.value}</span>
           </div>
           <div className="flex items-center gap-2.5">
             <div className="h-2 flex-1 overflow-hidden rounded-full bg-line/6">

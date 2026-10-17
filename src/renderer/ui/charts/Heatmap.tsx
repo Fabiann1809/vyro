@@ -11,9 +11,9 @@ export interface HeatCell {
 
 const LEVEL: Record<HeatLevel, string> = {
   0: 'bg-empty',
-  1: 'bg-brand/30',
-  2: 'bg-brand/60',
-  3: 'bg-brand'
+  1: 'bg-good/30',
+  2: 'bg-good/60',
+  3: 'bg-good'
 }
 
 // A calendar of weeks, one square a day, the darker the better the day. Read down each column.

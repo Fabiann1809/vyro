@@ -29,7 +29,7 @@ export function Ring({
           cx={90}
           cy={90}
           r={RADIUS}
-          className="fill-none stroke-brand"
+          className="fill-none stroke-good"
           strokeWidth={12}
           strokeLinecap="round"
           strokeDasharray={length}

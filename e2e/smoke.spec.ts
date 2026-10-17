@@ -106,6 +106,87 @@ test('narrows the library down by channel and by category', async () => {
   await expect(page.getByRole('button', { name: 'Sentadilla' })).toBeVisible()
 })
 
+// Saves sessions through the bridge, a few days ago each, so that the dashboard has something to show.
+async function saveSessions(
+  page: Page,
+  sessions: Array<{
+    daysAgo: number
+    skillId: string
+    score: number
+    quality: string[]
+    failed: string[]
+  }>
+): Promise<void> {
+  await page.evaluate(async (items) => {
+    const api = (
+      window as unknown as { api: { sessions: { save: (session: unknown) => Promise<number> } } }
+    ).api
+    for (const item of items) {
+      const startedAt = new Date()
+      startedAt.setDate(startedAt.getDate() - item.daysAgo)
+      startedAt.setHours(18, 0, 0, 0)
+      await api.sessions.save({
+        skillId: item.skillId,
+        startedAt: startedAt.getTime(),
+        durationMs: 60_000,
+        score: item.score,
+        reps: item.quality.map((quality, index) => ({
+          index: index + 1,
+          quality,
+          durationMs: 2000,
+          failedRuleIds: quality === 'good' ? [] : item.failed
+        }))
+      })
+    }
+  }, sessions)
+}
+
+test('invites to a first session when the dashboard has nothing to show', async () => {
+  const page = await launch()
+
+  await nav(page, 'Tablero').click()
+
+  await expect(page.getByText('Todavía no tienes sesiones guardadas')).toBeVisible()
+  await page.getByRole('button', { name: 'Hacer mi primera sesión' }).click()
+  await expect(nav(page, 'Biblioteca')).toHaveAttribute('aria-current', 'page')
+})
+
+test('shows the streak, the score and what fails most, from the saved sessions', async () => {
+  const page = await launch()
+  const squat = { skillId: 'squat', failed: ['depth'] }
+  await saveSessions(page, [
+    { ...squat, daysAgo: 12, score: 55, quality: ['good', 'bad', 'bad', 'good'] },
+    { ...squat, daysAgo: 2, score: 70, quality: ['good', 'good', 'bad', 'good'] },
+    { ...squat, daysAgo: 1, score: 80, quality: ['good', 'good', 'good', 'good', 'bad', 'bad'] },
+    { ...squat, daysAgo: 0, score: 90, quality: ['good', 'good', 'good', 'good', 'good', 'good'] },
+    {
+      skillId: 'string_tuning',
+      failed: ['too_flat'],
+      daysAgo: 0,
+      score: 60,
+      quality: ['good', 'bad']
+    }
+  ])
+
+  await nav(page, 'Tablero').click()
+
+  await expect(page.getByText('3 días')).toBeVisible()
+  await expect(page.getByText('Subiste 5 puntos en 5 sesiones')).toBeVisible()
+  await expect(page.getByText('Mejor marca · 90')).toBeVisible()
+  await expect(page.getByText('Vas mejorando, sesión a sesión.')).toBeVisible()
+  // What fails most is named, with the number of times.
+  await expect(page.getByText('Lo que más se repite')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Historial de sesiones' })).toBeVisible()
+  await expect(page.getByText('5 sesiones', { exact: true })).toBeVisible()
+  await expect(page.getByText('Cada vez fallas menos').first()).toBeVisible()
+
+  // The skill filter narrows everything to one skill.
+  const filter = page.getByRole('group', { name: 'Ver por habilidad' })
+  await filter.getByRole('button', { name: 'Afinar una cuerda' }).click()
+  await expect(page.getByText('1 sesión', { exact: true })).toBeVisible()
+  await expect(page.getByText('Tu puntuación: 60')).toBeVisible()
+})
+
 test('a skill of the hands is calibrated with the hands, not the body', async () => {
   const page = await launch()
 

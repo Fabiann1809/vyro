@@ -145,7 +145,7 @@ describe('Heatmap', () => {
     })
 
     expect(markup.match(/title="/g)).toHaveLength(2)
-    expect(markup).toContain('bg-brand ')
+    expect(markup).toContain('bg-good ')
     expect(markup.match(/inset_0_0_0_1.5px/g)).toHaveLength(1)
   })
 })

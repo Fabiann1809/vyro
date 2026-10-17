@@ -54,7 +54,7 @@ export function LineChart({
           <path d={grid} className="fill-none stroke-line/6" strokeWidth={1} />
           <path
             d={areaPath(points, HEIGHT)}
-            className="fill-brand/7 transition-opacity duration-700"
+            className="fill-good/8 transition-opacity duration-700"
             style={{ opacity: drawn ? 1 : 0 }}
           />
           {line && first && last && (
@@ -68,7 +68,7 @@ export function LineChart({
           )}
           <path
             d={linePath(points)}
-            className="fill-none stroke-brand"
+            className="fill-none stroke-good"
             strokeWidth={2.5}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -82,7 +82,7 @@ export function LineChart({
               cx={point.x}
               cy={point.y}
               r={3.5}
-              className="fill-card stroke-brand transition-opacity delay-700 duration-500"
+              className="fill-card stroke-good transition-opacity delay-700 duration-500"
               strokeWidth={2}
               style={{ opacity: drawn ? 1 : 0 }}
             />
@@ -92,7 +92,7 @@ export function LineChart({
               cx={bestPoint.x}
               cy={bestPoint.y}
               r={7}
-              className="fill-brand stroke-card"
+              className="fill-good stroke-card"
               strokeWidth={3}
             />
           )}
@@ -127,7 +127,7 @@ export function LineChart({
       </div>
       <div aria-hidden="true" className="flex gap-4.5 text-xs text-mut">
         <span className="flex items-center gap-1.5">
-          <span className="h-0.5 w-4 rounded-full bg-brand" />
+          <span className="h-0.5 w-4 rounded-full bg-good" />
           {seriesName}
         </span>
         <span className="flex items-center gap-1.5">
