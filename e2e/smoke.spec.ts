@@ -419,7 +419,7 @@ test.describe('AI coach screen', () => {
     })
   })
 
-  test('creates a path with the planner, follows both kinds of step, and keeps it after a restart', async () => {
+  test('creates a path, and its steps advance, unlock and complete as sessions are saved', async () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)
     await nav(page, 'Ruta').click()
@@ -445,7 +445,7 @@ test.describe('AI coach screen', () => {
             description: 'Baja en tres segundos.',
             kind: 'skill',
             skillId: 'squat',
-            criterionSessions: 3,
+            criterionSessions: 2,
             criterionScore: 75
           },
           {
@@ -455,6 +455,14 @@ test.describe('AI coach screen', () => {
             skillId: null,
             criterionSessions: null,
             criterionScore: null
+          },
+          {
+            title: 'Flexiones controladas',
+            description: 'Baja con control.',
+            kind: 'skill',
+            skillId: 'pushup',
+            criterionSessions: 1,
+            criterionScore: 70
           }
         ]
       }
@@ -466,45 +474,119 @@ test.describe('AI coach screen', () => {
     await expect(
       page.getByRole('heading', { name: 'Esta es la ruta que te propongo' })
     ).toBeVisible()
-    await expect(page.getByText('Habilidad medible')).toBeVisible()
+    await expect(page.getByText('Habilidad medible').first()).toBeVisible()
     await expect(page.getByText('Auxiliar')).toBeVisible()
     await page.getByRole('button', { name: 'Guardar ruta' }).click()
-
-    // The path being followed: the first step is the next one.
-    await expect(page.getByRole('heading', { level: 1, name: 'Mi ruta' })).toBeVisible()
-    await expect(page.getByText('Mejorar mi sentadilla')).toBeVisible()
-    await expect(page.getByText('Pasos hechos: 0 de 2')).toBeVisible()
-    await expect(
-      page.getByRole('listitem').filter({ hasText: 'Sentadilla lenta' })
-    ).toHaveAttribute('aria-current', 'step')
-    await expect(page.getByText('Habilidad: Sentadilla')).toBeVisible()
-    await expect(page.getByText('Meta: 3 sesiones con 75 puntos o más')).toBeVisible()
 
     // The planner was told which skills exist, and nothing else about the person.
     const first = provider.received[0]?.body['messages'] as Array<{ role: string; content: string }>
     expect(first[0]?.content).toContain('- squat: "Squat" / "Sentadilla"')
-    expect(first[0]?.content).toContain('- pushup:')
     expect(first.slice(1)).toEqual([{ role: 'user', content: 'Quiero mejorar mi sentadilla' }])
 
-    // An auxiliary step is marked by hand, and can be undone.
-    await page.getByRole('button', { name: 'Marcar como hecho' }).click()
-    await expect(page.getByText('Pasos hechos: 1 de 2')).toBeVisible()
-    await expect(page.getByText(/Hecho el /)).toBeVisible()
-    await page.getByRole('button', { name: 'Deshacer' }).click()
-    await expect(page.getByText('Pasos hechos: 0 de 2')).toBeVisible()
-    await page.getByRole('button', { name: 'Marcar como hecho' }).click()
+    // Saves a finished session as the training would, and looks at the path again.
+    const train = (skillId: string, score: number, secondsFromNow: number): Promise<unknown> =>
+      page.evaluate(
+        ([skill, points, offset]) =>
+          (
+            window as unknown as {
+              api: { sessions: { save: (session: unknown) => Promise<number> } }
+            }
+          ).api.sessions.save({
+            skillId: skill,
+            startedAt: Date.now() + Number(offset) * 1000,
+            durationMs: 60_000,
+            score: points,
+            reps: [{ index: 1, quality: 'good', durationMs: 2000, failedRuleIds: [] }]
+          }),
+        [skillId, score, secondsFromNow] as const
+      )
+    const reopen = async (): Promise<void> => {
+      await nav(page, 'Inicio').click()
+      await nav(page, 'Ruta').click()
+    }
+    const card = (title: string): ReturnType<Page['getByRole']> =>
+      page.getByRole('listitem').filter({ hasText: title })
 
-    // It is still there, with its progress, after closing the app and opening it again.
+    // At the start: the first step is the next one, the rest are locked.
+    await expect(page.getByRole('heading', { level: 1, name: 'Mi ruta' })).toBeVisible()
+    await expect(page.getByText('Pasos hechos: 0 de 3')).toBeVisible()
+    await expect(card('Sentadilla lenta')).toHaveAttribute('aria-current', 'step')
+    await expect(card('Sentadilla lenta')).toContainText('Aún no has practicado esta habilidad')
+    await expect(card('Descansar un día')).toContainText(
+      'Se desbloquea al completar el paso anterior'
+    )
+    await expect(card('Descansar un día').getByRole('button')).toHaveCount(0)
+
+    // One good session counts; one that does not reach the score does not.
+    await train('squat', 80, 1)
+    await train('squat', 60, 2)
+    await reopen()
+    await expect(card('Sentadilla lenta')).toContainText('Sesiones que cuentan: 1 de 2')
+    await expect(card('Sentadilla lenta')).toContainText('2 intentos')
+    // A session of another skill, for a locked step, counts for nothing.
+    await train('pushup', 95, 3)
+    await reopen()
+    await expect(card('Flexiones controladas')).toContainText('Se desbloquea')
+
+    // The second good session completes the step and unlocks the next one.
+    await train('squat', 90, 4)
+    await reopen()
+    await expect(page.getByText('Pasos hechos: 1 de 3')).toBeVisible()
+    await expect(card('Descansar un día')).toHaveAttribute('aria-current', 'step')
+    await expect(
+      card('Descansar un día').getByRole('button', { name: 'Marcar como hecho' })
+    ).toBeVisible()
+
+    // An auxiliary step is marked by hand, and can be undone while nothing after it is done.
+    await card('Descansar un día').getByRole('button', { name: 'Marcar como hecho' }).click()
+    await expect(page.getByText('Pasos hechos: 2 de 3')).toBeVisible()
+    await card('Descansar un día').getByRole('button', { name: 'Deshacer' }).click()
+    await expect(page.getByText('Pasos hechos: 1 de 3')).toBeVisible()
+    await card('Descansar un día').getByRole('button', { name: 'Marcar como hecho' }).click()
+
+    // The last step is completed by practising, and the path is complete.
+    await train('pushup', 85, 5)
+    await reopen()
+    await expect(page.getByText('Pasos hechos: 3 de 3')).toBeVisible()
+    await expect(page.getByRole('status').filter({ hasText: '¡Ruta completada!' })).toBeVisible()
+
+    // Everything is still there after closing the app and opening it again.
     await app?.close()
     const again = await launch()
     await nav(again, 'Ruta').click()
-    await expect(again.getByText('Mejorar mi sentadilla')).toBeVisible()
-    await expect(again.getByText('Pasos hechos: 1 de 2')).toBeVisible()
+    await expect(again.getByText('Pasos hechos: 3 de 3')).toBeVisible()
+    await expect(again.getByText('¡Ruta completada!')).toBeVisible()
+  })
 
-    // A measurable step leads to the calibration of its skill.
-    await again.getByRole('button', { name: 'Practicar' }).click()
+  test('opens the calibration of the skill from the step that is next', async () => {
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+    await nav(page, 'Ruta').click()
+    provider.setAnswer({
+      action: 'propose',
+      requirement: { channels: ['body'] },
+      path: {
+        goal: 'Mejorar mi sentadilla',
+        steps: [
+          {
+            title: 'Sentadilla lenta',
+            description: '',
+            kind: 'skill',
+            skillId: 'squat',
+            criterionSessions: 2,
+            criterionScore: 75
+          }
+        ]
+      }
+    })
+    await page.getByLabel('Qué quieres aprender').fill('Quiero mejorar mi sentadilla')
+    await page.getByLabel('Qué quieres aprender').press('Enter')
+    await page.getByRole('button', { name: 'Guardar ruta' }).click()
+
+    await page.getByRole('button', { name: 'Practicar' }).click()
+
     await expect(
-      again.getByRole('heading', { level: 1, name: /Calibración · Sentadilla/ })
+      page.getByRole('heading', { level: 1, name: /Calibración · Sentadilla/ })
     ).toBeVisible()
   })
 

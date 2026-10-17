@@ -11,6 +11,7 @@ export function PathStepCard({
   number,
   doneAt = null,
   isNext = false,
+  note,
   actions
 }: {
   step: PathStepToSave
@@ -18,6 +19,8 @@ export function PathStepCard({
   doneAt?: number | null
   // The step to do now.
   isNext?: boolean
+  // How the step stands, in a line: what is left to do, or why it is locked.
+  note?: string
   actions?: React.ReactNode
 }): React.JSX.Element {
   return (
@@ -56,6 +59,8 @@ export function PathStepCard({
           {t('path.step.goal', { count: step.criterionSessions, score: step.criterionScore })}
         </p>
       )}
+
+      {note && <p className="text-sm text-slate-600 dark:text-slate-400">{note}</p>}
 
       {actions}
     </li>

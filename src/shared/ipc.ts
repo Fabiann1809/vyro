@@ -1,5 +1,6 @@
 import type { AiKeyStatus } from './ai'
-import type { LearningPath, PathToSave } from './paths'
+import type { PathToSave } from './paths'
+import type { CurrentPath } from './pathProgress'
 import type { PlanPathInput, PlanPathResult } from './pathPlan'
 import type {
   CoachChatInput,
@@ -28,7 +29,7 @@ export const IPC = {
   coachChat: 'coach:chat',
   coachSummarize: 'coach:summarize',
   coachPlanPath: 'coach:plan-path',
-  pathsGetActive: 'paths:get-active',
+  pathsGetCurrent: 'paths:get-current',
   pathsSave: 'paths:save',
   pathsSetStepDone: 'paths:set-step-done',
   pathsArchive: 'paths:archive'
@@ -67,11 +68,12 @@ export interface VyroApi {
     planPath: (input: PlanPathInput) => Promise<CoachResult<PlanPathResult>>
   }
   paths: {
-    // The path being followed, or null.
-    getActive: () => Promise<LearningPath | null>
+    // The path being followed, with how far it has got, or null. Asking also brings the progress
+    // up to date with the sessions saved so far.
+    getCurrent: () => Promise<CurrentPath | null>
     // Saves a path and makes it the active one; returns its id.
     save: (path: PathToSave) => Promise<number>
-    // Whether the step exists.
+    // Only auxiliary steps are marked by hand; whether anything changed.
     setStepDone: (stepId: number, done: boolean) => Promise<boolean>
     archive: (pathId: number) => Promise<boolean>
   }

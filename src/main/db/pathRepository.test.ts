@@ -89,18 +89,41 @@ describe('PathRepository', () => {
     ])
   })
 
-  it('knows the active path: the newest one that is still active', () => {
-    expect(repository.getActive()).toBeNull()
+  it('knows the path on show: the newest one that is active or completed', () => {
+    expect(repository.getCurrent()).toBeNull()
 
     const first = repository.create(path('Primera'), 1_000)
     const second = repository.create(path('Segunda'), 2_000)
-    expect(repository.getActive()?.id).toBe(second)
+    expect(repository.getCurrent()?.id).toBe(second)
 
     repository.setStatus(second, 'archived')
-    expect(repository.getActive()?.id).toBe(first)
+    expect(repository.getCurrent()?.id).toBe(first)
 
     repository.setStatus(first, 'completed')
-    expect(repository.getActive()).toBeNull()
+    expect(repository.getCurrent()?.id).toBe(first)
+
+    repository.setStatus(first, 'archived')
+    expect(repository.getCurrent()).toBeNull()
+  })
+
+  it('archives the paths on show, completed ones included, and no other', () => {
+    const active = repository.create(path('Activa'), 1_000)
+    const completed = repository.create(path('Completada'), 2_000)
+    repository.setStatus(completed, 'completed')
+
+    repository.archiveCurrent()
+
+    expect(repository.get(active)?.status).toBe('archived')
+    expect(repository.get(completed)?.status).toBe('archived')
+    expect(repository.getCurrent()).toBeNull()
+  })
+
+  it('finds the path of a step', () => {
+    const id = repository.create(path(), 1_000)
+    const stepId = repository.get(id)?.steps[0]?.id ?? 0
+
+    expect(repository.pathOfStep(stepId)).toBe(id)
+    expect(repository.pathOfStep(404)).toBeNull()
   })
 
   it('marks a step done and not done again', () => {

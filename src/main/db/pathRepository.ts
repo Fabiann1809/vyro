@@ -92,15 +92,22 @@ export class PathRepository {
     return row ? this.withSteps(row) : null
   }
 
-  // The path being followed now: the newest one that is still active.
-  getActive(): LearningPath | null {
+  // The path on show: the newest one that is being followed or has just been completed.
+  getCurrent(): LearningPath | null {
     const row = this.db
       .prepare(
         `SELECT id, goal, created_at, status FROM learning_paths
-         WHERE status = 'active' ORDER BY created_at DESC, id DESC LIMIT 1`
+         WHERE status IN ('active', 'completed') ORDER BY created_at DESC, id DESC LIMIT 1`
       )
       .get() as PathDbRow | undefined
     return row ? this.withSteps(row) : null
+  }
+
+  // The path a step belongs to, or null if there is no such step.
+  pathOfStep(stepId: number): number | null {
+    const row = this.db.prepare('SELECT path_id FROM path_steps WHERE id = ?').get(stepId) as
+      { path_id: number } | undefined
+    return row?.path_id ?? null
   }
 
   // Newest first, with how far each one is.
@@ -141,9 +148,11 @@ export class PathRepository {
     return changes > 0
   }
 
-  // Closes the paths that are being followed, to make room for a new one.
-  archiveActive(): void {
-    this.db.exec("UPDATE learning_paths SET status = 'archived' WHERE status = 'active'")
+  // Closes the paths on show, to make room for a new one.
+  archiveCurrent(): void {
+    this.db.exec(
+      "UPDATE learning_paths SET status = 'archived' WHERE status IN ('active', 'completed')"
+    )
   }
 
   delete(pathId: number): boolean {

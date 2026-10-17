@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PathToSave } from '@shared/paths'
 import { openDatabase } from '../db/database'
+import { PathProgressService } from '../db/pathProgressService'
 import { PathRepository } from '../db/pathRepository'
+import { SessionRepository } from '../db/sessionRepository'
 import { createPathHandlers } from './paths'
 
 // The handlers do not need Electron, but the module imports it.
@@ -11,20 +13,20 @@ const path = (goal = 'Mejorar mi sentadilla'): PathToSave => ({
   goal,
   steps: [
     {
-      title: 'Sentadilla lenta',
-      description: 'Baja en tres segundos.',
-      kind: 'skill',
-      skillId: 'squat',
-      criterionSessions: 3,
-      criterionScore: 75
-    },
-    {
       title: 'Descansar',
       description: '',
       kind: 'auxiliary',
       skillId: null,
       criterionSessions: null,
       criterionScore: null
+    },
+    {
+      title: 'Sentadilla lenta',
+      description: 'Baja en tres segundos.',
+      kind: 'skill',
+      skillId: 'squat',
+      criterionSessions: 3,
+      criterionScore: 75
     }
   ]
 })
@@ -33,24 +35,25 @@ let handlers: ReturnType<typeof createPathHandlers>
 let repository: PathRepository
 
 beforeEach(() => {
-  repository = new PathRepository(openDatabase(':memory:'))
-  handlers = createPathHandlers(repository)
+  const db = openDatabase(':memory:')
+  repository = new PathRepository(db)
+  handlers = createPathHandlers(
+    repository,
+    new PathProgressService(repository, new SessionRepository(db))
+  )
 })
 
 describe('path handlers', () => {
-  it('has no active path to begin with', () => {
-    expect(handlers.getActive()).toBeNull()
+  it('has no current path to begin with', () => {
+    expect(handlers.getCurrent()).toBeNull()
   })
 
-  it('saves a path and gives it back as the active one', () => {
+  it('saves a path and gives it back as the current one, with its progress', () => {
     const id = handlers.save(path())
 
-    expect(handlers.getActive()).toMatchObject({
-      id,
-      goal: 'Mejorar mi sentadilla',
-      status: 'active',
-      steps: [expect.objectContaining({ position: 1 }), expect.objectContaining({ position: 2 })]
-    })
+    const current = handlers.getCurrent()
+    expect(current?.path).toMatchObject({ id, goal: 'Mejorar mi sentadilla', status: 'active' })
+    expect(current?.progress.steps.map((step) => step.state)).toEqual(['current', 'locked'])
   })
 
   it('sets the date itself, not the page', () => {
@@ -58,7 +61,7 @@ describe('path handlers', () => {
     handlers.save(path())
     const after = Date.now()
 
-    const createdAt = handlers.getActive()?.createdAt ?? 0
+    const createdAt = handlers.getCurrent()?.path.createdAt ?? 0
     expect(createdAt).toBeGreaterThanOrEqual(before)
     expect(createdAt).toBeLessThanOrEqual(after)
   })
@@ -67,7 +70,7 @@ describe('path handlers', () => {
     const first = handlers.save(path('Primera'))
     const second = handlers.save(path('Segunda'))
 
-    expect(handlers.getActive()?.id).toBe(second)
+    expect(handlers.getCurrent()?.path.id).toBe(second)
     expect(repository.get(first)?.status).toBe('archived')
   })
 
@@ -77,22 +80,32 @@ describe('path handlers', () => {
     ['a field that is not listed', { ...path(), video: 'x' }],
     [
       'a skill step without its skill',
-      { goal: 'x', steps: [{ ...path().steps[0], skillId: null }] }
+      { goal: 'x', steps: [{ ...path().steps[1], skillId: null }] }
     ]
   ])('rejects %s, and saves nothing', (_name, bad) => {
     expect(() => handlers.save(bad)).toThrow()
     expect(repository.list()).toEqual([])
   })
 
-  it('marks a step done with the date of now, and not done again', () => {
+  it('marks the first auxiliary step done and unlocks the next one', () => {
     handlers.save(path())
-    const stepId = handlers.getActive()?.steps[1]?.id ?? 0
+    const rest = handlers.getCurrent()?.path.steps[0]?.id ?? 0
 
-    expect(handlers.setStepDone(stepId, true)).toBe(true)
-    expect(handlers.getActive()?.steps[1]?.doneAt).toEqual(expect.any(Number))
+    expect(handlers.setStepDone(rest, true)).toBe(true)
 
-    expect(handlers.setStepDone(stepId, false)).toBe(true)
-    expect(handlers.getActive()?.steps[1]?.doneAt).toBeNull()
+    const current = handlers.getCurrent()
+    expect(current?.path.steps[0]?.doneAt).toEqual(expect.any(Number))
+    expect(current?.progress.steps.map((step) => step.state)).toEqual(['done', 'current'])
+  })
+
+  it('unmarks a step', () => {
+    handlers.save(path())
+    const rest = handlers.getCurrent()?.path.steps[0]?.id ?? 0
+    handlers.setStepDone(rest, true)
+
+    expect(handlers.setStepDone(rest, false)).toBe(true)
+
+    expect(handlers.getCurrent()?.path.steps[0]?.doneAt).toBeNull()
   })
 
   it('says so when the step does not exist', () => {
@@ -100,12 +113,12 @@ describe('path handlers', () => {
     expect(handlers.archive(404)).toBe(false)
   })
 
-  it('archives a path, which is then no longer the active one', () => {
+  it('archives a path, which is then no longer the current one', () => {
     const id = handlers.save(path())
 
     expect(handlers.archive(id)).toBe(true)
 
-    expect(handlers.getActive()).toBeNull()
+    expect(handlers.getCurrent()).toBeNull()
   })
 
   it.each([

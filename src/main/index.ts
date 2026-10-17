@@ -6,6 +6,7 @@ import icon from '../../resources/icon.png?asset'
 import { ApiKeyStore, createKeyFile } from './ai/keyStore'
 import { ConfiguredLlmClient } from './ai/provider'
 import { openDatabase, type Database } from './db/database'
+import { PathProgressService } from './db/pathProgressService'
 import { PathRepository } from './db/pathRepository'
 import { SessionRepository } from './db/sessionRepository'
 import { SettingsRepository } from './db/settingsRepository'
@@ -79,7 +80,7 @@ app.whenReady().then(() => {
   registerAiIpc(keyStore)
   const settings = new SettingsRepository(database)
   const paths = new PathRepository(database)
-  registerPathsIpc(paths)
+  registerPathsIpc(paths, new PathProgressService(paths, sessions))
   registerSettingsIpc(settings, sessions, paths, keyStore)
   registerCoachIpc({
     // The provider and the key are read again on every question, so a change in Settings counts at once.
