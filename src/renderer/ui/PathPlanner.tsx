@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { t, type MessageKey } from '@renderer/i18n'
-import type { Channel, OutOfScopeReason } from '@shared/feasibility'
+import { t } from '@renderer/i18n'
 import { CoachErrorNotice } from './CoachErrorNotice'
+import { channelList, REASON_TEXT } from './feasibilityText'
 import { ConversationLog, MessageBox } from './Conversation'
 import { useNavigation } from './navigation'
 import { PathStepCard } from './PathStepCard'
@@ -14,26 +14,6 @@ import {
 } from './pathPlanStore'
 import { plannerSkills } from './plannerSkills'
 import { useSettings } from './settingsStore'
-
-const REASON_TEXT: Record<OutOfScopeReason, MessageKey> = {
-  'invisible-outcome': 'path.reason.invisible-outcome',
-  'too-fine-detail': 'path.reason.too-fine-detail',
-  'out-of-frame': 'path.reason.out-of-frame',
-  'needs-touch': 'path.reason.needs-touch',
-  'physical-risk': 'path.reason.physical-risk',
-  'no-signal': 'path.reason.no-signal',
-  'unsupported-object': 'path.reason.unsupported-object'
-}
-
-const CHANNEL_TEXT: Record<Channel, MessageKey> = {
-  body: 'path.channel.body',
-  hands: 'path.channel.hands',
-  audio: 'path.channel.audio',
-  object: 'path.channel.object'
-}
-
-const channelList = (channels: readonly Channel[]): string =>
-  channels.map((channel) => t(CHANNEL_TEXT[channel])).join(', ')
 
 // Why there is no path, in words the person can use to ask for something else.
 function Reasons({

@@ -39,7 +39,10 @@ export const IPC = {
   pathsSetStepDone: 'paths:set-step-done',
   pathsArchive: 'paths:archive',
   pathsApplyAdjustments: 'paths:apply-adjustments',
-  skillsListCustom: 'skills:list-custom'
+  skillsListCustom: 'skills:list-custom',
+  skillsGetDraft: 'skills:get-draft',
+  skillsApproveDraft: 'skills:approve-draft',
+  skillsDiscardDraft: 'skills:discard-draft'
 } as const
 
 // The only API the renderer can call. Everything else stays in the main process.
@@ -94,6 +97,11 @@ export interface VyroApi {
     // The skills made after the app was built that the person has approved. They are JSON that the
     // page validates itself before using.
     listCustom: () => Promise<CustomSkillSource[]>
+    // The skill the AI made that waits for the person to approve it, or null.
+    getDraft: () => Promise<CustomSkillSource | null>
+    // Makes the draft one more skill; false if there is no such draft or it breaks the limits.
+    approveDraft: (id: string) => Promise<boolean>
+    discardDraft: (id: string) => Promise<boolean>
   }
   data: {
     // Empties the database: sessions and settings.

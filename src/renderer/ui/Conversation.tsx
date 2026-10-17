@@ -67,13 +67,15 @@ export function MessageBox({
   value,
   onChange,
   onSend,
-  disabled
+  disabled,
+  maxLength = MAX_COACH_TURN_LENGTH
 }: {
   label: string
   value: string
   onChange: (value: string) => void
   onSend: () => void
   disabled: boolean
+  maxLength?: number
 }): React.JSX.Element {
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -94,7 +96,7 @@ export function MessageBox({
         <textarea
           ref={inputRef}
           rows={2}
-          maxLength={MAX_COACH_TURN_LENGTH}
+          maxLength={maxLength}
           value={value}
           disabled={disabled}
           onChange={(event) => onChange(event.target.value)}

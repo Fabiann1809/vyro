@@ -76,12 +76,19 @@ export function CoachScreen(): React.JSX.Element {
     <section className="flex h-full w-full max-w-3xl flex-col gap-3 self-start p-6">
       <header className="flex flex-wrap items-baseline gap-4">
         <h1 className="text-3xl font-semibold">{t('screen.coach.title')}</h1>
+        <button
+          type="button"
+          onClick={() => go('skillNew')}
+          className="ml-auto rounded-md bg-slate-200 px-3 py-1.5 text-sm dark:bg-slate-800"
+        >
+          {t('skill.new')}
+        </button>
         {turns.length > 0 && (
           <button
             type="button"
             onClick={resetCoach}
             disabled={pending}
-            className="ml-auto rounded-md bg-slate-200 px-3 py-1.5 text-sm disabled:opacity-50 dark:bg-slate-800"
+            className="rounded-md bg-slate-200 px-3 py-1.5 text-sm disabled:opacity-50 dark:bg-slate-800"
           >
             {t('coach.new')}
           </button>

@@ -7,6 +7,7 @@ import { CoachScreen } from './ui/screens/CoachScreen'
 import { CalibrationScreen } from './ui/screens/CalibrationScreen'
 import { ProgressScreen } from './ui/screens/ProgressScreen'
 import { SettingsScreen } from './ui/screens/SettingsScreen'
+import { SkillCreateScreen } from './ui/screens/SkillCreateScreen'
 import { SummaryScreen } from './ui/screens/SummaryScreen'
 import { TrainingScreen } from './ui/screens/TrainingScreen'
 import { HomeScreen } from './ui/screens/HomeScreen'
@@ -29,6 +30,8 @@ function CurrentScreen({ screen }: { screen: Screen }): React.JSX.Element {
       return <PathScreen />
     case 'coach':
       return <CoachScreen />
+    case 'skillNew':
+      return <SkillCreateScreen />
     case 'settings':
       return <SettingsScreen />
     case 'lab':

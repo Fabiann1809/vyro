@@ -47,7 +47,9 @@ function withoutUnsafe(loaded: SkillsState): SkillsState {
 }
 
 // Reads the approved skills from the database. If that fails, the app goes on with its own skills.
-export async function loadCustomSkills(api: Pick<VyroApi, 'skills'>): Promise<void> {
+export async function loadCustomSkills(api: {
+  skills: Pick<VyroApi['skills'], 'listCustom'>
+}): Promise<void> {
   try {
     useSkills.setState(mergeSkills(await api.skills.listCustom()))
   } catch {

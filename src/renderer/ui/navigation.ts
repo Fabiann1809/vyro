@@ -8,6 +8,7 @@ export type Screen =
   | 'progress'
   | 'path'
   | 'coach'
+  | 'skillNew'
   | 'settings'
   | 'lab'
 

@@ -9,7 +9,9 @@ import { useSettings } from './settingsStore'
 import { loadCustomSkills } from './skillsStore'
 import { useTheme } from './theme'
 
-type SettingsApi = Pick<VyroApi, 'settings' | 'data' | 'skills'>
+type SettingsApi = Pick<VyroApi, 'settings' | 'data'> & {
+  skills: Pick<VyroApi['skills'], 'listCustom'>
+}
 
 export function currentSettings(): AppSettings {
   const store = useSettings.getState()

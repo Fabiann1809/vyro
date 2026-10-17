@@ -867,6 +867,66 @@ test.describe('AI coach screen', () => {
     expect(rows).toEqual([{ id: 'custom_yoga', status: 'draft' }])
   })
 
+  async function makeYogaDraft(page: Page): Promise<void> {
+    await turnOnWithFakeProvider(page)
+    const squat = JSON.parse(readFileSync('src/renderer/skills/squat.json', 'utf-8')) as object
+    const yoga = { ...squat, id: 'custom_yoga', name: { es: 'Yoga suave', en: 'Gentle yoga' } }
+    provider.setAnswer({ requirement: { channels: ['body'] }, skill: JSON.stringify(yoga) })
+
+    await nav(page, 'Coach').click()
+    await page.getByRole('button', { name: 'Crear habilidad' }).click()
+    await page.getByLabel('Qué habilidad quieres crear').fill('Quiero aprender yoga suave')
+    await page.getByRole('button', { name: 'Enviar' }).click()
+    await expect(
+      page.getByRole('heading', { name: 'Revisa la habilidad antes de usarla' })
+    ).toBeVisible()
+  }
+
+  test('shows what a generated skill will do, and keeps it out of Home until approved', async () => {
+    const page = await launch()
+    await makeYogaDraft(page)
+
+    await expect(page.getByText('Yoga suave')).toBeVisible()
+    await expect(page.getByText(/Experimental: la creó una IA/)).toBeVisible()
+    await expect(page.getByText(/ángulo de rodilla, entre cadera y tobillo/)).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Aprobar y probar' })).toBeVisible()
+
+    // Looking at the preview is not approving it.
+    await nav(page, 'Inicio').click()
+    await expect(page.getByRole('button', { name: 'Yoga suave' })).toHaveCount(0)
+  })
+
+  test('discarding a draft removes it from the database', async () => {
+    const page = await launch()
+    await makeYogaDraft(page)
+
+    await page.getByRole('button', { name: 'Descartar' }).click()
+    await expect(page.getByLabel('Qué habilidad quieres crear')).toBeVisible()
+    await app?.close()
+
+    const db = new DatabaseSync(join(userData, 'vyro.db'))
+    const rows = db.prepare('SELECT id FROM custom_skills').all()
+    db.close()
+    expect(rows).toEqual([])
+  })
+
+  test('approving a draft opens its calibration, and the skill appears in Home', async () => {
+    const page = await launch()
+    await makeYogaDraft(page)
+
+    await page.getByRole('button', { name: 'Aprobar y probar' }).click()
+    await expect(page.getByRole('heading', { level: 1, name: /Calibración/ })).toBeVisible()
+
+    await page.getByRole('button', { name: 'Cancelar' }).click()
+    await expect(page.getByRole('button', { name: 'Yoga suave' })).toBeVisible()
+    await app?.close()
+
+    const db = new DatabaseSync(join(userData, 'vyro.db'))
+    const rows = db.prepare('SELECT id, status FROM custom_skills').all()
+    db.close()
+    expect(rows).toEqual([{ id: 'custom_yoga', status: 'approved' }])
+  })
+
   test('explains why a path cannot be made, and lets the person start again', async () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)

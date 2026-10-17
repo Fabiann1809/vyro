@@ -42,6 +42,11 @@ export class Voice {
     return 'recorded-clip'
   }
 
+  // True when the computer has a voice for the language (a clip is no backup for a new text).
+  hasSystemVoice(language: Language): boolean {
+    return this.speaker.canSpeak(language)
+  }
+
   // True while the voice or a clip is still talking.
   isSpeaking(): boolean {
     return this.speaker.isSpeaking() || this.player.isPlaying()
