@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { t } from '@renderer/i18n'
 import type { CoachError, CoachSummaryReply, SessionDigest } from '@shared/coach'
 import { CoachErrorNotice } from './CoachErrorNotice'
+import { Button } from './kit/Button'
+import { CoachAvatar } from './kit/CoachAvatar'
 import { useNavigation } from './navigation'
 import { useSettings } from './settingsStore'
 
@@ -34,46 +36,38 @@ export function CoachSummary({ digest }: { digest: SessionDigest }): React.JSX.E
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <h2 className="text-xl font-semibold">{t('coach.summary.title')}</h2>
+    <div className="flex flex-col gap-3.5">
+      <div className="flex items-center gap-2.5">
+        <CoachAvatar />
+        <h2 className="text-[0.8125rem] font-normal text-mut">{t('coach.summary.title')}</h2>
+      </div>
 
       {!aiEnabled ? (
-        <div className="flex flex-wrap items-center gap-3">
-          <p className="text-slate-600 dark:text-slate-400">{t('coach.summary.off')}</p>
-          <button
-            type="button"
-            onClick={() => go('settings')}
-            className="rounded-md bg-slate-200 px-3 py-1.5 dark:bg-slate-800"
-          >
+        <div className="flex flex-col items-start gap-3">
+          <p className="text-sm leading-normal text-t4">{t('coach.summary.off')}</p>
+          <Button variant="secondary" onClick={() => go('settings')}>
             {t('coach.openSettings')}
-          </button>
+          </Button>
         </div>
       ) : (
         <>
           {state.status !== 'done' && (
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={ask}
-                disabled={state.status === 'pending'}
-                className="rounded-md bg-emerald-700 px-4 py-2 text-white disabled:opacity-50"
-              >
+            <div className="flex flex-col items-start gap-3">
+              <Button onClick={ask} disabled={state.status === 'pending'}>
                 {t('coach.summary.ask')}
-              </button>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                {t('coach.summary.privacy')}
-              </p>
+              </Button>
+              <p className="text-[0.8125rem] text-mut">{t('coach.summary.privacy')}</p>
             </div>
           )}
 
           <div aria-live="polite">
             {state.status === 'pending' && (
-              <p role="status" className="text-slate-600 dark:text-slate-400">
+              <p role="status" className="text-sm text-mut">
                 {t('coach.summary.pending')}
               </p>
             )}
             {state.status === 'done' && (
-              <div className="flex flex-col gap-2">
+              <div className="anim-up flex flex-col gap-2.5 text-[0.9375rem] leading-relaxed text-t2">
                 <p>{state.reply.summary}</p>
                 <p>
                   <span className="font-semibold">{t('coach.summary.tip')}</span> {state.reply.tip}

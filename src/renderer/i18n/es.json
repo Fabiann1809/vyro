@@ -222,7 +222,7 @@
   "summary.saved": "Sesión guardada",
   "summary.saveFailed": "No se pudo guardar la sesión.",
   "summary.again": "Repetir",
-  "summary.progress": "Ver progreso",
+  "summary.progress": "Ver tablero",
   "summary.home": "Volver al inicio",
   "progress.filter": "Ver por ejercicio:",
   "progress.allSkills": "Todos los ejercicios",
@@ -595,5 +595,13 @@
   "training.tuner.title": "Sonido",
   "training.tuner.cents": "{cents} cents",
   "training.tuner.none": "Sin nota clara",
-  "calibration.phase": "Calibración"
+  "calibration.phase": "Calibración",
+  "summary.nextStep": "Siguiente paso",
+  "summary.ring": "Puntuación {score} de 100",
+  "summary.delta": "{delta} frente a la sesión anterior ({previous})",
+  "summary.first": "Es tu primera sesión de esta habilidad.",
+  "summary.best": "Nueva mejor marca en esta habilidad.",
+  "summary.step.completed": "Paso {n} cumplido",
+  "summary.step.counted": "Sesión válida para el paso {n}",
+  "summary.counts": "{good} bien · {needsWork} mejorables · {bad} mal"
 }
