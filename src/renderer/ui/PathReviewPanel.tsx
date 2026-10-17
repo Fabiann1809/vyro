@@ -4,6 +4,9 @@ import type { CoachError } from '@shared/coach'
 import type { LearningPath } from '@shared/paths'
 import type { Adjustment, PathReview } from '@shared/pathReview'
 import { CoachErrorNotice } from './CoachErrorNotice'
+import { Button } from './kit/Button'
+import { Card } from './kit/Card'
+import { CoachAvatar } from './kit/CoachAvatar'
 import { useNavigation } from './navigation'
 import { plannerSkills } from './plannerSkills'
 import { useSettings } from './settingsStore'
@@ -41,6 +44,22 @@ function describe(adjustment: Adjustment, path: LearningPath): string {
       return t('path.adjust.remove', { title: titleOf(path, adjustment.stepId) })
   }
 }
+
+// What a change to the goal of a step replaces, so that the person sees the before and the after.
+function beforeOf(adjustment: Adjustment, path: LearningPath): string | null {
+  if (adjustment.type !== 'change-criteria') return null
+  const step = path.steps.find((candidate) => candidate.id === adjustment.stepId)
+  if (step?.kind !== 'skill') return null
+  return t('path.step.goal', { count: step.criterionSessions, score: step.criterionScore })
+}
+
+const afterOf = (adjustment: Adjustment): string | null =>
+  adjustment.type === 'change-criteria'
+    ? t('path.step.goal', {
+        count: adjustment.criterionSessions,
+        score: adjustment.criterionScore
+      })
+    : null
 
 // The review of the week: the coach says how it went and may propose changes to the path, and the
 // person chooses which ones to apply. What is not chosen is left as it was.
@@ -111,103 +130,119 @@ export function PathReviewPanel({
   }
 
   return (
-    <div className="flex flex-col gap-3 border-t border-slate-300 pt-4 dark:border-slate-700">
-      <h2 className="text-xl font-semibold">{t('path.review.title')}</h2>
+    <Card className="flex flex-col gap-4 border-line/7 p-6">
+      <div className="flex items-center gap-3">
+        <CoachAvatar />
+        <h2 className="text-[1.0625rem] font-semibold">{t('path.review.title')}</h2>
+      </div>
 
       {!aiEnabled ? (
-        <div className="flex flex-wrap items-center gap-3">
-          <p className="text-slate-600 dark:text-slate-400">{t('path.review.off')}</p>
-          <button
-            type="button"
-            onClick={() => go('settings')}
-            className="rounded-md bg-slate-200 px-3 py-1.5 dark:bg-slate-800"
-          >
+        <div className="flex flex-col items-start gap-3">
+          <p className="text-sm text-t4">{t('path.review.off')}</p>
+          <Button variant="secondary" onClick={() => go('settings')}>
             {t('coach.openSettings')}
-          </button>
+          </Button>
         </div>
       ) : (
         <>
           {(state.status === 'idle' || state.status === 'pending' || state.status === 'failed') && (
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={ask}
-                disabled={state.status === 'pending'}
-                className="rounded-md bg-emerald-700 px-4 py-2 text-white disabled:opacity-50"
-              >
+            <div className="flex flex-col items-start gap-3">
+              <Button onClick={ask} disabled={state.status === 'pending'}>
                 {t('path.review.ask')}
-              </button>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                {t('path.review.privacy')}
-              </p>
+              </Button>
+              <p className="text-[0.8125rem] text-mut">{t('path.review.privacy')}</p>
             </div>
           )}
 
-          {applied && <p role="status">{t('path.review.applied')}</p>}
+          {applied && (
+            <p role="status" className="anim-up text-sm text-t4">
+              {t('path.review.applied')}
+            </p>
+          )}
           {state.status === 'pending' && (
-            <p role="status" className="text-slate-600 dark:text-slate-400">
+            <p role="status" className="text-sm text-mut">
               {t('path.review.pending')}
             </p>
           )}
           {state.status === 'failed' && <CoachErrorNotice error={state.error} onRetry={ask} />}
 
           {state.status === 'review' && (
-            <div className="flex flex-col gap-3">
-              <p>{state.review.summary}</p>
+            <div className="flex flex-col gap-4">
+              <p className="text-sm leading-normal text-t4 text-pretty">{state.review.summary}</p>
 
               {state.review.adjustments.length === 0 ? (
-                <p>{t('path.review.none')}</p>
+                <p className="text-sm">{t('path.review.none')}</p>
               ) : (
                 <fieldset className="flex flex-col gap-3">
-                  <legend className="font-semibold">{t('path.review.proposals')}</legend>
-                  {state.review.adjustments.map((adjustment, index) => (
-                    <label key={index} className="flex items-start gap-3">
-                      <input
-                        type="checkbox"
-                        checked={state.chosen.has(index)}
-                        disabled={state.applying}
-                        onChange={() => toggle(index)}
-                        className="mt-1 size-5"
-                      />
-                      <span className="flex flex-col">
-                        <span>{describe(adjustment, path)}</span>
-                        <span className="text-sm text-slate-600 dark:text-slate-400">
-                          {t('path.adjust.reason', { reason: adjustment.reason })}
+                  <legend className="mb-1 text-sm font-semibold">
+                    {t('path.review.proposals')}
+                  </legend>
+                  {state.review.adjustments.map((adjustment, index) => {
+                    const before = beforeOf(adjustment, path)
+                    const after = afterOf(adjustment)
+                    return (
+                      <label
+                        key={index}
+                        className="flex items-start gap-3 rounded-2xl bg-sunk p-3.5"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={state.chosen.has(index)}
+                          disabled={state.applying}
+                          onChange={() => toggle(index)}
+                          className="mt-1 size-5 accent-brand"
+                        />
+                        <span className="flex flex-col gap-2">
+                          <span className="text-sm">{describe(adjustment, path)}</span>
+                          {before && after && (
+                            <span className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-[0.8125rem]">
+                              <span className="rounded-xl bg-line/5 px-2.5 py-1.5 text-mut line-through">
+                                {before}
+                              </span>
+                              <span aria-hidden="true" className="text-mut">
+                                →
+                              </span>
+                              <span className="rounded-xl border border-brand/30 bg-brand/10 px-2.5 py-1.5">
+                                {after}
+                              </span>
+                            </span>
+                          )}
+                          <span className="text-[0.8125rem] text-mut">
+                            {t('path.adjust.reason', { reason: adjustment.reason })}
+                          </span>
                         </span>
-                      </span>
-                    </label>
-                  ))}
+                      </label>
+                    )
+                  })}
                 </fieldset>
               )}
 
-              {state.stale && <p role="alert">{t('path.review.stale')}</p>}
+              {state.stale && (
+                <p role="alert" className="text-sm text-bad-text">
+                  {t('path.review.stale')}
+                </p>
+              )}
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2.5">
                 {state.review.adjustments.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={apply}
-                    disabled={state.applying || state.chosen.size === 0}
-                    className="rounded-md bg-emerald-700 px-4 py-2 text-white disabled:opacity-50"
-                  >
+                  <Button onClick={apply} disabled={state.applying || state.chosen.size === 0}>
                     {t('path.review.apply')}
-                  </button>
+                  </Button>
                 )}
-                <button
-                  type="button"
+                <Button
+                  variant="secondary"
                   onClick={() => setState({ status: 'idle' })}
                   disabled={state.applying}
-                  className="rounded-md bg-slate-200 px-4 py-2 disabled:opacity-50 dark:bg-slate-800"
                 >
                   {state.review.adjustments.length > 0
                     ? t('path.review.dismiss')
                     : t('path.review.close')}
-                </button>
+                </Button>
               </div>
             </div>
           )}
         </>
       )}
-    </div>
+    </Card>
   )
 }

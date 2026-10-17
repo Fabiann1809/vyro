@@ -568,6 +568,9 @@ test.describe('AI coach screen', () => {
 
     // A path is not kept until the person says so.
     await expect(page.getByText('Ruta guardada')).toHaveCount(0)
+    await nav(page, 'Mi ruta').click()
+    await expect(page.getByText(/Todavía no sigues ninguna ruta/)).toBeVisible()
+    await nav(page, 'Inicio').click()
 
     await page.getByRole('button', { name: 'Empezar ahora' }).click()
     await expect(
@@ -706,14 +709,14 @@ test.describe('AI coach screen', () => {
     await expect(page.getByText(REPLY)).toBeVisible()
 
     // Path: it asks, then proposes, and the person keeps it.
-    await nav(page, 'Mi ruta').click()
+    await page.getByRole('button', { name: 'Nueva conversación' }).click()
     provider.setAnswer({
       action: 'ask',
       requirement: { channels: ['body'] },
       question: '¿Qué nivel tienes?'
     })
-    await page.getByLabel('Qué quieres aprender').fill('Quiero mejorar mi sentadilla')
-    await page.getByLabel('Qué quieres aprender').press('Enter')
+    await page.getByLabel('Tu mensaje').fill('Quiero mejorar mi sentadilla')
+    await page.getByLabel('Tu mensaje').press('Enter')
     await expect(page.getByText('¿Qué nivel tienes?')).toBeVisible()
     provider.setAnswer({
       action: 'propose',
@@ -732,9 +735,9 @@ test.describe('AI coach screen', () => {
         ]
       }
     })
-    await page.getByLabel('Qué quieres aprender').fill('Principiante')
-    await page.getByLabel('Qué quieres aprender').press('Enter')
-    await page.getByRole('button', { name: 'Guardar ruta' }).click()
+    await page.getByLabel('Tu mensaje').fill('Principiante')
+    await page.getByLabel('Tu mensaje').press('Enter')
+    await page.getByRole('button', { name: 'Ver ruta completa' }).click()
     await expect(page.getByText('Sentadilla lenta')).toBeVisible()
 
     // A skill made by the AI, approved and offered in the library.
@@ -927,7 +930,7 @@ test.describe('AI coach screen', () => {
   test('creates a path, and its steps advance, unlock and complete as sessions are saved', async () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)
-    await nav(page, 'Mi ruta').click()
+    await nav(page, 'Inicio').click()
 
     // The planner asks first, then proposes.
     provider.setAnswer({
@@ -935,8 +938,8 @@ test.describe('AI coach screen', () => {
       requirement: { channels: ['body'] },
       question: '¿Qué nivel tienes?'
     })
-    await page.getByLabel('Qué quieres aprender').fill('Quiero mejorar mi sentadilla')
-    await page.getByLabel('Qué quieres aprender').press('Enter')
+    await page.getByLabel('Tu mensaje').fill('Quiero mejorar mi sentadilla')
+    await page.getByLabel('Tu mensaje').press('Enter')
     await expect(page.getByText('¿Qué nivel tienes?')).toBeVisible()
 
     provider.setAnswer({
@@ -972,16 +975,13 @@ test.describe('AI coach screen', () => {
         ]
       }
     })
-    await page.getByLabel('Qué quieres aprender').fill('Principiante')
-    await page.getByLabel('Qué quieres aprender').press('Enter')
+    await page.getByLabel('Tu mensaje').fill('Principiante')
+    await page.getByLabel('Tu mensaje').press('Enter')
 
     // The proposal, with the two kinds of step told apart in words.
-    await expect(
-      page.getByRole('heading', { name: 'Esta es la ruta que te propongo' })
-    ).toBeVisible()
-    await expect(page.getByText('Habilidad medible').first()).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Mejorar mi sentadilla' })).toBeVisible()
     await expect(page.getByText('Auxiliar')).toBeVisible()
-    await page.getByRole('button', { name: 'Guardar ruta' }).click()
+    await page.getByRole('button', { name: 'Ver ruta completa' }).click()
 
     // The planner was told which skills exist, and nothing else about the person.
     const first = provider.received[0]?.body['messages'] as Array<{ role: string; content: string }>
@@ -1066,7 +1066,7 @@ test.describe('AI coach screen', () => {
   test('opens the calibration of the skill from the step that is next', async () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)
-    await nav(page, 'Mi ruta').click()
+    await nav(page, 'Inicio').click()
     provider.setAnswer({
       action: 'propose',
       requirement: { channels: ['body'] },
@@ -1084,9 +1084,9 @@ test.describe('AI coach screen', () => {
         ]
       }
     })
-    await page.getByLabel('Qué quieres aprender').fill('Quiero mejorar mi sentadilla')
-    await page.getByLabel('Qué quieres aprender').press('Enter')
-    await page.getByRole('button', { name: 'Guardar ruta' }).click()
+    await page.getByLabel('Tu mensaje').fill('Quiero mejorar mi sentadilla')
+    await page.getByLabel('Tu mensaje').press('Enter')
+    await page.getByRole('button', { name: 'Ver ruta completa' }).click()
 
     await page.getByRole('button', { name: 'Practicar' }).click()
 
@@ -1459,33 +1459,38 @@ test.describe('AI coach screen', () => {
   test('explains why a path cannot be made, and lets the person start again', async () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)
-    await nav(page, 'Mi ruta').click()
+    await nav(page, 'Inicio').click()
     provider.setAnswer({
       action: 'ask',
       requirement: { channels: [], outOfScope: ['invisible-outcome'] },
       question: '¿Qué tipo de meditación?'
     })
 
-    await page.getByLabel('Qué quieres aprender').fill('Quiero aprender a meditar')
-    await page.getByLabel('Qué quieres aprender').press('Enter')
+    await page.getByLabel('Tu mensaje').fill('Quiero aprender a meditar')
+    await page.getByLabel('Tu mensaje').press('Enter')
 
     await expect(page.getByRole('heading', { name: 'VYRO no puede entrenar eso' })).toBeVisible()
     await expect(page.getByText('El resultado no se puede ver ni oír')).toBeVisible()
     // The app decided, not the model: the question it asked was never shown.
     await expect(page.getByText('¿Qué tipo de meditación?')).toHaveCount(0)
 
-    await page.getByRole('button', { name: 'Empezar de nuevo' }).click()
-    await expect(page.getByLabel('Qué quieres aprender')).toBeVisible()
+    await page.getByRole('button', { name: 'Probar con otra cosa' }).click()
+    await expect(
+      page.getByRole('heading', { level: 1, name: '¿Qué quieres aprender?' })
+    ).toBeVisible()
   })
 
-  test('invites to turn the AI on before making a path', async () => {
+  test('invites to ask the coach when there is no path to follow', async () => {
     const page = await launch()
 
     await nav(page, 'Mi ruta').click()
 
-    await expect(page.getByText('Para crear una ruta, activa el coach con IA')).toBeVisible()
-    await page.getByRole('button', { name: 'Ir a Ajustes' }).click()
-    await expect(page.getByRole('heading', { level: 1, name: 'Ajustes' })).toBeVisible()
+    await expect(page.getByText(/Todavía no sigues ninguna ruta/)).toBeVisible()
+    await page.getByRole('button', { name: 'Hablar con el coach' }).click()
+    await expect(
+      page.getByRole('heading', { level: 1, name: '¿Qué quieres aprender?' })
+    ).toBeVisible()
+    await expect(page.getByLabel('Tu mensaje')).toBeFocused()
   })
 
   test('writes a new line with Shift + Enter instead of sending', async () => {

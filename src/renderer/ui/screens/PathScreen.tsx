@@ -2,13 +2,27 @@ import { useEffect, useState } from 'react'
 import { t } from '@renderer/i18n'
 import type { CurrentPath } from '@shared/pathProgress'
 import { ActivePath } from '../ActivePath'
-import { PathPlanner } from '../PathPlanner'
+import { focusComposer } from '../focusComposer'
+import { startOver } from '../homeChatStore'
+import { Button } from '../kit/Button'
+import { CoachAvatar } from '../kit/CoachAvatar'
+import { useNavigation } from '../navigation'
+
+// Back to the chat, empty and with the cursor in the box, to ask the coach for a path.
+function useAskForPath(): () => void {
+  const go = useNavigation((state) => state.go)
+  return () => {
+    startOver()
+    go('home')
+    focusComposer()
+  }
+}
 
 export function PathScreen(): React.JSX.Element {
+  const askForPath = useAskForPath()
   // undefined while it is being loaded; null when there is no path being followed.
   const [current, setCurrent] = useState<CurrentPath | null | undefined>(undefined)
   const [failed, setFailed] = useState(false)
-  const [creating, setCreating] = useState(false)
   // Bumped to read the path again after it changes.
   const [version, setVersion] = useState(0)
 
@@ -30,23 +44,26 @@ export function PathScreen(): React.JSX.Element {
   if (failed) return <p role="alert">{t('path.loadFailed')}</p>
   if (current === undefined) return <p role="status">{t('path.loading')}</p>
 
-  if (creating || current === null) {
+  if (current === null) {
     return (
-      <PathPlanner
-        onSaved={() => {
-          setCreating(false)
-          setVersion((current) => current + 1)
-        }}
-        onCancel={current === null ? undefined : () => setCreating(false)}
-      />
+      <section className="flex h-full w-full flex-col items-center justify-center gap-5 px-8 text-center">
+        <CoachAvatar size={72} />
+        <h1 className="font-display text-[2.125rem] leading-tight font-semibold tracking-tight">
+          {t('screen.path.title')}
+        </h1>
+        <p className="max-w-md text-lg text-mut text-pretty">{t('route.empty.body')}</p>
+        <Button size="lg" onClick={askForPath}>
+          {t('route.empty.cta')}
+        </Button>
+      </section>
     )
   }
 
   return (
     <ActivePath
       current={current}
-      onChanged={() => setVersion((current) => current + 1)}
-      onNewPath={() => setCreating(true)}
+      onChanged={() => setVersion((value) => value + 1)}
+      onNewPath={askForPath}
     />
   )
 }
