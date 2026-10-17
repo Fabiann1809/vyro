@@ -30,6 +30,9 @@ async function launch(extra: string[] = []): Promise<Page> {
     args: [
       '.',
       `--user-data-dir=${userData}`,
+      // Chromium's own fake devices stand in for a microphone and a camera, so that the answer is
+      // about the permission and not about what the computer has (a runner has neither).
+      '--use-fake-device-for-media-stream',
       ...extra,
       ...(process.env['CI'] ? ['--no-sandbox'] : [])
     ]
@@ -38,7 +41,7 @@ async function launch(extra: string[] = []): Promise<Page> {
 }
 
 // What happens when the page asks for the microphone: the name of the error, or 'opened'. A computer
-// without a microphone answers NotFoundError, which is not a refusal: the permission was given.
+// with no microphone would answer NotFoundError, which is why the tests use a fake one.
 const ask = (page: Page, constraints: { audio: boolean; video?: boolean }): Promise<string> =>
   page.evaluate(async (wanted) => {
     try {
@@ -63,12 +66,11 @@ test('refuses the microphone until a skill that listens is open, and again after
   const page = await launch()
 
   expect(await ask(page, { audio: true })).toBe('NotAllowedError')
-  // Asking for the camera together with it does not get it in either. A computer without a camera
-  // answers that there is none before it gets to the permission, which is still not opening it.
-  expect(await ask(page, { audio: true, video: true })).not.toBe('opened')
+  // Asking for the camera together with it does not get it in either.
+  expect(await ask(page, { audio: true, video: true })).toBe('NotAllowedError')
 
   await setOpen(page, true)
-  expect(await ask(page, { audio: true })).not.toBe('NotAllowedError')
+  expect(await ask(page, { audio: true })).toBe('opened')
 
   await setOpen(page, false)
   expect(await ask(page, { audio: true })).toBe('NotAllowedError')
@@ -77,7 +79,7 @@ test('refuses the microphone until a skill that listens is open, and again after
 test('closes the microphone again when the page is loaded anew', async () => {
   const page = await launch()
   await setOpen(page, true)
-  expect(await ask(page, { audio: true })).not.toBe('NotAllowedError')
+  expect(await ask(page, { audio: true })).toBe('opened')
 
   await page.reload()
 
@@ -115,8 +117,7 @@ test('the test button in Settings listens only while it is on', async () => {
 })
 
 test('a skill that only listens is calibrated with the microphone, not the camera', async () => {
-  // Chromium's own fake devices stand in for a microphone, so this runs on any machine.
-  const page = await launch(['--use-fake-device-for-media-stream'])
+  const page = await launch()
 
   await page.getByRole('button', { name: 'Afinar una cuerda' }).click()
 
