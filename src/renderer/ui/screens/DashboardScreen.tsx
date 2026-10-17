@@ -17,6 +17,7 @@ import {
   scoreStory,
   streakLength
 } from '../dashboardData'
+import { startWithExpand } from '../expandTransition'
 import { Button } from '../kit/Button'
 import { focusComposer } from '../focusComposer'
 import { useNavigation } from '../navigation'
@@ -65,10 +66,13 @@ export function DashboardScreen(): React.JSX.Element {
       ? { title: nextStep.title, step: nextStep.position, total: path.path.steps.length }
       : null
 
-  const goNext = (): void => {
+  const goNext = (card: Element | null): void => {
     if (nextStep?.kind === 'skill') {
-      selectSkill(nextStep.skillId)
-      go('calibration')
+      const skillToPractise = nextStep.skillId
+      startWithExpand(card, () => {
+        selectSkill(skillToPractise)
+        go('calibration')
+      })
     } else {
       go('path')
     }

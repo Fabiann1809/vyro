@@ -1,4 +1,5 @@
 import { t } from '@renderer/i18n'
+import { cardOf } from '../expandTransition'
 import { Button } from '../kit/Button'
 import { Icon } from '../kit/Icon'
 
@@ -12,11 +13,15 @@ export function StreakStrip({
   streak: number
   // What is next in the path being followed; null when there is no path.
   next: { title: string; step: number; total: number } | null
-  onContinue: () => void
+  // Gets the strip, which is the card that grows into the practice.
+  onContinue: (card: Element | null) => void
   onLibrary: () => void
 }): React.JSX.Element {
   return (
-    <div className="flex flex-wrap items-center gap-7 rounded-3xl border border-line/7 bg-linear-to-r from-brand/12 via-card to-card px-6.5 py-5.5">
+    <div
+      data-expand
+      className="flex flex-wrap items-center gap-7 rounded-3xl border border-line/7 bg-linear-to-r from-brand/12 via-card to-card px-6.5 py-5.5"
+    >
       <div className="flex items-center gap-3.5">
         <span
           aria-hidden="true"
@@ -50,7 +55,7 @@ export function StreakStrip({
         </p>
       </div>
       {next ? (
-        <Button size="lg" onClick={onContinue}>
+        <Button size="lg" onClick={(event) => onContinue(cardOf(event.currentTarget))}>
           {t('dashboard.next.continue')} <span aria-hidden="true">→</span>
         </Button>
       ) : (

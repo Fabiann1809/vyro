@@ -75,6 +75,7 @@ export function StepRow({
       </div>
 
       <div
+        data-expand
         className={`mb-4 flex min-w-0 flex-1 flex-col gap-3 rounded-[1.375rem] ${
           auxiliary ? 'px-5 py-3.5' : 'p-5'
         } ${

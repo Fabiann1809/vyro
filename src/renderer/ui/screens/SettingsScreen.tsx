@@ -16,6 +16,7 @@ import { deleteAllData } from '../settingsSync'
 import { useSettings } from '../settingsStore'
 import { SETTINGS_TABS, useSettingsTab, type SettingsTab } from '../settingsTabStore'
 import { THEME_PREFERENCES, useTheme, type ThemePreference } from '../theme'
+import { changeTheme } from '../themeTransition'
 
 const TAB_LABEL: Record<SettingsTab, MessageKey> = {
   general: 'settings.tab.general',
@@ -47,7 +48,7 @@ const LANGUAGE_LABEL: Record<Language, MessageKey> = {
 
 function General(): React.JSX.Element {
   const settings = useSettings()
-  const { preference, setPreference } = useTheme()
+  const preference = useTheme((state) => state.preference)
 
   return (
     <>
@@ -75,7 +76,7 @@ function General(): React.JSX.Element {
             id: option,
             label: t(THEME_LABEL[option])
           }))}
-          onChange={setPreference}
+          onChange={changeTheme}
         />
       </SettingsCard>
 

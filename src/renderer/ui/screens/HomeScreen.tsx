@@ -16,6 +16,7 @@ import {
 } from '../homeChatStore'
 import { Button } from '../kit/Button'
 import { CoachAvatar } from '../kit/CoachAvatar'
+import { startWithExpand } from '../expandTransition'
 import { focusComposer } from '../focusComposer'
 import { useNavigation } from '../navigation'
 import { usePathPlan } from '../pathPlanStore'
@@ -168,8 +169,15 @@ export function HomeScreen(): React.JSX.Element {
     const current = await window.api.paths.getCurrent().catch(() => null)
     const next = current?.progress.steps.find((item) => item.state === 'current')
     const step = current?.path.steps.find((item) => item.id === next?.stepId)
-    if (step?.kind === 'skill') practise(step.skillId)
-    else go('path')
+    if (step?.kind === 'skill') {
+      const skillToPractise = step.skillId
+      // The card of the path grows until it is the calibration.
+      startWithExpand(document.querySelector('[data-card="route"]'), () =>
+        practise(skillToPractise)
+      )
+    } else {
+      go('path')
+    }
   }
 
   const actions: ThreadActions = {

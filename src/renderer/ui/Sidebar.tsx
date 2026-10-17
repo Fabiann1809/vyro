@@ -5,6 +5,7 @@ import { navHome, NAV_SCREENS, useNavigation, type Screen } from './navigation'
 import { useSettings } from './settingsStore'
 import { useSidebar } from './sidebarStore'
 import { resolveTheme, useTheme } from './theme'
+import { changeTheme } from './themeTransition'
 
 const DESTINATIONS: Partial<Record<Screen, { label: MessageKey; icon: IconName }>> = {
   home: { label: 'nav.home', icon: 'chat' },
@@ -19,11 +20,11 @@ const ITEM =
 
 // The dark theme is the default, so "toggle" means the one the person is not seeing now.
 function useThemeToggle(): { toLight: boolean; toggle: () => void } {
-  const { preference, setPreference } = useTheme()
+  const preference = useTheme((state) => state.preference)
   const seen = resolveTheme(preference, window.matchMedia('(prefers-color-scheme: dark)').matches)
   return {
     toLight: seen === 'dark',
-    toggle: () => setPreference(seen === 'dark' ? 'light' : 'dark')
+    toggle: () => changeTheme(seen === 'dark' ? 'light' : 'dark')
   }
 }
 

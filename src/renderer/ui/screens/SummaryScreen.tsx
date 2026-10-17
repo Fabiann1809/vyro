@@ -173,8 +173,14 @@ export function SummaryScreen(): React.JSX.Element {
               <div className="anim-up mt-auto flex w-full items-center gap-3 rounded-2xl border border-brand/35 p-4 text-left">
                 <span
                   aria-hidden="true"
-                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand text-on-brand"
+                  className="relative flex size-9 shrink-0 items-center justify-center rounded-full bg-brand text-on-brand"
                 >
+                  {step.kind === 'completed' && (
+                    <span
+                      className="absolute inset-0 rounded-full border-2 border-brand"
+                      style={{ animation: 'vy-burst 900ms ease-out 400ms both' }}
+                    />
+                  )}
                   <Icon name="check" className="size-4" strokeWidth={2} />
                 </span>
                 <div>

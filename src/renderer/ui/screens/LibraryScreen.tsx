@@ -16,6 +16,7 @@ import {
   type LibraryCategory,
   type LibrarySkill
 } from '../librarySkills'
+import { cardOf, startWithExpand } from '../expandTransition'
 import { useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
 import { useSkills } from '../skillsStore'
@@ -54,7 +55,7 @@ function SkillCard({
   onStart
 }: {
   entry: LibrarySkill
-  onStart: (skillId: string) => void
+  onStart: (skillId: string, card: Element | null) => void
 }): React.JSX.Element {
   const { skill, category, channels } = entry
   const name = localize(skill.name)
@@ -62,7 +63,10 @@ function SkillCard({
   const needs = listOf(skillNeeds(skill).map((need) => t(need)))
 
   return (
-    <Card className="anim-up flex w-full flex-col gap-3.5 p-3 pb-5 transition duration-200 hover:-translate-y-0.5 hover:border-line/14">
+    <Card
+      data-expand
+      className="anim-up flex w-full flex-col gap-3.5 p-3 pb-5 transition duration-200 hover:-translate-y-0.5 hover:border-line/14"
+    >
       <div
         aria-hidden="true"
         className="relative flex h-36 items-end gap-2 overflow-hidden rounded-[1.125rem] bg-sunk p-3"
@@ -98,7 +102,7 @@ function SkillCard({
           variant="light"
           className="w-full"
           aria-label={t('library.start', { name })}
-          onClick={() => onStart(skill.id)}
+          onClick={(event) => onStart(skill.id, cardOf(event.currentTarget))}
         >
           {t('library.start.short')}
         </Button>
@@ -114,9 +118,11 @@ export function LibraryScreen(): React.JSX.Element {
   const [channel, setChannel] = useState<SkillChannel | null>(null)
   const [category, setCategory] = useState<LibraryCategory | null>(null)
 
-  const start = (skillId: string): void => {
-    selectSkill(skillId)
-    go('calibration')
+  const start = (skillId: string, card: Element | null): void => {
+    startWithExpand(card, () => {
+      selectSkill(skillId)
+      go('calibration')
+    })
   }
 
   const shown = filterSkills(skills.map(toLibrarySkill), { channel, category })

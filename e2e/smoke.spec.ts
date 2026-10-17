@@ -84,8 +84,40 @@ test('goes from the library to the calibration and back', async () => {
   // The navigation goes away while the user is in front of the camera.
   await expect(page.getByRole('navigation')).toHaveCount(0)
 
+  // The card grew into the calibration and the layer it drew has gone again.
+  await expect(page.locator('div.fixed.z-50')).toHaveCount(0)
+
   await page.getByRole('button', { name: 'Cancelar' }).click()
   await expect(nav(page, 'Biblioteca')).toHaveAttribute('aria-current', 'page')
+})
+
+test('moves nothing when less motion is asked for', async () => {
+  const page = await launch()
+  // Whatever the computer says about motion, this test starts from "no preference".
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  const animationOfCoach = (): Promise<string> =>
+    page.evaluate(() => {
+      const avatar = document.querySelector('[style*="vy-breath"]')
+      return avatar ? getComputedStyle(avatar).animationName : 'missing'
+    })
+
+  // The coach breathes while nothing is asked.
+  await expect(page.locator('[style*="vy-breath"]').first()).toBeAttached()
+  expect(await animationOfCoach()).toContain('vy-breath')
+
+  await nav(page, 'Ajustes').click()
+  await page.getByLabel('Reducir el movimiento').check()
+  await nav(page, 'Inicio').click()
+  await expect(page.locator('[style*="vy-breath"]').first()).toBeAttached()
+
+  expect(await animationOfCoach()).toBe('none')
+
+  // And a card does not grow: the screen it leads to is there at once.
+  await nav(page, 'Biblioteca').click()
+  await page.getByRole('button', { name: 'Empezar Sentadilla' }).click()
+  await expect(page.getByRole('heading', { level: 1, name: /Calibración/ })).toBeVisible({
+    timeout: 1500
+  })
 })
 
 test('narrows the library down by channel and by category', async () => {
@@ -234,7 +266,7 @@ test('a skill with the guitar is calibrated with the body, the hand, the guitar 
     page.getByRole('heading', { level: 1, name: /Calibración · Postura con guitarra/ })
   ).toBeVisible()
   for (const check of ['Cuerpo completo', 'Mano completa', 'Objeto completo', 'Ruido de la sala']) {
-    await expect(page.getByText(check)).toBeVisible()
+    await expect(page.getByText(check, { exact: true })).toBeVisible()
   }
 })
 

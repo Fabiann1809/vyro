@@ -3,6 +3,7 @@ import { t } from '@renderer/i18n'
 import type { PathStep } from '@shared/paths'
 import type { CurrentPath, StepProgress } from '@shared/pathProgress'
 import { skillChannels } from '@shared/skill/skillChannels'
+import { cardOf, startWithExpand } from './expandTransition'
 import { Button } from './kit/Button'
 import { Card } from './kit/Card'
 import { sortChannels } from './kit/channels'
@@ -49,9 +50,11 @@ export function ActivePath({
   const percent = Math.round((doneCount / path.steps.length) * 100)
   const currentPosition = path.steps.find((step) => step.id === progress.currentStepId)?.position
 
-  const practise = (skillId: string): void => {
-    selectSkill(skillId)
-    go('calibration')
+  const practise = (skillId: string, card: Element | null): void => {
+    startWithExpand(card, () => {
+      selectSkill(skillId)
+      go('calibration')
+    })
   }
 
   const toggleDone = (stepId: number, done: boolean): void => {
@@ -157,7 +160,9 @@ export function ActivePath({
                   state === 'current' ? (
                     step.kind === 'skill' ? (
                       <div className="flex items-center gap-2.5">
-                        <Button onClick={() => practise(step.skillId)}>
+                        <Button
+                          onClick={(event) => practise(step.skillId, cardOf(event.currentTarget))}
+                        >
                           {t('path.step.practise')}
                         </Button>
                         <span className="text-[0.8125rem] text-mut">
