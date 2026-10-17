@@ -231,12 +231,23 @@ body {
 }
 
 /* Someone using the keyboard must always see where the focus is (at least 3:1 against the page). */
+:root {
+  --focus: #0369a1;
+}
+:root[data-theme='dark'] {
+  --focus: #38bdf8;
+}
 :focus-visible {
-  outline: 3px solid #0369a1;
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
-[data-theme='dark'] :focus-visible {
-  outline-color: #38bdf8;
+/* A box that holds a field draws the ring around itself, not around the field inside it. */
+.ring-within:has(:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.ring-within :focus-visible {
+  outline: none;
 }
 
 /* No animation or transition when the user asked for less motion, in the settings or in the system. */

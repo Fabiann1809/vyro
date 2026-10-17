@@ -328,6 +328,15 @@ test.describe('AI coach screen', () => {
     await provider.close()
   })
 
+  // The coach asks the question REPLY: what the first message of the home screen is answered with.
+  function askReply(): void {
+    provider.setAnswer({
+      action: 'ask',
+      requirement: { channels: ['body'] },
+      question: REPLY
+    })
+  }
+
   async function turnOnWithFakeProvider(page: Page): Promise<void> {
     await nav(page, 'Ajustes').click()
     await page.getByLabel('Proveedor').selectOption('ollama')
@@ -370,14 +379,41 @@ test.describe('AI coach screen', () => {
   test('invites to turn it on when it is off, and goes to the settings', async () => {
     const page = await launch()
 
-    await nav(page, 'Inicio').click()
-    await expect(page.getByRole('heading', { name: 'El coach con IA está apagado' })).toBeVisible()
-    await page.getByRole('button', { name: 'Ir a Ajustes' }).click()
+    await expect(
+      page.getByRole('heading', { level: 1, name: '¿Qué quieres aprender?' })
+    ).toBeVisible()
+    await page.getByLabel('Tu mensaje').fill('Quiero mejorar mi sentadilla')
+    await page.getByLabel('Tu mensaje').press('Enter')
+
+    await expect(page.getByRole('heading', { name: /Aún no tengo cerebro de IA/ })).toBeVisible()
+    await page.getByRole('button', { name: 'Activar IA' }).click()
 
     await expect(page.getByRole('heading', { level: 1, name: 'Ajustes' })).toBeVisible()
   })
 
+  test('opens a skill from a suggestion when the coach is off', async () => {
+    const page = await launch()
+
+    await page.getByRole('button', { name: 'Mejorar mi sentadilla' }).click()
+
+    await expect(
+      page.getByRole('heading', { level: 1, name: /Calibración · Sentadilla/ })
+    ).toBeVisible()
+  })
+
+  test('fills the box with a suggestion when the coach is on', async () => {
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+
+    await nav(page, 'Inicio').click()
+    await page.getByRole('button', { name: 'Mejorar mi sentadilla' }).click()
+
+    await expect(page.getByLabel('Tu mensaje')).toHaveValue('Quiero mejorar mi sentadilla')
+    expect(provider.received).toHaveLength(0)
+  })
+
   test('holds a conversation, from the screen to the provider and back', async () => {
+    askReply()
     const page = await launch()
     await turnOnWithFakeProvider(page)
 
@@ -404,11 +440,11 @@ test.describe('AI coach screen', () => {
     ])
     const messages = sent?.body['messages'] as Array<{ role: string; content: string }>
     expect(messages[0]?.role).toBe('system')
-    expect(messages[0]?.content).toContain('Always answer in Spanish.')
     expect(messages.slice(1)).toEqual([{ role: 'user', content: 'Quiero mejorar mi sentadilla' }])
   })
 
   test('counts what it uses, and at the daily limit asks nothing of the provider', async () => {
+    askReply()
     const page = await launch()
     await turnOnWithFakeProvider(page)
     const limit = page.getByLabel('Límite diario de uso (tokens)')
@@ -443,6 +479,7 @@ test.describe('AI coach screen', () => {
   })
 
   test('goes through chat, path and a generated skill with no network but the fake provider', async () => {
+    askReply()
     const netLog = join(userData, 'net.jsonl')
     const page = await launch({
       // Every address but this computer fails to resolve, for the page; the watcher notes what Node asks.
@@ -497,8 +534,8 @@ test.describe('AI coach screen', () => {
     const squat = JSON.parse(readFileSync('src/renderer/skills/squat.json', 'utf-8')) as object
     const yoga = { ...squat, id: 'custom_yoga', name: { es: 'Yoga suave', en: 'Gentle yoga' } }
     provider.setAnswer({ requirement: { channels: ['body'] }, skill: JSON.stringify(yoga) })
-    await nav(page, 'Inicio').click()
-    await page.getByRole('button', { name: 'Crear habilidad' }).click()
+    await nav(page, 'Biblioteca').click()
+    await page.getByRole('button', { name: 'Crear una habilidad con el coach' }).click()
     await page.getByLabel('Qué habilidad quieres crear').fill('Quiero aprender yoga suave')
     await page.getByRole('button', { name: 'Enviar' }).click()
     await page.getByRole('button', { name: 'Aprobar y probar' }).click()
@@ -516,6 +553,7 @@ test.describe('AI coach screen', () => {
   })
 
   test('keeps the whole conversation in what it sends next, and starts over when asked', async () => {
+    askReply()
     const page = await launch()
     await turnOnWithFakeProvider(page)
     await nav(page, 'Inicio').click()
@@ -531,10 +569,13 @@ test.describe('AI coach screen', () => {
     expect(second.map((message) => message.role)).toEqual(['system', 'user', 'assistant', 'user'])
 
     await page.getByRole('button', { name: 'Nueva conversación' }).click()
-    await expect(page.getByText('Cuéntame qué quieres aprender o mejorar.')).toBeVisible()
+    await expect(
+      page.getByRole('heading', { level: 1, name: '¿Qué quieres aprender?' })
+    ).toBeVisible()
   })
 
   test('explains a rate limit with the wait and lets the user try again', async () => {
+    askReply()
     const page = await launch()
     await turnOnWithFakeProvider(page)
     await nav(page, 'Inicio').click()
@@ -550,6 +591,7 @@ test.describe('AI coach screen', () => {
   })
 
   test('says that the provider had a problem, and recovers on retry', async () => {
+    askReply()
     const page = await launch()
     await turnOnWithFakeProvider(page)
     await nav(page, 'Inicio').click()
@@ -1069,8 +1111,8 @@ test.describe('AI coach screen', () => {
     const yoga = { ...squat, id: 'custom_yoga', name: { es: 'Yoga suave', en: 'Gentle yoga' } }
     provider.setAnswer({ requirement: { channels: ['body'] }, skill: JSON.stringify(yoga) })
 
-    await nav(page, 'Inicio').click()
-    await page.getByRole('button', { name: 'Crear habilidad' }).click()
+    await nav(page, 'Biblioteca').click()
+    await page.getByRole('button', { name: 'Crear una habilidad con el coach' }).click()
     await page.getByLabel('Qué habilidad quieres crear').fill('Quiero aprender yoga suave')
     await page.getByRole('button', { name: 'Enviar' }).click()
     await expect(

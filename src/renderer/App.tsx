@@ -4,9 +4,9 @@ import { focusComposer } from './ui/focusComposer'
 import { Sidebar } from './ui/Sidebar'
 import { isImmersive, useNavigation, type Screen } from './ui/navigation'
 import { PathScreen } from './ui/screens/PathScreen'
-import { CoachScreen } from './ui/screens/CoachScreen'
 import { CalibrationScreen } from './ui/screens/CalibrationScreen'
 import { DashboardScreen } from './ui/screens/DashboardScreen'
+import { HomeScreen } from './ui/screens/HomeScreen'
 import { HowScreen } from './ui/screens/HowScreen'
 import { LibraryScreen } from './ui/screens/LibraryScreen'
 import { SettingsScreen } from './ui/screens/SettingsScreen'
@@ -19,7 +19,7 @@ import { useAppliedAppearance } from './ui/useAppliedAppearance'
 function CurrentScreen({ screen }: { screen: Screen }): React.JSX.Element {
   switch (screen) {
     case 'home':
-      return <CoachScreen />
+      return <HomeScreen />
     case 'dashboard':
       return <DashboardScreen />
     case 'path':
