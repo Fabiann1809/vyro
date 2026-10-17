@@ -1,8 +1,8 @@
 import { localize, t, type MessageKey } from '@renderer/i18n'
-import type { JointName } from '@shared/skill/joints'
+import type { AnyJointName } from '@shared/skill/joints'
 import type { Severity, SkillConfig, SkillMetric } from '@shared/skill/skillSchema'
 
-const JOINT_TEXT: Record<JointName, MessageKey> = {
+const JOINT_TEXT: Record<AnyJointName, MessageKey> = {
   shoulder: 'joint.shoulder',
   elbow: 'joint.elbow',
   wrist: 'joint.wrist',
@@ -10,7 +10,28 @@ const JOINT_TEXT: Record<JointName, MessageKey> = {
   knee: 'joint.knee',
   ankle: 'joint.ankle',
   heel: 'joint.heel',
-  footIndex: 'joint.footIndex'
+  footIndex: 'joint.footIndex',
+  handWrist: 'joint.handWrist',
+  thumbCmc: 'joint.thumbCmc',
+  thumbMcp: 'joint.thumbMcp',
+  thumbIp: 'joint.thumbIp',
+  thumbTip: 'joint.thumbTip',
+  indexMcp: 'joint.indexMcp',
+  indexPip: 'joint.indexPip',
+  indexDip: 'joint.indexDip',
+  indexTip: 'joint.indexTip',
+  middleMcp: 'joint.middleMcp',
+  middlePip: 'joint.middlePip',
+  middleDip: 'joint.middleDip',
+  middleTip: 'joint.middleTip',
+  ringMcp: 'joint.ringMcp',
+  ringPip: 'joint.ringPip',
+  ringDip: 'joint.ringDip',
+  ringTip: 'joint.ringTip',
+  pinkyMcp: 'joint.pinkyMcp',
+  pinkyPip: 'joint.pinkyPip',
+  pinkyDip: 'joint.pinkyDip',
+  pinkyTip: 'joint.pinkyTip'
 }
 
 const SEVERITY_TEXT: Record<Severity, MessageKey> = {
@@ -19,7 +40,7 @@ const SEVERITY_TEXT: Record<Severity, MessageKey> = {
   low: 'skill.severity.low'
 }
 
-const joint = (name: JointName): string => t(JOINT_TEXT[name])
+const joint = (name: AnyJointName): string => t(JOINT_TEXT[name])
 
 function metricText(name: string, metric: SkillMetric): string {
   switch (metric.type) {
@@ -38,6 +59,14 @@ function metricText(name: string, metric: SkillMetric): string {
         from: joint(metric.from),
         to: joint(metric.to),
         axis: t(metric.axis === 'x' ? 'skill.axis.x' : 'skill.axis.y')
+      })
+    case 'gap':
+      return t('skill.metric.gap', {
+        name,
+        from: joint(metric.from),
+        to: joint(metric.to),
+        scaleFrom: joint(metric.scale[0]),
+        scaleTo: joint(metric.scale[1])
       })
   }
 }

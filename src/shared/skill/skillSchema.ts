@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { JOINT_NAMES } from './joints'
+import { ANY_JOINT_NAMES } from './joints'
 
 // Names the rule expressions already use (functions and per-repetition values). A metric called
 // like one of them would be ambiguous inside an expression.
@@ -38,7 +38,7 @@ const identifier = z
     'must be lowercase letters, digits or underscores, starting with a letter'
   )
 
-const joint = z.enum(JOINT_NAMES)
+const joint = z.enum(ANY_JOINT_NAMES)
 
 const localizedText = z
   .object({
@@ -67,7 +67,18 @@ const offsetMetric = z
   })
   .strict()
 
-const metric = z.discriminatedUnion('type', [angleMetric, tiltMetric, offsetMetric])
+// Straight-line distance between two points, divided by the length of `scale`: how far apart two
+// fingertips are, in palms for example.
+const gapMetric = z
+  .object({
+    type: z.literal('gap'),
+    from: joint,
+    to: joint,
+    scale: z.tuple([joint, joint])
+  })
+  .strict()
+
+const metric = z.discriminatedUnion('type', [angleMetric, tiltMetric, offsetMetric, gapMetric])
 
 const threshold = z
   .object({ gt: z.number().optional(), lt: z.number().optional() })
@@ -106,7 +117,9 @@ export const skillConfigSchema = z
       .object({
         view: z.enum(['side', 'front']),
         fullBody: z.boolean(),
-        side: z.enum(['auto', 'left', 'right']).default('auto')
+        side: z.enum(['auto', 'left', 'right']).default('auto'),
+        // Which hand the hand points of the metrics belong to.
+        hand: z.enum(['auto', 'left', 'right']).default('auto')
       })
       .strict(),
     metrics: z.record(z.string(), metric).refine((metrics) => Object.keys(metrics).length > 0, {

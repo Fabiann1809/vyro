@@ -58,7 +58,7 @@ function aggregate(name: string, values: readonly number[]): number | null {
 }
 
 const floorOf = (metric: SkillMetric | undefined): number =>
-  metric?.type === 'offset' ? FLOOR_OFFSET : FLOOR_DEGREES
+  metric?.type === 'offset' || metric?.type === 'gap' ? FLOOR_OFFSET : FLOOR_DEGREES
 
 // Where the threshold goes so that the good repetition passes with room to spare. A clause that
 // asks for at most something ("<") is put above the value, one that asks for at least something

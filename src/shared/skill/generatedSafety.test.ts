@@ -66,6 +66,22 @@ describe('generatedSkillProblems', () => {
     }
   })
 
+  it('rejects a skill that looks at hands, which the coach cannot make yet', () => {
+    const hands = skill({
+      metrics: { curl: { type: 'angle', points: ['indexMcp', 'indexPip', 'indexDip'] } },
+      phases: [
+        { id: 'open', when: { curl: { gt: 160 } } },
+        { id: 'closed', when: { curl: { lt: 110 } } }
+      ],
+      rep: { sequence: ['open', 'closed', 'open'], minDurationMs: 800 },
+      rules: [
+        { id: 'curl', severity: 'high', check: 'min(curl) <= 100', message: { es: 'a', en: 'a' } }
+      ]
+    })
+
+    expect(generatedSkillProblems(hands).join(' ')).toContain('only body joints')
+  })
+
   it('knows which ids are generated', () => {
     expect(isGeneratedSkillId('custom_yoga')).toBe(true)
     expect(isGeneratedSkillId('squat')).toBe(false)

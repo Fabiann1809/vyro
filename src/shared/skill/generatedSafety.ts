@@ -1,3 +1,4 @@
+import { skillChannels } from './skillChannels'
 import type { SkillConfig, SkillMetric } from './skillSchema'
 
 export const GENERATED_ID_PREFIX = 'custom_'
@@ -12,7 +13,8 @@ export const isGeneratedSkillId = (id: string): boolean => id.startsWith(GENERAT
 // Values that a metric can really take. Angles and tilts are in degrees; an offset is a fraction
 // of a body segment, so a few units at most.
 function plausibleRange(metric: SkillMetric): [number, number] {
-  return metric.type === 'offset' ? [-3, 3] : [0, 180]
+  if (metric.type === 'offset') return [-3, 3]
+  return metric.type === 'gap' ? [0, 5] : [0, 180]
 }
 
 function thresholdProblems(skill: SkillConfig): string[] {
@@ -43,6 +45,10 @@ export function generatedSkillProblems(skill: SkillConfig): string[] {
   const problems: string[] = []
   if (!isGeneratedSkillId(skill.id)) {
     problems.push(`id: "${skill.id}" must start with "${GENERATED_ID_PREFIX}"`)
+  }
+  // Skills that look at hands are not made by the coach until it is taught how (see the hands channel).
+  if (skillChannels(skill).includes('hands')) {
+    problems.push('metrics: only body joints may be used for now')
   }
   if (!skill.rules.some((rule) => rule.severity === 'high')) {
     problems.push('rules: needs at least one rule with severity "high", the one that matters most')

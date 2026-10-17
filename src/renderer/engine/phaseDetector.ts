@@ -18,7 +18,8 @@ export interface PhaseUpdate {
 export const DEFAULT_HYSTERESIS: Record<MetricType, number> = {
   angle: 5,
   tilt: 5,
-  offset: 0.03
+  offset: 0.03,
+  gap: 0.03
 }
 
 type Verdict = 'yes' | 'no' | 'unknown'
