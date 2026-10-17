@@ -3,6 +3,7 @@ import type { PoseFrame } from '@renderer/core/detectionLoop'
 import type { Landmark } from '@renderer/core/landmarks'
 import type { FeedbackMessage } from '@renderer/engine/feedback'
 import type { RepQuality } from '@renderer/engine/repEvaluator'
+import type { CompletedRep } from '@renderer/engine/repCounter'
 import { buildSessionToSave } from '@renderer/engine/sessionSummary'
 import { TrainingRun, type TrainingSnapshot } from '@renderer/engine/trainingRun'
 import { localize, t, type MessageKey } from '@renderer/i18n'
@@ -12,9 +13,17 @@ import { CameraStage } from '../CameraStage'
 import { useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
 import { useSettings } from '../settingsStore'
+import { adjustSkillToPerson, type PersonalOutcome } from '../personalSkill'
 import { useSkills } from '../skillsStore'
+import { isGeneratedSkillId } from '@shared/skill/generatedSafety'
 
 const MESSAGE_VISIBLE_MS = 4000
+
+const PERSONAL_RESULT: Record<PersonalOutcome, MessageKey> = {
+  saved: 'training.personal.done',
+  unchanged: 'training.personal.same',
+  failed: 'training.personal.failed'
+}
 
 const PHASE_LABEL: Record<string, MessageKey> = {
   up: 'training.phase.up',
@@ -77,6 +86,10 @@ export function TrainingScreen(): React.JSX.Element {
   const [banner, setBanner] = useState<Banner | null>(null)
   const [paused, setPaused] = useState(false)
   const [elapsedMs, setElapsedMs] = useState(0)
+  // While true, the next repetition that is completed is the one the skill is adjusted to.
+  const [adjusting, setAdjusting] = useState(false)
+  const adjustFrom = useRef<CompletedRep | null>(null)
+  const [personalResult, setPersonalResult] = useState<PersonalOutcome | null>(null)
 
   const handleFrame = useCallback(
     (frame: PoseFrame, _smoothed: Landmark[] | null, video: HTMLVideoElement) => {
@@ -101,6 +114,18 @@ export function TrainingScreen(): React.JSX.Element {
           frame.timestampMs
         )
       }
+      const rep = runRef.current.lastRep
+      if (adjusting && skill && rep && rep !== adjustFrom.current) {
+        setAdjusting(false)
+        void adjustSkillToPerson(window.api, skill, rep).then((outcome) => {
+          setPersonalResult(outcome)
+          // The skill changed, so the session goes on with a run that uses the new thresholds.
+          if (outcome === 'saved') {
+            runRef.current = null
+            policyRef.current = null
+          }
+        })
+      }
       setSnapshot((previous) =>
         previous.repCount === next.repCount &&
         previous.phase === next.phase &&
@@ -110,8 +135,14 @@ export function TrainingScreen(): React.JSX.Element {
           : next
       )
     },
-    [skill]
+    [skill, adjusting]
   )
+
+  const startAdjusting = (): void => {
+    adjustFrom.current = runRef.current?.lastRep ?? null
+    setPersonalResult(null)
+    setAdjusting(true)
+  }
 
   const togglePause = useCallback(() => {
     const run = runRef.current
@@ -182,6 +213,15 @@ export function TrainingScreen(): React.JSX.Element {
       <header className="flex items-center gap-4 text-sm">
         <span>{t('training.privacy')}</span>
         <span className="ml-auto tabular-nums">{clock(elapsedMs)}</span>
+        {isGeneratedSkillId(skill.id) && (
+          <button
+            type="button"
+            onClick={adjusting ? () => setAdjusting(false) : startAdjusting}
+            className="rounded-md bg-slate-200 px-5 py-3 text-base dark:bg-slate-800"
+          >
+            {adjusting ? t('training.personal.cancel') : t('training.personal.start')}
+          </button>
+        )}
         <button
           type="button"
           aria-keyshortcuts="P"
@@ -199,6 +239,14 @@ export function TrainingScreen(): React.JSX.Element {
           {t('training.end')}
         </button>
       </header>
+
+      <p role="status" className="min-h-6 text-center text-lg">
+        {adjusting
+          ? t('training.personal.hint')
+          : personalResult
+            ? t(PERSONAL_RESULT[personalResult])
+            : ''}
+      </p>
 
       <div className="flex flex-1 items-start justify-center gap-6">
         <div className="relative">

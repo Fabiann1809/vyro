@@ -37,6 +37,14 @@ export class CustomSkillRepository {
     }
   }
 
+  // Replaces the JSON of a skill that exists; whether there was one.
+  updateConfig(id: string, config: unknown): boolean {
+    const result = this.db
+      .prepare('UPDATE custom_skills SET config_json = ? WHERE id = ?')
+      .run(JSON.stringify(config), id)
+    return Number(result.changes) > 0
+  }
+
   get(id: string): CustomSkillRecord | null {
     const row = this.db
       .prepare('SELECT id, config_json, status, created_at FROM custom_skills WHERE id = ?')

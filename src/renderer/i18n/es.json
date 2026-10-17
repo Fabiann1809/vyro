@@ -316,5 +316,11 @@
   "joint.knee": "rodilla",
   "joint.ankle": "tobillo",
   "joint.heel": "talón",
-  "joint.footIndex": "punta del pie"
+  "joint.footIndex": "punta del pie",
+  "training.personal.start": "Ajustar a mí",
+  "training.personal.hint": "Haz una repetición bien hecha: VYRO ajusta esta habilidad a tu cuerpo con ella.",
+  "training.personal.cancel": "Cancelar ajuste",
+  "training.personal.done": "Listo: la habilidad se ajustó a ti.",
+  "training.personal.same": "Ya encajaba contigo: no hizo falta cambiar nada.",
+  "training.personal.failed": "No se pudo guardar el ajuste."
 }

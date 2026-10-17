@@ -316,5 +316,11 @@
   "joint.knee": "knee",
   "joint.ankle": "ankle",
   "joint.heel": "heel",
-  "joint.footIndex": "toe"
+  "joint.footIndex": "toe",
+  "training.personal.start": "Adjust to me",
+  "training.personal.hint": "Do one repetition well: VYRO adjusts this skill to your body with it.",
+  "training.personal.cancel": "Cancel adjusting",
+  "training.personal.done": "Done: the skill was adjusted to you.",
+  "training.personal.same": "It already fitted you: nothing needed to change.",
+  "training.personal.failed": "The adjustment could not be saved."
 }

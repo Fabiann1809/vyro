@@ -78,3 +78,50 @@ describe('the draft', () => {
     expect(repository.list().map((record) => record.id)).toEqual(['custom_ok'])
   })
 })
+
+describe('saving the skill adjusted to the person', () => {
+  const setup = (): ReturnType<typeof createSkillHandlers> & {
+    repository: CustomSkillRepository
+  } => {
+    const repository = new CustomSkillRepository(openDatabase(':memory:'))
+    repository.save(EXAMPLE_SKILL.id, EXAMPLE_SKILL, 'approved', 1)
+    return { ...createSkillHandlers(repository), repository }
+  }
+  const adjusted = (check: string): unknown => ({
+    ...EXAMPLE_SKILL,
+    rules: EXAMPLE_SKILL.rules.map((rule) => (rule.id === 'depth' ? { ...rule, check } : rule))
+  })
+
+  it('keeps the adjusted JSON of an approved skill', () => {
+    const { saveCalibrated, repository } = setup()
+
+    expect(saveCalibrated(EXAMPLE_SKILL.id, adjusted('min(knee) <= 108'))).toBe(true)
+
+    expect(JSON.stringify(repository.get(EXAMPLE_SKILL.id)?.config)).toContain('min(knee) <= 108')
+  })
+
+  it('refuses a skill that is not valid, or that is another skill', () => {
+    const { saveCalibrated, repository } = setup()
+
+    expect(saveCalibrated(EXAMPLE_SKILL.id, adjusted('process.exit(1)'))).toBe(false)
+    expect(saveCalibrated(EXAMPLE_SKILL.id, { ...EXAMPLE_SKILL, id: 'custom_other' })).toBe(false)
+    expect(saveCalibrated(EXAMPLE_SKILL.id, 'nonsense')).toBe(false)
+    expect(JSON.stringify(repository.get(EXAMPLE_SKILL.id)?.config)).toContain('min(knee) <= 100')
+  })
+
+  it('refuses one that breaks the limits of generated skills', () => {
+    const { saveCalibrated } = setup()
+    const reckless = { ...EXAMPLE_SKILL, rep: { ...EXAMPLE_SKILL.rep, minDurationMs: 5 } }
+
+    expect(saveCalibrated(EXAMPLE_SKILL.id, reckless)).toBe(false)
+  })
+
+  it('only adjusts approved skills: not a draft, not one that does not exist', () => {
+    const { saveCalibrated, repository } = setup()
+    repository.save('custom_draft', { ...EXAMPLE_SKILL, id: 'custom_draft' }, 'draft', 2)
+
+    expect(saveCalibrated('custom_draft', { ...EXAMPLE_SKILL, id: 'custom_draft' })).toBe(false)
+    expect(saveCalibrated('custom_nothing', EXAMPLE_SKILL)).toBe(false)
+    expect(saveCalibrated(7, EXAMPLE_SKILL)).toBe(false)
+  })
+})

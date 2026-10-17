@@ -110,6 +110,14 @@ describe('CustomSkillRepository', () => {
     })
   })
 
+  it('replaces the JSON of a skill, and says when there is none', () => {
+    repository.save('custom_a', { n: 1 }, 'approved', 1)
+
+    expect(repository.updateConfig('custom_a', { n: 2 })).toBe(true)
+    expect(repository.get('custom_a')?.config).toEqual({ n: 2 })
+    expect(repository.updateConfig('custom_nothing', {})).toBe(false)
+  })
+
   it('refuses a status that does not exist', () => {
     expect(() =>
       db.exec(

@@ -41,7 +41,8 @@ const api: VyroApi = {
     listCustom: () => ipcRenderer.invoke(IPC.skillsListCustom),
     getDraft: () => ipcRenderer.invoke(IPC.skillsGetDraft),
     approveDraft: (id) => ipcRenderer.invoke(IPC.skillsApproveDraft, id),
-    discardDraft: (id) => ipcRenderer.invoke(IPC.skillsDiscardDraft, id)
+    discardDraft: (id) => ipcRenderer.invoke(IPC.skillsDiscardDraft, id),
+    saveCalibrated: (id, config) => ipcRenderer.invoke(IPC.skillsSaveCalibrated, id, config)
   },
   data: {
     deleteAll: () => ipcRenderer.invoke(IPC.dataDeleteAll)

@@ -1,5 +1,6 @@
 import type { FeedbackMessage } from './feedback'
 import type { FrameSize } from './metrics'
+import type { CompletedRep } from './repCounter'
 import type { RepQuality, RepResult } from './repEvaluator'
 import { SkillSession, type FrameInput } from './skillSession'
 import type { SkillConfig } from '@shared/skill/skillSchema'
@@ -42,6 +43,10 @@ export class TrainingRun {
 
   get results(): readonly RepResult[] {
     return this.session.repResults
+  }
+
+  get lastRep(): CompletedRep | null {
+    return this.session.lastCompletedRep
   }
 
   pause(): void {

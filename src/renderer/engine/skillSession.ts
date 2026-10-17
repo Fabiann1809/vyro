@@ -3,7 +3,7 @@ import { SideTracker, type Side } from '@renderer/core/side'
 import { LandmarkSmoother } from '@renderer/core/smoothing'
 import { FeedbackPrioritizer, type FeedbackMessage } from './feedback'
 import { computeMetrics, type FrameSize, type MetricValues } from './metrics'
-import { RepCounter, type RepEvent } from './repCounter'
+import { RepCounter, type CompletedRep, type RepEvent } from './repCounter'
 import { RepEvaluator, type RepResult } from './repEvaluator'
 import type { SkillConfig } from '@shared/skill/skillSchema'
 
@@ -49,6 +49,7 @@ export class SkillSession {
   private readonly feedback = new FeedbackPrioritizer()
   private readonly results: RepResult[] = []
   private lostSinceMs: number | undefined
+  private lastRep: CompletedRep | null = null
 
   constructor(
     private readonly skill: SkillConfig,
@@ -66,6 +67,11 @@ export class SkillSession {
   // The verdict of every repetition so far, in order.
   get repResults(): readonly RepResult[] {
     return this.results
+  }
+
+  // The frames of the last valid repetition, for the personal calibration.
+  get lastCompletedRep(): CompletedRep | null {
+    return this.lastRep
   }
 
   processFrame(input: FrameInput): FrameOutput {
@@ -87,6 +93,7 @@ export class SkillSession {
       return { side, metrics, phase: this.counter.phase, repEvent, repResult: null, feedback: null }
     }
 
+    this.lastRep = repEvent.rep
     const repResult = this.evaluator.evaluate(repEvent.rep)
     this.results.push(repResult)
     const feedback = this.feedback.onRepResult(repResult, input.timestampMs)

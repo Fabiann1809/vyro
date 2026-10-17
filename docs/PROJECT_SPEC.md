@@ -267,7 +267,7 @@ están menos detalladas que las anteriores y se afinarán al llegar a ellas.
 - [x] **T11.2 Generador de habilidad.** El LLM produce el JSON de la habilidad; se valida con `parseSkillConfig` y se repara con el error devuelto (máximo dos intentos). Solo canales soportados; mensajes en es y en. *Hecho cuando:* con un LLM falso, una salida inválida se repara y una irreparable se rechaza con mensaje claro.
 - [x] **T11.3 Límites de seguridad.** Rechazar habilidades con umbrales fuera de rangos plausibles o sin ninguna regla de seguridad; ids con prefijo `custom_`; marca de experimental. *Hecho cuando:* las pruebas cubren cada rechazo.
 - [x] **T11.4 Vista previa y aprobación.** Pantalla que explica en lenguaje claro qué medirá y qué corregirá, con aviso de que es experimental, y botones para probar o descartar. Avisa si el sistema no tiene voz en el idioma. *Hecho cuando:* una habilidad no aprobada nunca llega a Inicio.
-- [ ] **T11.5 Calibración personal.** El usuario hace una repetición buena en vivo y una función pura ajusta los umbrales con tolerancia. *Hecho cuando:* con una repetición sintética de sentadilla los umbrales calculados aceptan esa repetición y rechazan una claramente peor.
+- [x] **T11.5 Calibración personal.** El usuario hace una repetición buena en vivo y una función pura ajusta los umbrales con tolerancia. *Hecho cuando:* con una repetición sintética de sentadilla los umbrales calculados aceptan esa repetición y rechazan una claramente peor.
 - [ ] **T11.6 Eliminar habilidades generadas.** Desde Ajustes, con confirmación. *Hecho cuando:* desaparece de Inicio y de la ruta, y las sesiones ya guardadas se conservan.
 
 ### Fase 12 — Calidad, seguridad y costes de la IA

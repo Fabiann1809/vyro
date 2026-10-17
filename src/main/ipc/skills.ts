@@ -10,6 +10,7 @@ interface SkillHandlers {
   getDraft: () => CustomSkillSource | null
   approveDraft: (id: unknown) => boolean
   discardDraft: (id: unknown) => boolean
+  saveCalibrated: (id: unknown, config: unknown) => boolean
 }
 
 // What each channel does, apart from Electron so it can be tested.
@@ -40,6 +41,15 @@ export function createSkillHandlers(repository: CustomSkillRepository): SkillHan
       return repository.setStatus(draft.id, 'approved')
     },
 
+    // The adjusted skill has to be the same skill, valid, and inside the limits of generated ones.
+    saveCalibrated: (id, config) => {
+      if (typeof id !== 'string' || repository.get(id)?.status !== 'approved') return false
+      const parsed = parseSkillConfig(config)
+      if (!parsed.ok || parsed.skill.id !== id) return false
+      if (generatedSkillProblems(parsed.skill).length > 0) return false
+      return repository.updateConfig(id, config)
+    },
+
     discardDraft: (id) => {
       const draft = draftWithId(id)
       return draft ? repository.delete(draft.id) : false
@@ -53,5 +63,8 @@ export function registerSkillsIpc(repository: CustomSkillRepository): void {
   ipcMain.handle(IPC.skillsListCustom, () => handlers.listCustom())
   ipcMain.handle(IPC.skillsGetDraft, () => handlers.getDraft())
   ipcMain.handle(IPC.skillsApproveDraft, (_event, id: unknown) => handlers.approveDraft(id))
+  ipcMain.handle(IPC.skillsSaveCalibrated, (_event, id: unknown, config: unknown) =>
+    handlers.saveCalibrated(id, config)
+  )
   ipcMain.handle(IPC.skillsDiscardDraft, (_event, id: unknown) => handlers.discardDraft(id))
 }

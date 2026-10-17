@@ -31,7 +31,7 @@ export const useSkillDraft = create<SkillDraftState>(() => ({
 
 type DraftApi = {
   coach: Pick<VyroApi['coach'], 'generateSkill'>
-  skills: VyroApi['skills']
+  skills: Pick<VyroApi['skills'], 'listCustom' | 'getDraft' | 'approveDraft' | 'discardDraft'>
 }
 
 // Reads the draft the main process holds. The page checks it like any other skill.

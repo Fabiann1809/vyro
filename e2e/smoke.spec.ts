@@ -927,6 +927,45 @@ test.describe('AI coach screen', () => {
     expect(rows).toEqual([{ id: 'custom_yoga', status: 'approved' }])
   })
 
+  test('keeps a skill adjusted to the person, and refuses one that is not valid', async () => {
+    const page = await launch()
+    await makeYogaDraft(page)
+    await page.getByRole('button', { name: 'Aprobar y probar' }).click()
+    await expect(page.getByRole('heading', { level: 1, name: /Calibración/ })).toBeVisible()
+
+    const squat = JSON.parse(readFileSync('src/renderer/skills/squat.json', 'utf-8')) as {
+      rules: Array<{ id: string; check: string }>
+    }
+    const save = (check: string): Promise<boolean> =>
+      page.evaluate(
+        ([id, config]) =>
+          (
+            window as unknown as {
+              api: { skills: { saveCalibrated: (id: string, config: unknown) => Promise<boolean> } }
+            }
+          ).api.skills.saveCalibrated(id as string, config),
+        [
+          'custom_yoga',
+          {
+            ...squat,
+            id: 'custom_yoga',
+            name: { es: 'Yoga suave', en: 'Gentle yoga' },
+            rules: squat.rules.map((rule) => (rule.id === 'depth' ? { ...rule, check } : rule))
+          }
+        ] as const
+      )
+
+    expect(await save('process.exit(1)')).toBe(false)
+    expect(await save('min(knee) <= 108')).toBe(true)
+    await app?.close()
+
+    const db = new DatabaseSync(join(userData, 'vyro.db'))
+    const row = db.prepare('SELECT config_json FROM custom_skills').get() as { config_json: string }
+    db.close()
+    expect(row.config_json).toContain('min(knee) <= 108')
+    expect(row.config_json).not.toContain('process.exit')
+  })
+
   test('explains why a path cannot be made, and lets the person start again', async () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)

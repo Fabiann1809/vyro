@@ -42,7 +42,8 @@ export const IPC = {
   skillsListCustom: 'skills:list-custom',
   skillsGetDraft: 'skills:get-draft',
   skillsApproveDraft: 'skills:approve-draft',
-  skillsDiscardDraft: 'skills:discard-draft'
+  skillsDiscardDraft: 'skills:discard-draft',
+  skillsSaveCalibrated: 'skills:save-calibrated'
 } as const
 
 // The only API the renderer can call. Everything else stays in the main process.
@@ -102,6 +103,9 @@ export interface VyroApi {
     // Makes the draft one more skill; false if there is no such draft or it breaks the limits.
     approveDraft: (id: string) => Promise<boolean>
     discardDraft: (id: string) => Promise<boolean>
+    // Replaces the JSON of an approved skill with the one adjusted to the person; false if it is not
+    // valid, does not keep the id, or is not an approved skill.
+    saveCalibrated: (id: string, config: unknown) => Promise<boolean>
   }
   data: {
     // Empties the database: sessions and settings.
