@@ -25,6 +25,7 @@ export function currentSettings(): AppSettings {
     reduceMotion: store.reduceMotion,
     aiEnabled: store.aiEnabled,
     aiConsent: store.aiConsent,
+    aiDailyTokenLimit: store.aiDailyTokenLimit,
     aiProvider: store.aiProvider,
     aiModel: store.aiModel,
     aiBaseUrl: store.aiBaseUrl
@@ -55,6 +56,7 @@ export function applySettings(settings: AppSettings): void {
     store.setReduceMotion(settings.reduceMotion)
     store.setAiEnabled(settings.aiEnabled)
     store.setAiConsent(settings.aiConsent)
+    store.setAiDailyTokenLimit(settings.aiDailyTokenLimit)
     store.setAiProvider(settings.aiProvider)
     store.setAiModel(settings.aiModel)
     store.setAiBaseUrl(settings.aiBaseUrl)

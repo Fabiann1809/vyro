@@ -5,6 +5,8 @@ import { APP_NAME } from '@shared/app'
 import icon from '../../resources/icon.png?asset'
 import { ApiKeyStore, createKeyFile } from './ai/keyStore'
 import { ConfiguredLlmClient } from './ai/provider'
+import { SpendLimitedClient } from './ai/spendGuard'
+import { AiUsageRepository } from './db/aiUsageRepository'
 import { loadReviewSource } from './ai/reviewData'
 import { openDatabase, type Database } from './db/database'
 import { CustomSkillRepository } from './db/customSkillRepository'
@@ -90,9 +92,13 @@ app.whenReady().then(() => {
   registerSettingsIpc(settings, sessions, paths, customSkills, keyStore)
   registerCoachIpc({
     // The provider and the key are read again on every question, so a change in Settings counts at once.
-    llm: new ConfiguredLlmClient(
-      () => settings.getAll(),
-      () => keyStore.get()
+    llm: new SpendLimitedClient(
+      new ConfiguredLlmClient(
+        () => settings.getAll(),
+        () => keyStore.get()
+      ),
+      new AiUsageRepository(database),
+      () => settings.getAll().aiDailyTokenLimit
     ),
     getSettings: () => settings.getAll(),
     loadReview: () => loadReviewSource(progress, sessions),

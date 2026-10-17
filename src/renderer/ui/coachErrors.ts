@@ -15,6 +15,8 @@ const ERROR_TEXT: Record<CoachErrorKind, MessageKey> = {
   blocked: 'coach.error.blocked',
   'invalid-response': 'coach.error.invalid-response',
   truncated: 'coach.error.truncated',
+  'limit-reached': 'coach.error.limit-reached',
+  'too-large': 'coach.error.too-large',
   unknown: 'coach.error.unknown',
   'not-enabled': 'coach.error.not-enabled',
   'no-consent': 'coach.error.no-consent',
@@ -30,7 +32,8 @@ const NEEDS_SETTINGS: ReadonlySet<CoachErrorKind> = new Set([
   'not-configured',
   'not-enabled',
   'no-consent',
-  'request'
+  'request',
+  'limit-reached'
 ])
 
 export function coachErrorMessage(error: CoachError): string {

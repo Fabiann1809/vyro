@@ -18,6 +18,8 @@ const MESSAGES: Record<LlmErrorKind, string> = {
   blocked: 'Some of the data is not allowed to leave the app, so nothing was sent.',
   'invalid-response': 'The answer did not match the expected format.',
   truncated: 'The answer was cut off because it was too long.',
+  'limit-reached': 'The daily limit of AI use has been reached, so nothing was sent.',
+  'too-large': 'The request is too large to send.',
   unknown: 'The AI request failed.'
 }
 

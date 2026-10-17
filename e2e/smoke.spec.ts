@@ -353,6 +353,40 @@ test.describe('AI coach screen', () => {
     expect(messages.slice(1)).toEqual([{ role: 'user', content: 'Quiero mejorar mi sentadilla' }])
   })
 
+  test('counts what it uses, and at the daily limit asks nothing of the provider', async () => {
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+    const limit = page.getByLabel('Límite diario de uso (tokens)')
+    await limit.fill('10000')
+    await limit.blur()
+    await nav(page, 'Coach').click()
+    await page.getByLabel('Tu mensaje').fill('Hola')
+    await page.getByRole('button', { name: 'Enviar' }).click()
+    await expect(page.getByText(REPLY)).toBeVisible()
+    expect(provider.received).toHaveLength(1)
+    await app?.close()
+
+    // The day's use was kept as a number; the rest of the day is used up.
+    const today = new Date()
+    const day = [today.getFullYear(), today.getMonth() + 1, today.getDate()]
+      .map((part, index) => String(part).padStart(index === 0 ? 4 : 2, '0'))
+      .join('-')
+    const db = new DatabaseSync(join(userData, 'vyro.db'))
+    const used = db.prepare('SELECT tokens FROM ai_usage WHERE day = ?').get(day) as
+      { tokens: number } | undefined
+    expect(used?.tokens).toBeGreaterThan(0)
+    db.prepare('UPDATE ai_usage SET tokens = 10000 WHERE day = ?').run(day)
+    db.close()
+
+    const again = await launch()
+    await nav(again, 'Coach').click()
+    await again.getByLabel('Tu mensaje').fill('Otra pregunta')
+    await again.getByRole('button', { name: 'Enviar' }).click()
+
+    await expect(again.getByRole('alert')).toContainText('límite diario')
+    expect(provider.received).toHaveLength(1)
+  })
+
   test('keeps the whole conversation in what it sends next, and starts over when asked', async () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)

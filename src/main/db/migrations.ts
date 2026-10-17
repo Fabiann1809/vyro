@@ -81,5 +81,14 @@ export const MIGRATIONS: readonly Migration[] = [
         created_at INTEGER NOT NULL
       );
     `
+  },
+  {
+    version: 4,
+    sql: `
+      CREATE TABLE ai_usage (
+        day TEXT PRIMARY KEY,
+        tokens INTEGER NOT NULL
+      );
+    `
   }
 ]

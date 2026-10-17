@@ -20,6 +20,10 @@ export type LlmErrorKind =
   | 'invalid-response'
   // The answer was cut off by the token limit: asking again as is would cut it off again.
   | 'truncated'
+  // The day's limit of tokens is used up, so nothing was sent.
+  | 'limit-reached'
+  // The question alone is bigger than a single request may be, so nothing was sent.
+  | 'too-large'
   | 'unknown'
 
 export type CoachErrorKind =

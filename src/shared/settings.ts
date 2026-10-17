@@ -19,12 +19,19 @@ export interface AppSettings {
   aiEnabled: boolean
   // The person read what is sent and to whom, and accepted. Without it nothing is sent.
   aiConsent: boolean
+  // Tokens the coach may use in a day (an estimate, since not every provider counts them).
+  aiDailyTokenLimit: number
   aiProvider: AiProviderId
   // A model the user typed, for every kind of request; null uses the provider's own choice.
   aiModel: string | null
   // Only for the "custom" provider.
   aiBaseUrl: string | null
 }
+
+// About a hundred chat answers or a few dozen paths: a few cents to a dollar or two with Claude.
+export const DEFAULT_DAILY_TOKEN_LIMIT = 200_000
+export const MIN_DAILY_TOKEN_LIMIT = 10_000
+export const MAX_DAILY_TOKEN_LIMIT = 5_000_000
 
 // Dark by default: it reduces glare and makes the video stand out.
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -37,6 +44,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   reduceMotion: false,
   aiEnabled: false,
   aiConsent: false,
+  aiDailyTokenLimit: DEFAULT_DAILY_TOKEN_LIMIT,
   aiProvider: 'claude',
   aiModel: null,
   aiBaseUrl: null
@@ -53,6 +61,7 @@ export const settingSchemas = {
   reduceMotion: z.boolean(),
   aiEnabled: z.boolean(),
   aiConsent: z.boolean(),
+  aiDailyTokenLimit: z.number().int().min(MIN_DAILY_TOKEN_LIMIT).max(MAX_DAILY_TOKEN_LIMIT),
   aiProvider: z.enum(AI_PROVIDER_IDS as [AiProviderId, ...AiProviderId[]]),
   aiModel: z.string().trim().min(1).max(100).nullable(),
   aiBaseUrl: z.string().max(300).refine(isSafeAiBaseUrl, 'Not a safe address').nullable()

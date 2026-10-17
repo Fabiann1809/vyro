@@ -7,6 +7,11 @@ import {
   isSafeAiBaseUrl,
   type AiProviderId
 } from '@shared/aiProviders'
+import {
+  DEFAULT_DAILY_TOKEN_LIMIT,
+  MAX_DAILY_TOKEN_LIMIT,
+  MIN_DAILY_TOKEN_LIMIT
+} from '@shared/settings'
 import { useSettings } from './settingsStore'
 
 const PROVIDER_LABEL: Record<AiProviderId, MessageKey> = {
@@ -32,6 +37,7 @@ export function AiSettings(): React.JSX.Element {
   const [modelDraft, setModelDraft] = useState(settings.aiModel ?? '')
   const [urlDraft, setUrlDraft] = useState(settings.aiBaseUrl ?? '')
   const [urlInvalid, setUrlInvalid] = useState(false)
+  const [limitDraft, setLimitDraft] = useState(String(settings.aiDailyTokenLimit))
   // The consent is asked the first time the switch is turned on.
   const [askingConsent, setAskingConsent] = useState(false)
   // Bumped to ask for the status again after the key changes.
@@ -81,6 +87,18 @@ export function AiSettings(): React.JSX.Element {
   const commitModel = (): void => {
     const model = modelDraft.trim().slice(0, MAX_MODEL_LENGTH)
     settings.setAiModel(model === '' ? null : model)
+  }
+
+  // Whatever is typed ends up inside the allowed range; text that is not a number goes back to
+  // what was saved.
+  const commitLimit = (): void => {
+    const typed = Math.round(Number(limitDraft))
+    const next =
+      Number.isFinite(typed) && limitDraft.trim() !== ''
+        ? Math.min(MAX_DAILY_TOKEN_LIMIT, Math.max(MIN_DAILY_TOKEN_LIMIT, typed))
+        : settings.aiDailyTokenLimit
+    setLimitDraft(String(next))
+    settings.setAiDailyTokenLimit(next)
   }
 
   const commitUrl = (): void => {
@@ -156,6 +174,24 @@ export function AiSettings(): React.JSX.Element {
           {urlInvalid && <p role="alert">{t('settings.ai.baseUrlInvalid')}</p>}
         </div>
       )}
+
+      <label className="flex flex-wrap items-center gap-3">
+        {t('settings.ai.dailyLimit')}
+        <input
+          type="number"
+          inputMode="numeric"
+          min={MIN_DAILY_TOKEN_LIMIT}
+          max={MAX_DAILY_TOKEN_LIMIT}
+          step={10_000}
+          value={limitDraft}
+          onChange={(event) => setLimitDraft(event.target.value)}
+          onBlur={commitLimit}
+          className={inputClass}
+        />
+      </label>
+      <p className="text-slate-600 dark:text-slate-400">
+        {t('settings.ai.dailyLimitHint', { tokens: DEFAULT_DAILY_TOKEN_LIMIT.toLocaleString() })}
+      </p>
 
       <label className="flex items-center gap-3">
         <input

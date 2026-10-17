@@ -272,7 +272,7 @@ están menos detalladas que las anteriores y se afinarán al llegar a ellas.
 
 ### Fase 12 — Calidad, seguridad y costes de la IA
 - [x] **T12.1 Consentimiento y aviso.** Pantalla de consentimiento la primera vez que se activa la IA, con el aviso de que las rutas no son consejo médico y de que algunos proveedores gratuitos pueden usar lo enviado para mejorar sus productos (solo texto y números). *Hecho cuando:* sin aceptar no se puede enviar nada.
-- [ ] **T12.2 Límites de gasto.** Tope de tokens por petición, límite diario configurable y mensaje claro al alcanzarlo. *Hecho cuando:* las pruebas confirman que al llegar al límite no se llama a la API.
+- [x] **T12.2 Límites de gasto.** Tope de tokens por petición, límite diario configurable y mensaje claro al alcanzarlo. *Hecho cuando:* las pruebas confirman que al llegar al límite no se llama a la API.
 - [ ] **T12.3 Prueba de privacidad de extremo a extremo.** Intercepta lo que sale de la app durante un flujo completo del coach. *Hecho cuando:* solo hay texto y números permitidos y ninguna petición al exterior sin la IA activada.
 - [ ] **T12.4 Prueba e2e del coach.** Playwright con un cliente falso. *Hecho cuando:* chat, ruta y habilidad generada se recorren en CI sin red.
 - [ ] **T12.5 Documentación.** README y guía de IA (obtener una clave o usar un nivel gratuito, qué se envía, cuánto cuesta aproximadamente, cómo borrarlo). *Hecho cuando:* un usuario nuevo puede activar la IA y entender sus límites.
@@ -336,7 +336,7 @@ Vista frontal, detección de fatiga, clips de errores, modelos propios que juzgu
 - Estructura final de pantallas según el diseño de Claude Design.
 - Logo e icono de VYRO.
 - Texto del aviso de consentimiento de la IA (T12.1).
-- Límite de gasto diario por defecto (T12.2).
+- Límite de gasto diario por defecto (T12.2): decidido en 200 000 tokens al día, configurable.
 - Imágenes de entrenamiento de los objetos: fuente y licencia (T15.1).
 
 ## 12. Convenciones del repositorio

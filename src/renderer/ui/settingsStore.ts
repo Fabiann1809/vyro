@@ -14,6 +14,7 @@ interface SettingsState {
   reduceMotion: boolean
   aiEnabled: boolean
   aiConsent: boolean
+  aiDailyTokenLimit: number
   aiProvider: AiProviderId
   aiModel: string | null
   aiBaseUrl: string | null
@@ -25,6 +26,7 @@ interface SettingsState {
   setReduceMotion: (reduceMotion: boolean) => void
   setAiEnabled: (aiEnabled: boolean) => void
   setAiConsent: (aiConsent: boolean) => void
+  setAiDailyTokenLimit: (aiDailyTokenLimit: number) => void
   setAiProvider: (aiProvider: AiProviderId) => void
   setAiModel: (aiModel: string | null) => void
   setAiBaseUrl: (aiBaseUrl: string | null) => void
@@ -41,6 +43,7 @@ export const useSettings = create<SettingsState>((set) => ({
   reduceMotion: DEFAULT_SETTINGS.reduceMotion,
   aiEnabled: DEFAULT_SETTINGS.aiEnabled,
   aiConsent: DEFAULT_SETTINGS.aiConsent,
+  aiDailyTokenLimit: DEFAULT_SETTINGS.aiDailyTokenLimit,
   aiProvider: DEFAULT_SETTINGS.aiProvider,
   aiModel: DEFAULT_SETTINGS.aiModel,
   aiBaseUrl: DEFAULT_SETTINGS.aiBaseUrl,
@@ -56,6 +59,7 @@ export const useSettings = create<SettingsState>((set) => ({
   setReduceMotion: (reduceMotion) => set({ reduceMotion }),
   setAiEnabled: (aiEnabled) => set({ aiEnabled }),
   setAiConsent: (aiConsent) => set({ aiConsent }),
+  setAiDailyTokenLimit: (aiDailyTokenLimit) => set({ aiDailyTokenLimit }),
   setAiProvider: (aiProvider) => set({ aiProvider }),
   setAiModel: (aiModel) => set({ aiModel }),
   setAiBaseUrl: (aiBaseUrl) => set({ aiBaseUrl })
