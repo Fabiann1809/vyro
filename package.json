@@ -23,6 +23,7 @@
     "package:dir": "pnpm build && electron-builder --dir"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.135.0",
     "@electron-toolkit/utils": "4.0.0",
     "@mediapipe/tasks-vision": "1.1.1",
     "i18next": "26.4.6",
