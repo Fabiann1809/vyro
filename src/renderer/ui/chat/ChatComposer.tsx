@@ -12,7 +12,9 @@ export function ChatComposer({
   onSend,
   disabled,
   placeholder,
-  variant
+  variant,
+  label = t('coach.input.label'),
+  maxLength = MAX_COACH_TURN_LENGTH
 }: {
   value: string
   onChange: (value: string) => void
@@ -20,6 +22,9 @@ export function ChatComposer({
   disabled: boolean
   placeholder: string
   variant: 'hero' | 'dock'
+  // What a screen reader calls the box.
+  label?: string
+  maxLength?: number
 }): React.JSX.Element {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const hero = variant === 'hero'
@@ -44,11 +49,11 @@ export function ChatComposer({
         ref={inputRef}
         data-composer
         rows={1}
-        maxLength={MAX_COACH_TURN_LENGTH}
+        maxLength={maxLength}
         value={value}
         disabled={disabled}
         placeholder={placeholder}
-        aria-label={t('coach.input.label')}
+        aria-label={label}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => {
           // Not while an input method is composing a character.

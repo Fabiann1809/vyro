@@ -1,5 +1,7 @@
 # VYRO — Brief de UX y diseño de interfaz
 
+> **Nota (fase 16):** este brief describe las pantallas del MVP. La interfaz se rediseñó siguiendo el prototipo de Claude Design: el Inicio es el chat con el coach, Progreso pasó a ser el Tablero y aparecen Mi ruta, Biblioteca y Cómo funciona. Para el diseño vigente, ver `docs/UI_REDESIGN.md` (qué se pidió) y `docs/DESIGN_SYSTEM.md` (qué se implementó). Los principios de las secciones 3, 4, 9, 10 y 11 siguen vigentes.
+>
 > Documento de contexto para generar la interfaz y la experiencia de usuario con Claude Design.
 > Todo el texto de cara al usuario es en **español** (inglés después). Plataforma: **escritorio** (Windows, macOS, Linux).
 

@@ -2,12 +2,16 @@ import { useEffect, useState } from 'react'
 import { t } from '@renderer/i18n'
 import { voice } from '@renderer/voice'
 import { MAX_SKILL_DESCRIPTION } from '@shared/skillGeneration'
+import { ChatComposer } from '../chat/ChatComposer'
 import { CoachErrorNotice } from '../CoachErrorNotice'
-import { MessageBox } from '../Conversation'
 import { channelList, REASON_TEXT } from '../feasibilityText'
+import { Button } from '../kit/Button'
+import { Card } from '../kit/Card'
+import { CoachAvatar } from '../kit/CoachAvatar'
 import { useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
 import { useSettings } from '../settingsStore'
+import { openSettings } from '../settingsTabStore'
 import {
   approveDraft,
   discardDraft,
@@ -32,14 +36,16 @@ function Refusal({ refusal }: { refusal: SkillRefusal }): React.JSX.Element {
   }
   return (
     <>
-      <p>{t('skill.refusal.outOfScope')}</p>
-      <ul className="list-inside list-disc">
+      <p className="font-semibold">{t('skill.refusal.outOfScope')}</p>
+      <ul className="flex list-inside list-disc flex-col gap-1 text-t4">
         {refusal.reasons.map((reason) => (
           <li key={reason}>{t(REASON_TEXT[reason])}</li>
         ))}
       </ul>
       {refusal.measurable.length > 0 && (
-        <p>{t('path.outcome.measurable', { channels: channelList(refusal.measurable) })}</p>
+        <p className="text-mut">
+          {t('path.outcome.measurable', { channels: channelList(refusal.measurable) })}
+        </p>
       )}
     </>
   )
@@ -48,8 +54,8 @@ function Refusal({ refusal }: { refusal: SkillRefusal }): React.JSX.Element {
 function List({ title, items }: { title: string; items: string[] }): React.JSX.Element {
   return (
     <div>
-      <h3 className="font-semibold">{title}</h3>
-      <ul className="list-inside list-disc">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      <ul className="mt-1.5 flex list-inside list-disc flex-col gap-1 text-[0.9rem] text-t4">
         {items.map((item) => (
           <li key={item}>{item}</li>
         ))}
@@ -96,36 +102,38 @@ export function SkillCreateScreen(): React.JSX.Element {
   const lacksVoice = !voice.hasSystemVoice(language)
 
   return (
-    <section className="flex w-full max-w-3xl flex-col gap-4 self-start p-6">
-      <header className="flex flex-wrap items-baseline gap-4">
-        <h1 className="text-3xl font-semibold">{t('screen.skillNew.title')}</h1>
-        <button
-          type="button"
+    <section className="mx-auto flex h-full w-full max-w-190 flex-col gap-5 self-start overflow-y-auto px-8 pt-8 pb-12">
+      <header className="flex flex-wrap items-center gap-4">
+        <CoachAvatar size={44} />
+        <h1 className="font-display text-[1.875rem] leading-tight font-semibold tracking-tight">
+          {t('screen.skillNew.title')}
+        </h1>
+        <Button
+          variant="ghost"
+          className="ml-auto"
           onClick={() => {
             resetSkillDraft()
-            go('home')
+            go('library')
           }}
-          className="ml-auto rounded-md bg-slate-200 px-3 py-1.5 text-sm dark:bg-slate-800"
         >
           {t('skill.new.back')}
-        </button>
+        </Button>
       </header>
 
       {!aiEnabled && preview === null ? (
-        <div className="flex flex-col items-start gap-3">
-          <p>{t('skill.new.off')}</p>
-          <button
-            type="button"
-            onClick={() => go('settings')}
-            className="rounded-md bg-emerald-700 px-4 py-2 text-white"
-          >
-            {t('coach.openSettings')}
-          </button>
-        </div>
+        <Card className="flex flex-col items-start gap-4 p-6">
+          <p className="text-t4">{t('skill.new.off')}</p>
+          <Button onClick={() => openSettings('ai')}>{t('coach.openSettings')}</Button>
+        </Card>
       ) : (
         <>
-          {preview === null && <p>{t('skill.new.intro')}</p>}
-          {pending && <p role="status">{t('skill.new.thinking')}</p>}
+          {preview === null && <p className="text-lg text-mut">{t('skill.new.intro')}</p>}
+          {pending && (
+            <p role="status" className="flex items-center gap-3 text-sm text-mut">
+              <CoachAvatar thinking size={30} />
+              {t('skill.new.thinking')}
+            </p>
+          )}
           {error && (
             <CoachErrorNotice
               error={error}
@@ -134,32 +142,39 @@ export function SkillCreateScreen(): React.JSX.Element {
           )}
 
           {refusal && (
-            <div role="status" className="flex flex-col items-start gap-2">
+            <Card role="status" className="flex flex-col items-start gap-2.5 p-6">
               <Refusal refusal={refusal} />
-            </div>
+            </Card>
           )}
 
           {preview && (
-            <div className="flex flex-col gap-3">
+            <Card raised className="flex flex-col gap-4 p-6.5">
               <h2 className="text-xl font-semibold">{t('skill.preview.title')}</h2>
-              <p className="text-lg">{preview.name}</p>
-              <p role="note" className="rounded-md border border-amber-600 p-3">
+              <p className="font-display text-2xl font-semibold tracking-tight">{preview.name}</p>
+              <p
+                role="note"
+                className="rounded-2xl border border-dashed border-warn p-4 text-sm leading-normal"
+              >
                 {t('skill.preview.experimental')}
               </p>
-              {lacksVoice && <p role="note">{t('skill.preview.noVoice')}</p>}
+              {lacksVoice && (
+                <p role="note" className="text-sm text-warn-text">
+                  {t('skill.preview.noVoice')}
+                </p>
+              )}
               <div>
-                <h3 className="font-semibold">{t('skill.preview.camera')}</h3>
-                <p>{preview.camera}</p>
+                <h3 className="text-sm font-semibold">{t('skill.preview.camera')}</h3>
+                <p className="mt-1 text-[0.9rem] text-t4">{preview.camera}</p>
               </div>
               <List title={t('skill.preview.metrics')} items={preview.metrics} />
               <List title={t('skill.preview.phases')} items={preview.phases} />
               <div>
-                <h3 className="font-semibold">{t('skill.preview.repetition')}</h3>
-                <p>{preview.repetition}</p>
+                <h3 className="text-sm font-semibold">{t('skill.preview.repetition')}</h3>
+                <p className="mt-1 text-[0.9rem] text-t4">{preview.repetition}</p>
               </div>
               <div>
-                <h3 className="font-semibold">{t('skill.preview.rules')}</h3>
-                <ul className="list-inside list-disc">
+                <h3 className="text-sm font-semibold">{t('skill.preview.rules')}</h3>
+                <ul className="mt-1.5 flex list-inside list-disc flex-col gap-1 text-[0.9rem] text-t4">
                   {preview.rules.map((rule) => (
                     <li key={rule.message}>
                       {rule.message} ({rule.severity})
@@ -167,34 +182,32 @@ export function SkillCreateScreen(): React.JSX.Element {
                   ))}
                 </ul>
               </div>
-              {actionFailed && <p role="alert">{t('skill.preview.failed')}</p>}
-              <div className="flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={tryIt}
-                  className="rounded-md bg-emerald-700 px-4 py-2 text-white"
-                >
+              {actionFailed && (
+                <p role="alert" className="text-sm text-bad-text">
+                  {t('skill.preview.failed')}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-2.5">
+                <Button size="lg" onClick={tryIt}>
                   {t('skill.preview.try')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void discardDraft(window.api)}
-                  className="rounded-md bg-slate-200 px-4 py-2 dark:bg-slate-800"
-                >
+                </Button>
+                <Button size="lg" variant="secondary" onClick={() => void discardDraft(window.api)}>
                   {t('skill.preview.discard')}
-                </button>
+                </Button>
               </div>
-            </div>
+            </Card>
           )}
 
           {preview === null && aiEnabled && (
-            <MessageBox
+            <ChatComposer
+              variant="dock"
               label={t('skill.new.input')}
+              placeholder={t('skill.new.placeholder')}
+              maxLength={MAX_SKILL_DESCRIPTION}
               value={description}
               onChange={setDescription}
               onSend={send}
               disabled={pending}
-              maxLength={MAX_SKILL_DESCRIPTION}
             />
           )}
         </>

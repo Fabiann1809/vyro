@@ -33,18 +33,15 @@ export function RecorderControls({ onStart, onStop, getFrameCount }: Props): Rea
   }
 
   return (
-    <div data-testid="recorder" className="flex items-center gap-2 text-sm text-slate-300">
+    <div data-testid="recorder" className="flex items-center gap-2 text-sm text-t4">
       <input
         value={label}
         onChange={(event) => setLabel(event.target.value)}
         disabled={recording}
         aria-label={t('recorder.label')}
-        className="rounded bg-slate-800 px-2 py-1 text-slate-100 disabled:opacity-50"
+        className="rounded bg-fill px-2 py-1 text-t1 disabled:opacity-50"
       />
-      <button
-        onClick={toggle}
-        className="rounded bg-slate-700 px-3 py-1 text-slate-100 hover:bg-slate-600"
-      >
+      <button onClick={toggle} className="rounded bg-seg px-3 py-1 text-t1 hover:bg-fill">
         {recording ? t('recorder.stop') : t('recorder.start')}
       </button>
       {recording && <span>{t('recorder.frames', { count: frames })}</span>}

@@ -33,7 +33,7 @@ export function DebugPanel({
   return (
     <div
       data-testid="debug-panel"
-      className="absolute top-2 left-2 rounded bg-black/60 px-2 py-1 font-mono text-xs text-emerald-300"
+      className="absolute top-2 left-2 rounded bg-black/60 px-2 py-1 font-mono text-xs text-good"
     >
       <div>{t('debug.camera', { fps: snapshot.cameraFps.toFixed(1) })}</div>
       <div>{t('debug.detection', { fps: snapshot.detectionFps.toFixed(1) })}</div>

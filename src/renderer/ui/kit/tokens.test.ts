@@ -10,13 +10,22 @@ const css = readFileSync(resolve(__dirname, '../../styles.css'), 'utf-8')
 type Theme = 'dark' | 'light'
 
 function tokens(theme: Theme): Record<string, string> {
-  const selector =
-    theme === 'dark' ? ":root,\n:root[data-theme='dark']" : ":root[data-theme='light']"
+  // The dark tokens open the first block of the file, the light ones have a block of their own.
+  const selector = theme === 'dark' ? ':root,' : ":root[data-theme='light']"
   const start = css.indexOf(selector)
   const body = css.slice(css.indexOf('{', start) + 1, css.indexOf('}', start))
   const found: Record<string, string> = {}
   for (const match of body.matchAll(/--([\w-]+):\s*([^;]+);/g)) found[match[1]!] = match[2]!.trim()
   return found
+}
+
+// The focus ring colour is declared apart from the other tokens (see the top of styles.css): first the
+// one of the light page, then the one of the dark page.
+function focusOf(theme: Theme): string {
+  const found = [...css.matchAll(/--focus:\s*(#[0-9a-f]{6});/gi)].map((match) => match[1]!)
+  const colour = theme === 'light' ? found[0] : found[1]
+  if (!colour) throw new Error(`no focus colour for the ${theme} theme`)
+  return colour
 }
 
 type Rgb = [number, number, number]
@@ -91,6 +100,17 @@ describe.each<Theme>(['dark', 'light'])('colours of the %s theme', (theme) => {
 
   it.each(['good', 'warn', 'bad'])('shows %s as a fill against the card', (name) => {
     expect(contrast(colors[name]!, colors['card']!)).toBeGreaterThanOrEqual(AA_NON_TEXT)
+  })
+})
+
+// The ring that shows where the keyboard is must stand out from the page in both themes.
+describe.each<Theme>(['dark', 'light'])('keyboard focus in the %s theme', (theme) => {
+  it('is visible against the page and the cards', () => {
+    const colors = tokens(theme)
+    const focus = colors['focus'] ?? focusOf(theme)
+
+    expect(contrast(focus, colors['bg']!)).toBeGreaterThanOrEqual(AA_NON_TEXT)
+    expect(contrast(focus, colors['card']!)).toBeGreaterThanOrEqual(AA_NON_TEXT)
   })
 })
 

@@ -115,7 +115,7 @@ export function CameraPreview(): React.JSX.Element {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      {status === 'starting' && <p className="text-slate-300">{t('camera.starting')}</p>}
+      {status === 'starting' && <p className="text-t4">{t('camera.starting')}</p>}
       <div className="relative w-fit">
         <video
           ref={videoRef}
@@ -133,7 +133,7 @@ export function CameraPreview(): React.JSX.Element {
           className="pointer-events-none absolute inset-0 h-full w-full"
         />
       </div>
-      <p role="status" className="text-sm text-slate-400">
+      <p role="status" className="text-sm text-mut">
         {pose.status === 'loading' && t('pose.loading')}
         {pose.status === 'ready' && t('pose.ready', { delegate: pose.delegate ?? '' })}
         {pose.status === 'error' && t('pose.error')}
@@ -148,7 +148,7 @@ export function CameraPreview(): React.JSX.Element {
       <select
         value={activeDeviceId ?? ''}
         onChange={(event) => selectDevice(event.target.value)}
-        className="rounded bg-slate-800 px-3 py-2 text-slate-100"
+        className="rounded-xl bg-fill px-3 py-2 text-t1"
       >
         {devices.map((device, index) => (
           <option key={device.deviceId} value={device.deviceId}>

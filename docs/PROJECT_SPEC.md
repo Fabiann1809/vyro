@@ -322,7 +322,7 @@ Sigue el prototipo de Claude Design (resumido en `docs/DESIGN_SYSTEM.md`; el bri
 - [x] **T16.12 Cómo funciona.** Pantalla de cuatro pasos con ilustraciones propias (SVG) y los tres bloques de confianza. *Hecho cuando:* se abre desde la barra y desde el chat sin red.
 - [x] **T16.13 Ajustes por secciones.** Navegación interna (General, Voz, Cámara, Micrófono, Coach con IA, Habilidades generadas, Privacidad y datos, Acerca de) con los grupos actuales en el nuevo estilo y la barra del gasto del día frente al límite. *Hecho cuando:* ningún ajuste existente se pierde y las pruebas e2e de ajustes siguen pasando.
 - [x] **T16.14 Transiciones.** La tarjeta se expande hasta la calibración, entrada suave entre pantallas, gráficas que se dibujan, anillo que se llena, destello al cumplir un paso y cambio de tema con fundido; todo con alternativa sin movimiento. *Hecho cuando:* con "reducir movimiento" no queda ninguna animación y las pruebas lo comprueban.
-- [ ] **T16.15 Limpieza y cierre.** Quitar los componentes y textos del diseño anterior, la dependencia de gráficas que ya no se use, y dejar `UX_BRIEF.md` apuntando al rediseño. *Hecho cuando:* no hay código sin usar, las pruebas e2e pasan y la documentación describe las pantallas nuevas.
+- [x] **T16.15 Limpieza y cierre.** Quitar los componentes y textos del diseño anterior, la dependencia de gráficas que ya no se use, y dejar `UX_BRIEF.md` apuntando al rediseño. *Hecho cuando:* no hay código sin usar, las pruebas e2e pasan y la documentación describe las pantallas nuevas.
 
 ### Aplazado
 Vista frontal, detección de fatiga, clips de errores, modelos propios que juzguen técnica, firma de código y auto-actualización, módulos de comunidad.
