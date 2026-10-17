@@ -229,6 +229,19 @@ export class PathRepository {
     )
   }
 
+  // Closes the path on show if it has a step that practises this skill, which cannot be done any
+  // more; whether there was one. The path and its progress are kept, only no longer followed.
+  archiveUsingSkill(skillId: string): boolean {
+    const { changes } = this.db
+      .prepare(
+        `UPDATE learning_paths SET status = 'archived'
+         WHERE status IN ('active', 'completed')
+           AND id IN (SELECT path_id FROM path_steps WHERE skill_id = ?)`
+      )
+      .run(skillId)
+    return changes > 0
+  }
+
   delete(pathId: number): boolean {
     const { changes } = this.db.prepare('DELETE FROM learning_paths WHERE id = ?').run(pathId)
     return changes > 0

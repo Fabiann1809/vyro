@@ -86,7 +86,7 @@ app.whenReady().then(() => {
   const progress = new PathProgressService(paths, sessions)
   const customSkills = new CustomSkillRepository(database)
   registerPathsIpc(paths, progress)
-  registerSkillsIpc(customSkills)
+  registerSkillsIpc(customSkills, paths)
   registerSettingsIpc(settings, sessions, paths, customSkills, keyStore)
   registerCoachIpc({
     // The provider and the key are read again on every question, so a change in Settings counts at once.

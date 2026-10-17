@@ -966,6 +966,51 @@ test.describe('AI coach screen', () => {
     expect(row.config_json).not.toContain('process.exit')
   })
 
+  test('deletes a generated skill from Settings after asking, and keeps its sessions', async () => {
+    const page = await launch()
+    await makeYogaDraft(page)
+    await page.getByRole('button', { name: 'Aprobar y probar' }).click()
+    await page.getByRole('button', { name: 'Cancelar' }).click()
+    await expect(page.getByRole('button', { name: 'Yoga suave' })).toBeVisible()
+
+    await page.evaluate(() =>
+      (
+        window as unknown as {
+          api: { sessions: { save: (session: unknown) => Promise<number> } }
+        }
+      ).api.sessions.save({
+        skillId: 'custom_yoga',
+        startedAt: 1,
+        durationMs: 1000,
+        score: 100,
+        reps: [{ index: 1, quality: 'good', durationMs: 900, failedRuleIds: [] }]
+      })
+    )
+
+    await nav(page, 'Ajustes').click()
+    await page.getByRole('button', { name: 'Eliminar Yoga suave' }).click()
+    // Asking first: nothing is deleted yet, and cancelling leaves the skill.
+    await page.getByRole('button', { name: 'Cancelar' }).click()
+    await nav(page, 'Inicio').click()
+    await expect(page.getByRole('button', { name: 'Yoga suave' })).toBeVisible()
+
+    await nav(page, 'Ajustes').click()
+    await page.getByRole('button', { name: 'Eliminar Yoga suave' }).click()
+    await page.getByRole('button', { name: 'Sí, eliminar' }).click()
+    await expect(page.getByText('Habilidad eliminada.')).toBeVisible()
+
+    await nav(page, 'Inicio').click()
+    await expect(page.getByRole('button', { name: 'Yoga suave' })).toHaveCount(0)
+    await app?.close()
+
+    const db = new DatabaseSync(join(userData, 'vyro.db'))
+    const skills = db.prepare('SELECT id FROM custom_skills').all()
+    const sessions = db.prepare('SELECT skill_id FROM sessions').all()
+    db.close()
+    expect(skills).toEqual([])
+    expect(sessions).toEqual([{ skill_id: 'custom_yoga' }])
+  })
+
   test('explains why a path cannot be made, and lets the person start again', async () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)

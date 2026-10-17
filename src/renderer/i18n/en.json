@@ -322,5 +322,13 @@
   "training.personal.cancel": "Cancel adjusting",
   "training.personal.done": "Done: the skill was adjusted to you.",
   "training.personal.same": "It already fitted you: nothing needed to change.",
-  "training.personal.failed": "The adjustment could not be saved."
+  "training.personal.failed": "The adjustment could not be saved.",
+  "settings.skills": "Skills made with AI",
+  "settings.skills.empty": "You have not made any skill with the AI yet.",
+  "settings.skills.delete": "Delete {name}",
+  "settings.skills.question": "Delete the skill {name}? Your saved sessions are kept. If your current path uses it, it will no longer be followed.",
+  "settings.skills.confirm": "Yes, delete",
+  "settings.skills.cancel": "Cancel",
+  "settings.skills.done": "Skill deleted.",
+  "settings.skills.failed": "The skill could not be deleted."
 }

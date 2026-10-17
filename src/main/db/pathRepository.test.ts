@@ -366,4 +366,24 @@ describe('applying the adjustments of a review', () => {
 
     expect(titles(other)).toHaveLength(3)
   })
+
+  describe('archiveUsingSkill', () => {
+    it('closes the path on show that practises the skill', () => {
+      const repository = new PathRepository(db)
+      repository.create(path(), 1)
+
+      expect(repository.archiveUsingSkill('pushup')).toBe(true)
+
+      expect(repository.getCurrent()).toBeNull()
+    })
+
+    it('leaves alone a path that does not use it', () => {
+      const repository = new PathRepository(db)
+      repository.create(path(), 1)
+
+      expect(repository.archiveUsingSkill('bicep_curl')).toBe(false)
+
+      expect(repository.getCurrent()).not.toBeNull()
+    })
+  })
 })

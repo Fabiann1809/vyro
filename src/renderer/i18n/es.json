@@ -322,5 +322,13 @@
   "training.personal.cancel": "Cancelar ajuste",
   "training.personal.done": "Listo: la habilidad se ajustó a ti.",
   "training.personal.same": "Ya encajaba contigo: no hizo falta cambiar nada.",
-  "training.personal.failed": "No se pudo guardar el ajuste."
+  "training.personal.failed": "No se pudo guardar el ajuste.",
+  "settings.skills": "Habilidades creadas con IA",
+  "settings.skills.empty": "Todavía no has creado ninguna habilidad con la IA.",
+  "settings.skills.delete": "Eliminar {name}",
+  "settings.skills.question": "¿Eliminar la habilidad {name}? Tus sesiones guardadas se conservan. Si tu ruta actual la usa, dejará de seguirse.",
+  "settings.skills.confirm": "Sí, eliminar",
+  "settings.skills.cancel": "Cancelar",
+  "settings.skills.done": "Habilidad eliminada.",
+  "settings.skills.failed": "No se pudo eliminar la habilidad."
 }

@@ -43,7 +43,8 @@ export const IPC = {
   skillsGetDraft: 'skills:get-draft',
   skillsApproveDraft: 'skills:approve-draft',
   skillsDiscardDraft: 'skills:discard-draft',
-  skillsSaveCalibrated: 'skills:save-calibrated'
+  skillsSaveCalibrated: 'skills:save-calibrated',
+  skillsDelete: 'skills:delete'
 } as const
 
 // The only API the renderer can call. Everything else stays in the main process.
@@ -106,6 +107,9 @@ export interface VyroApi {
     // Replaces the JSON of an approved skill with the one adjusted to the person; false if it is not
     // valid, does not keep the id, or is not an approved skill.
     saveCalibrated: (id: string, config: unknown) => Promise<boolean>
+    // Deletes a skill the AI made. The sessions already saved are kept, and the path that practised
+    // it stops being followed. False if there is no such skill.
+    delete: (id: string) => Promise<boolean>
   }
   data: {
     // Empties the database: sessions and settings.

@@ -4,6 +4,7 @@ import { IPC } from '@shared/ipc'
 import { generatedSkillProblems } from '@shared/skill/generatedSafety'
 import { parseSkillConfig } from '@shared/skill/skillLoader'
 import type { CustomSkillRepository } from '../db/customSkillRepository'
+import type { PathRepository } from '../db/pathRepository'
 
 interface SkillHandlers {
   listCustom: () => CustomSkillSource[]
@@ -11,10 +12,14 @@ interface SkillHandlers {
   approveDraft: (id: unknown) => boolean
   discardDraft: (id: unknown) => boolean
   saveCalibrated: (id: unknown, config: unknown) => boolean
+  delete: (id: unknown) => boolean
 }
 
 // What each channel does, apart from Electron so it can be tested.
-export function createSkillHandlers(repository: CustomSkillRepository): SkillHandlers {
+export function createSkillHandlers(
+  repository: CustomSkillRepository,
+  paths: Pick<PathRepository, 'archiveUsingSkill'>
+): SkillHandlers {
   // Only a draft can be approved or discarded; the skills already approved are not touched here.
   const draftWithId = (id: unknown): CustomSkillSource | null => {
     if (typeof id !== 'string') return null
@@ -50,6 +55,14 @@ export function createSkillHandlers(repository: CustomSkillRepository): SkillHan
       return repository.updateConfig(id, config)
     },
 
+    // Sessions are not touched: what was practised stays in the history. The path that asked for
+    // the skill cannot go on, so it is archived.
+    delete: (id) => {
+      if (typeof id !== 'string' || !repository.delete(id)) return false
+      paths.archiveUsingSkill(id)
+      return true
+    },
+
     discardDraft: (id) => {
       const draft = draftWithId(id)
       return draft ? repository.delete(draft.id) : false
@@ -57,8 +70,11 @@ export function createSkillHandlers(repository: CustomSkillRepository): SkillHan
   }
 }
 
-export function registerSkillsIpc(repository: CustomSkillRepository): void {
-  const handlers = createSkillHandlers(repository)
+export function registerSkillsIpc(
+  repository: CustomSkillRepository,
+  paths: Pick<PathRepository, 'archiveUsingSkill'>
+): void {
+  const handlers = createSkillHandlers(repository, paths)
 
   ipcMain.handle(IPC.skillsListCustom, () => handlers.listCustom())
   ipcMain.handle(IPC.skillsGetDraft, () => handlers.getDraft())
@@ -66,5 +82,6 @@ export function registerSkillsIpc(repository: CustomSkillRepository): void {
   ipcMain.handle(IPC.skillsSaveCalibrated, (_event, id: unknown, config: unknown) =>
     handlers.saveCalibrated(id, config)
   )
+  ipcMain.handle(IPC.skillsDelete, (_event, id: unknown) => handlers.delete(id))
   ipcMain.handle(IPC.skillsDiscardDraft, (_event, id: unknown) => handlers.discardDraft(id))
 }

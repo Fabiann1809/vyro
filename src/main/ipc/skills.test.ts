@@ -1,8 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 import { CustomSkillRepository } from '../db/customSkillRepository'
 import { openDatabase } from '../db/database'
+import { PathRepository } from '../db/pathRepository'
+import { SessionRepository } from '../db/sessionRepository'
 import { EXAMPLE_SKILL } from '../ai/skillPrompts'
 import { createSkillHandlers } from './skills'
+
+// Paths are not what these tests are about.
+const noPaths = { archiveUsingSkill: (): boolean => false }
 
 // The handlers do not need Electron, but the module imports it.
 vi.mock('electron', () => ({ ipcMain: { handle: vi.fn() } }))
@@ -11,7 +16,7 @@ describe('skill handlers', () => {
   it('offers the approved skills with their JSON, and nothing else about them', () => {
     const repository = new CustomSkillRepository(openDatabase(':memory:'))
     repository.save('custom_yoga', { id: 'custom_yoga' }, 'approved', 1)
-    const handlers = createSkillHandlers(repository)
+    const handlers = createSkillHandlers(repository, noPaths)
 
     expect(handlers.listCustom()).toEqual([{ id: 'custom_yoga', config: { id: 'custom_yoga' } }])
   })
@@ -20,11 +25,14 @@ describe('skill handlers', () => {
     const repository = new CustomSkillRepository(openDatabase(':memory:'))
     repository.save('custom_draft', { id: 'custom_draft' }, 'draft', 1)
 
-    expect(createSkillHandlers(repository).listCustom()).toEqual([])
+    expect(createSkillHandlers(repository, noPaths).listCustom()).toEqual([])
   })
 
   it('offers nothing when there are no custom skills', () => {
-    const handlers = createSkillHandlers(new CustomSkillRepository(openDatabase(':memory:')))
+    const handlers = createSkillHandlers(
+      new CustomSkillRepository(openDatabase(':memory:')),
+      noPaths
+    )
 
     expect(handlers.listCustom()).toEqual([])
   })
@@ -35,7 +43,7 @@ describe('the draft', () => {
     repository: CustomSkillRepository
   } => {
     const repository = new CustomSkillRepository(openDatabase(':memory:'))
-    return { ...createSkillHandlers(repository), repository }
+    return { ...createSkillHandlers(repository, noPaths), repository }
   }
 
   it('offers the draft, with its JSON', () => {
@@ -85,7 +93,7 @@ describe('saving the skill adjusted to the person', () => {
   } => {
     const repository = new CustomSkillRepository(openDatabase(':memory:'))
     repository.save(EXAMPLE_SKILL.id, EXAMPLE_SKILL, 'approved', 1)
-    return { ...createSkillHandlers(repository), repository }
+    return { ...createSkillHandlers(repository, noPaths), repository }
   }
   const adjusted = (check: string): unknown => ({
     ...EXAMPLE_SKILL,
@@ -123,5 +131,83 @@ describe('saving the skill adjusted to the person', () => {
     expect(saveCalibrated('custom_draft', { ...EXAMPLE_SKILL, id: 'custom_draft' })).toBe(false)
     expect(saveCalibrated('custom_nothing', EXAMPLE_SKILL)).toBe(false)
     expect(saveCalibrated(7, EXAMPLE_SKILL)).toBe(false)
+  })
+})
+
+describe('deleting a skill the AI made', () => {
+  it('deletes it, and the path that practised it stops being followed', () => {
+    const db = openDatabase(':memory:')
+    const repository = new CustomSkillRepository(db)
+    const paths = new PathRepository(db)
+    repository.save('custom_yoga', EXAMPLE_SKILL, 'approved', 1)
+    paths.create(
+      {
+        goal: 'Yoga',
+        steps: [
+          {
+            title: 'Yoga',
+            description: '',
+            kind: 'skill',
+            skillId: 'custom_yoga',
+            criterionSessions: 3,
+            criterionScore: 80
+          }
+        ]
+      },
+      1
+    )
+    const handlers = createSkillHandlers(repository, paths)
+
+    expect(handlers.delete('custom_yoga')).toBe(true)
+
+    expect(repository.get('custom_yoga')).toBeNull()
+    expect(paths.getCurrent()).toBeNull()
+  })
+
+  it('keeps a path that does not use it, and the sessions already saved', () => {
+    const db = openDatabase(':memory:')
+    const repository = new CustomSkillRepository(db)
+    const paths = new PathRepository(db)
+    const sessions = new SessionRepository(db)
+    repository.save('custom_yoga', EXAMPLE_SKILL, 'approved', 1)
+    paths.create(
+      {
+        goal: 'Sentadilla',
+        steps: [
+          {
+            title: 'Sentadilla',
+            description: '',
+            kind: 'skill',
+            skillId: 'squat',
+            criterionSessions: 3,
+            criterionScore: 80
+          }
+        ]
+      },
+      1
+    )
+    sessions.save({
+      skillId: 'custom_yoga',
+      startedAt: 1,
+      durationMs: 1000,
+      score: 100,
+      reps: [{ index: 1, quality: 'good', durationMs: 900, failedRuleIds: [] }]
+    })
+    const handlers = createSkillHandlers(repository, paths)
+
+    expect(handlers.delete('custom_yoga')).toBe(true)
+
+    expect(paths.getCurrent()?.goal).toBe('Sentadilla')
+    expect(sessions.list({ skillId: 'custom_yoga' })).toHaveLength(1)
+  })
+
+  it('says so when there is no such skill', () => {
+    const handlers = createSkillHandlers(
+      new CustomSkillRepository(openDatabase(':memory:')),
+      noPaths
+    )
+
+    expect(handlers.delete('custom_nothing')).toBe(false)
+    expect(handlers.delete(5)).toBe(false)
   })
 })
