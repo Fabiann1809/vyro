@@ -305,6 +305,7 @@
   "skill.preview.failed": "No se pudo completar la acción. Inténtalo de nuevo.",
   "skill.camera.side": "De lado, {body}",
   "skill.camera.front": "De frente, {body}",
+  "skill.camera.hands": "Con tu mano a la vista de la cámara, entera y con los dedos separados del borde",
   "skill.camera.fullBody": "cuerpo entero",
   "skill.camera.upperBody": "medio cuerpo",
   "skill.metric.angle": "{name}: ángulo de {b}, entre {a} y {c}",

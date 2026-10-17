@@ -61,7 +61,7 @@ export type ObjectRegistry = Record<string, Availability>
 // in the app has to change.
 export const CHANNEL_REGISTRY: ChannelRegistry = {
   body: { status: 'supported', phase: null },
-  hands: { status: 'planned', phase: 13 },
+  hands: { status: 'supported', phase: null },
   audio: { status: 'planned', phase: 14 },
   object: { status: 'planned', phase: 15 }
 }

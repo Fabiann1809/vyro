@@ -66,7 +66,7 @@ describe('generatedSkillProblems', () => {
     }
   })
 
-  it('rejects a skill that looks at hands, which the coach cannot make yet', () => {
+  it('accepts a skill that looks at hands', () => {
     const hands = skill({
       metrics: { curl: { type: 'angle', points: ['indexMcp', 'indexPip', 'indexDip'] } },
       phases: [
@@ -79,7 +79,7 @@ describe('generatedSkillProblems', () => {
       ]
     })
 
-    expect(generatedSkillProblems(hands).join(' ')).toContain('only body joints')
+    expect(generatedSkillProblems(hands)).toEqual([])
   })
 
   it('knows which ids are generated', () => {

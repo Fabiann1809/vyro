@@ -1,7 +1,8 @@
 import { z } from 'zod'
-import { assessFeasibility, skillRequirementSchema } from '@shared/feasibility'
+import { assessFeasibility, skillRequirementSchema, type Channel } from '@shared/feasibility'
 import type { GenerateSkillInput, GenerateSkillResult } from '@shared/skillGeneration'
 import { generatedSkillProblems } from '@shared/skill/generatedSafety'
+import { skillChannels } from '@shared/skill/skillChannels'
 import { parseSkillConfig } from '@shared/skill/skillLoader'
 import type { SkillConfig } from '@shared/skill/skillSchema'
 import type { LlmClient } from './llmClient'
@@ -28,7 +29,12 @@ export type SkillText =
 // Reads the skill that the model wrote, with the same checks as the skills that come with the app
 // (shape, safe expressions, metrics that exist) and with an id that is not in use. Each problem is a
 // sentence that the model can act on.
-export function readSkillText(text: string, usedIds: readonly string[]): SkillText {
+export function readSkillText(
+  text: string,
+  usedIds: readonly string[],
+  // The channels the coach said the skill needs: it may not measure with any other.
+  declared?: readonly Channel[]
+): SkillText {
   const source = withoutFence(text)
   if (source === '') return { ok: false, problems: ['The skill is empty: write the whole JSON.'] }
 
@@ -50,6 +56,17 @@ export function readSkillText(text: string, usedIds: readonly string[]): SkillTe
   }
   const unsafe = generatedSkillProblems(parsed.skill)
   if (unsafe.length > 0) return { ok: false, problems: unsafe }
+  const undeclared = declared
+    ? skillChannels(parsed.skill).filter((channel) => !declared.includes(channel))
+    : []
+  if (undeclared.length > 0) {
+    return {
+      ok: false,
+      problems: [
+        `metrics: they use the ${undeclared.join(' and ')} but "requirement.channels" does not list it. List every channel the metrics use.`
+      ]
+    }
+  }
   return { ok: true, skill: parsed.skill, config: config as Record<string, unknown> }
 }
 
@@ -66,7 +83,7 @@ export async function generateSkill(
 ): Promise<SkillGeneration> {
   const schema = answerSchema.superRefine((value, context) => {
     if (assessFeasibility(value.requirement).verdict !== 'supported') return
-    const read = readSkillText(value.skill, input.existingSkillIds)
+    const read = readSkillText(value.skill, input.existingSkillIds, value.requirement.channels)
     if (!read.ok) {
       for (const message of read.problems) {
         context.addIssue({ code: 'custom', path: ['skill'], message })
@@ -101,7 +118,7 @@ export async function generateSkill(
   }
 
   // It was read once already inside the schema; reading it again gives the skill itself.
-  const read = readSkillText(answer.skill, input.existingSkillIds)
+  const read = readSkillText(answer.skill, input.existingSkillIds, answer.requirement.channels)
   if (!read.ok) throw new Error('A skill that was already checked cannot be read.')
   return { kind: 'skill', skill: read.skill, config: read.config }
 }

@@ -1,5 +1,6 @@
 import { localize, t, type MessageKey } from '@renderer/i18n'
 import type { AnyJointName } from '@shared/skill/joints'
+import { skillChannels } from '@shared/skill/skillChannels'
 import type { Severity, SkillConfig, SkillMetric } from '@shared/skill/skillSchema'
 
 const JOINT_TEXT: Record<AnyJointName, MessageKey> = {
@@ -84,9 +85,11 @@ export interface SkillPreview {
 export function describeSkill(skill: SkillConfig): SkillPreview {
   return {
     name: localize(skill.name),
-    camera: t(skill.camera.view === 'side' ? 'skill.camera.side' : 'skill.camera.front', {
-      body: t(skill.camera.fullBody ? 'skill.camera.fullBody' : 'skill.camera.upperBody')
-    }),
+    camera: skillChannels(skill).includes('body')
+      ? t(skill.camera.view === 'side' ? 'skill.camera.side' : 'skill.camera.front', {
+          body: t(skill.camera.fullBody ? 'skill.camera.fullBody' : 'skill.camera.upperBody')
+        })
+      : t('skill.camera.hands'),
     metrics: Object.entries(skill.metrics).map(([name, metric]) => metricText(name, metric)),
     phases: skill.phases.map((phase) => {
       const conditions = Object.entries(phase.when).flatMap(([name, { gt, lt }]) => [

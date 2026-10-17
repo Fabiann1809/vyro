@@ -4,7 +4,7 @@ import { parseSkillConfig } from '@shared/skill/skillLoader'
 import { parseJsonAnswer } from './answer'
 import type { GenerateRequest, LlmClient } from './llmClient'
 import { generateSkill, readSkillText } from './skillGenerator'
-import { EXAMPLE_SKILL } from './skillPrompts'
+import { EXAMPLE_HAND_SKILL, EXAMPLE_SKILL } from './skillPrompts'
 
 const input = (overrides: Partial<GenerateSkillInput> = {}): GenerateSkillInput => ({
   description: 'Quiero aprender la postura del perro boca abajo',
@@ -48,6 +48,65 @@ function scriptedModel(...answers: string[]): LlmClient & { requests: GenerateRe
 describe('the example in the prompt', () => {
   it('is a valid skill, so that the model is never shown a format that does not work', () => {
     expect(parseSkillConfig(EXAMPLE_SKILL).ok).toBe(true)
+  })
+
+  it('has one for the hands too, which is valid and passes the limits of generated skills', () => {
+    expect(parseSkillConfig(EXAMPLE_HAND_SKILL).ok).toBe(true)
+    expect(readSkillText(JSON.stringify(EXAMPLE_HAND_SKILL), [], ['hands'])).toMatchObject({
+      ok: true
+    })
+  })
+})
+
+describe('a skill of the hands', () => {
+  const piano = {
+    ...EXAMPLE_HAND_SKILL,
+    id: 'custom_finger_arch',
+    name: { es: 'Arco del dedo', en: 'Finger arch' }
+  }
+
+  it('is generated and validated when the coach says it needs the hands', async () => {
+    const model = scriptedModel(answer(piano, { channels: ['hands'] }))
+
+    const result = await generateSkill(model, input({ description: 'Quiero tocar el piano' }))
+
+    expect(result).toMatchObject({ kind: 'skill', skill: { id: 'custom_finger_arch' } })
+  })
+
+  it('is asked to be fixed when it measures with a channel it did not declare', async () => {
+    const model = scriptedModel(answer(piano, bodyOnly), answer(piano, { channels: ['hands'] }))
+
+    const result = await generateSkill(model, input())
+
+    expect(result.kind).toBe('skill')
+    expect(model.requests).toHaveLength(2)
+    const repair = model.requests[1]?.messages.at(-1)?.content ?? ''
+    expect(repair).toContain('"requirement.channels" does not list it')
+  })
+
+  it('is rejected, with the problem named, when what it is told is wrong for a hand joint', async () => {
+    const wrong = {
+      ...piano,
+      metrics: { curve: { type: 'angle', points: ['indexMcp', 'knee', 'indexDip'] } }
+    }
+    const model = scriptedModel(
+      answer(wrong, { channels: ['hands', 'body'] }),
+      answer(wrong, { channels: ['hands', 'body'] }),
+      answer(wrong, { channels: ['hands', 'body'] })
+    )
+
+    await expect(generateSkill(model, input())).rejects.toMatchObject({ kind: 'invalid-response' })
+  })
+
+  it('shows the model the hand joints and the hand example', async () => {
+    const model = scriptedModel(answer(piano, { channels: ['hands'] }))
+
+    await generateSkill(model, input())
+
+    const system = String(model.requests[0]?.system)
+    expect(system).toContain('indexPip')
+    expect(system).toContain('"gap"')
+    expect(system).toContain('custom_finger_lift_example')
   })
 })
 
@@ -182,13 +241,13 @@ describe('what VYRO cannot coach', () => {
     expect(model.requests).toHaveLength(1)
   })
 
-  it('says what has not arrived yet when it needs the hands, and does not read the skill', async () => {
-    const model = scriptedModel(answer('not even json', { channels: ['body', 'hands'] }))
+  it('says what has not arrived yet when it needs the audio, and does not read the skill', async () => {
+    const model = scriptedModel(answer('not even json', { channels: ['body', 'audio'] }))
 
     expect(await generateSkill(model, input())).toEqual({
       kind: 'planned',
-      pending: [{ channel: 'hands', phase: 13 }],
-      measurable: ['body', 'hands']
+      pending: [{ channel: 'audio', phase: 14 }],
+      measurable: ['body', 'audio']
     })
   })
 })

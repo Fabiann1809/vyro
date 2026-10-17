@@ -21,10 +21,7 @@ describe('a skill that can be coached today', () => {
 })
 
 describe('a skill that will be coached in a later phase', () => {
-  it.each([
-    ['hands', 13],
-    ['audio', 14]
-  ] as const)('is planned for the phase of %s', (channel, phase) => {
+  it.each([['audio', 14]] as const)('is planned for the phase of %s', (channel, phase) => {
     const result = assessFeasibility({ channels: [channel] })
 
     expect(result.verdict).toBe('planned')
@@ -69,7 +66,7 @@ describe('a skill that needs several channels at once', () => {
     expect(result.verdict).toBe('planned')
     expect(result.channels.map((c) => [c.channel, c.status, c.phase])).toEqual([
       ['body', 'supported', null],
-      ['hands', 'planned', 13],
+      ['hands', 'supported', null],
       ['audio', 'planned', 14],
       ['object', 'planned', 15]
     ])
@@ -82,15 +79,13 @@ describe('a skill that needs several channels at once', () => {
   })
 
   it('becomes supported by itself as the phases ship, without any other change', () => {
-    const inPhase13: ChannelRegistry = {
+    const inPhase14: ChannelRegistry = {
       ...CHANNEL_REGISTRY,
-      hands: { status: 'supported', phase: null }
+      audio: { status: 'supported', phase: null }
     }
 
-    expect(assessFeasibility({ channels: ['body', 'hands'] }, inPhase13).verdict).toBe('supported')
-    expect(assessFeasibility({ channels: ['body', 'hands', 'audio'] }, inPhase13).verdict).toBe(
-      'planned'
-    )
+    expect(assessFeasibility({ channels: ['body', 'audio'] }, inPhase14).verdict).toBe('supported')
+    expect(assessFeasibility({ channels: ['body', 'audio'] }).verdict).toBe('planned')
   })
 
   it('needs the object to be ready as well as the object channel', () => {
