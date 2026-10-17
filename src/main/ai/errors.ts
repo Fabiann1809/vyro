@@ -10,6 +10,8 @@ export type LlmErrorKind =
   | 'cancelled'
   // The provider choice is incomplete or unsafe (for example, a custom provider without a model).
   | 'not-configured'
+  // The data to send did not pass the privacy check, so nothing was sent.
+  | 'blocked'
   // The model answered, but not with what the schema asks for. Worth asking again.
   | 'invalid-response'
   // The answer was cut off by the token limit: asking again as is would cut it off again.
@@ -29,6 +31,7 @@ const MESSAGES: Record<LlmErrorKind, string> = {
   refused: 'The provider declined to answer.',
   cancelled: 'The request was cancelled.',
   'not-configured': 'The AI provider is not fully set up.',
+  blocked: 'Some of the data is not allowed to leave the app, so nothing was sent.',
   'invalid-response': 'The answer did not match the expected format.',
   truncated: 'The answer was cut off because it was too long.',
   unknown: 'The AI request failed.'

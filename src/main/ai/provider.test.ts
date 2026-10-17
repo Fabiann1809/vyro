@@ -3,12 +3,13 @@ import { z } from 'zod'
 import { LlmError } from './errors'
 import type { GenerateRequest, LlmClient } from './llmClient'
 import { ConfiguredLlmClient, type ProviderChoice } from './provider'
+import { buildMessages, buildSystem, textTurn } from './outbound'
 
 const KEY = 'gsk_test_1234567890'
 const schema = z.object({ ok: z.boolean() })
 const request: GenerateRequest<z.infer<typeof schema>> = {
-  system: 's',
-  messages: [{ role: 'user', content: 'hi' }],
+  system: buildSystem('s'),
+  messages: buildMessages([textTurn('user', 'hi')]),
   schema,
   tier: 'capable',
   maxTokens: 100

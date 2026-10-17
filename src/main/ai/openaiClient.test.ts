@@ -4,14 +4,15 @@ import { LlmError } from './errors'
 import type { GenerateRequest } from './llmClient'
 import { OpenAiCompatibleClient, type OpenAiConfig } from './openaiClient'
 import { generateWithRepair } from './repair'
+import { buildMessages, buildSystem, textTurn } from './outbound'
 
 const KEY = 'gsk_test_1234567890'
 const config: OpenAiConfig = { baseUrl: 'https://api.example.com/v1', apiKey: KEY, model: 'm-1' }
 
 const schema = z.object({ name: z.string(), age: z.number() })
 const request: GenerateRequest<z.infer<typeof schema>> = {
-  system: 'Extract the person.',
-  messages: [{ role: 'user', content: 'Ana is 30.' }],
+  system: buildSystem('Extract the person.'),
+  messages: buildMessages([textTurn('user', 'Ana is 30.')]),
   schema,
   tier: 'capable',
   maxTokens: 500

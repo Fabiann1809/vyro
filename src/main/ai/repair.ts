@@ -1,5 +1,6 @@
 import { LlmError } from './errors'
 import type { GenerateRequest, LlmClient } from './llmClient'
+import { buildMessages, textTurn } from './outbound'
 
 const DEFAULT_REPAIRS = 2
 
@@ -30,9 +31,9 @@ export async function generateWithRepair<T>(
 
 function repairTurns(error: LlmError): GenerateRequest<unknown>['messages'] {
   const problems = error.issues.map((issue) => `- ${issue}`).join('\n')
-  const fix = {
-    role: 'user' as const,
-    content: `Your answer did not match the required format:\n${problems}\nAnswer again with only the corrected JSON.`
-  }
-  return error.rawText ? [{ role: 'assistant', content: error.rawText }, fix] : [fix]
+  const fix = textTurn(
+    'user',
+    `Your answer did not match the required format:\n${problems}\nAnswer again with only the corrected JSON.`
+  )
+  return buildMessages(error.rawText ? [textTurn('assistant', error.rawText), fix] : [fix])
 }

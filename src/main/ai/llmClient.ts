@@ -1,4 +1,5 @@
 import type { z } from 'zod'
+import type { OutboundMessage, OutboundSystem } from './outbound'
 
 // Which kind of model a request needs. Each provider maps it to one of its own models, in one place.
 //   fast     short, cheap answers such as a session summary
@@ -11,8 +12,9 @@ export interface ChatMessage {
 }
 
 export interface GenerateRequest<T> {
-  system: string
-  messages: ChatMessage[]
+  // Both are made by outbound.ts, the only module that can: see there.
+  system: OutboundSystem
+  messages: OutboundMessage[]
   // The answer must fit this schema; the client returns the parsed, validated value.
   schema: z.ZodType<T>
   tier: ModelTier

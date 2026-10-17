@@ -29,6 +29,20 @@ export interface SdkTransportOptions {
 
 const DEFAULT_TIMEOUT_MS = 90_000
 
+// The SDK reports the operating system, the processor and the runtime version of the computer in
+// headers of its own. They are not needed to answer, and the promise is that only text and
+// numbers leave, so they are switched off (a null header is dropped).
+const SDK_FINGERPRINT_HEADERS = [
+  'X-Stainless-Arch',
+  'X-Stainless-Lang',
+  'X-Stainless-OS',
+  'X-Stainless-Package-Version',
+  'X-Stainless-Retry-Count',
+  'X-Stainless-Runtime',
+  'X-Stainless-Runtime-Version',
+  'X-Stainless-Timeout'
+]
+
 // The real transport. A client is made for each key, so a key the user just changed is used at once.
 export function createSdkTransport(
   apiKey: string,
@@ -37,6 +51,7 @@ export function createSdkTransport(
   const client = new Anthropic({
     apiKey,
     timeout: timeoutMs,
+    defaultHeaders: Object.fromEntries(SDK_FINGERPRINT_HEADERS.map((name) => [name, null])),
     ...(maxRetries === undefined ? {} : { maxRetries }),
     ...(fetch ? { fetch } : {})
   })

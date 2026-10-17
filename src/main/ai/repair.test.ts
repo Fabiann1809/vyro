@@ -3,12 +3,13 @@ import { z } from 'zod'
 import { LlmError } from './errors'
 import type { GenerateRequest, LlmClient } from './llmClient'
 import { generateWithRepair } from './repair'
+import { buildMessages, buildSystem, textTurn } from './outbound'
 
 const schema = z.object({ name: z.string() })
 
 const request: GenerateRequest<{ name: string }> = {
-  system: 'sys',
-  messages: [{ role: 'user', content: 'who?' }],
+  system: buildSystem('sys'),
+  messages: buildMessages([textTurn('user', 'who?')]),
   schema,
   tier: 'capable',
   maxTokens: 100
