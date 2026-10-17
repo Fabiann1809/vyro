@@ -137,7 +137,7 @@ export function SummaryScreen(): React.JSX.Element {
         </button>
         <button
           type="button"
-          onClick={() => go('progress')}
+          onClick={() => go('dashboard')}
           className="rounded-md bg-slate-200 px-4 py-2 dark:bg-slate-800"
         >
           {t('summary.progress')}

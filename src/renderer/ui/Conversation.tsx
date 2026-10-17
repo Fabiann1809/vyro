@@ -95,6 +95,7 @@ export function MessageBox({
         <span className="text-sm">{label}</span>
         <textarea
           ref={inputRef}
+          data-composer
           rows={2}
           maxLength={maxLength}
           value={value}

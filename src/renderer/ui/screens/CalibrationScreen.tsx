@@ -30,7 +30,7 @@ import { cameraOf } from '@shared/skill/cameraOf'
 import { skillChannels } from '@shared/skill/skillChannels'
 import { CameraStage } from '../CameraStage'
 import { LevelMeter } from '../LevelMeter'
-import { useNavigation } from '../navigation'
+import { returnTarget, useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
 import { useSkills } from '../skillsStore'
 import { useMicrophoneFeatures } from '../useMicrophoneFeatures'
@@ -184,6 +184,7 @@ const sameCountdown = (a: CalibrationState, b: CalibrationState): boolean =>
 
 export function CalibrationScreen(): React.JSX.Element {
   const go = useNavigation((state) => state.go)
+  const previous = useNavigation((state) => state.previous)
   const skillId = useSession((state) => state.skillId)
   const skills = useSkills((state) => state.skills)
   const skill = skills.find((candidate) => candidate.id === skillId)
@@ -258,7 +259,7 @@ export function CalibrationScreen(): React.JSX.Element {
 
   // Without a chosen skill there is nothing to calibrate for.
   useEffect(() => {
-    if (!skill) go('home')
+    if (!skill) go('library')
   }, [skill, go])
 
   useEffect(() => {
@@ -324,7 +325,7 @@ export function CalibrationScreen(): React.JSX.Element {
 
       <button
         type="button"
-        onClick={() => go('home')}
+        onClick={() => go(returnTarget(previous))}
         className="rounded-md bg-slate-200 px-4 py-2 dark:bg-slate-800"
       >
         {t('calibration.cancel')}

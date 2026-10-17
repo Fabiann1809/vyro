@@ -103,7 +103,7 @@ export function SkillCreateScreen(): React.JSX.Element {
           type="button"
           onClick={() => {
             resetSkillDraft()
-            go('coach')
+            go('home')
           }}
           className="ml-auto rounded-md bg-slate-200 px-3 py-1.5 text-sm dark:bg-slate-800"
         >

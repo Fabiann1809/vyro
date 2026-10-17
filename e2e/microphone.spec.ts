@@ -119,6 +119,7 @@ test('the test button in Settings listens only while it is on', async () => {
 test('a skill that only listens is calibrated with the microphone, not the camera', async () => {
   const page = await launch()
 
+  await page.getByRole('navigation').getByRole('button', { name: 'Biblioteca' }).click()
   await page.getByRole('button', { name: 'Afinar una cuerda' }).click()
 
   await expect(

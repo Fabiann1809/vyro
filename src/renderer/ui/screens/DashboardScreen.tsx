@@ -6,7 +6,7 @@ import { useNavigation } from '../navigation'
 import { useSessionList } from '../useSessionList'
 import { useSkills } from '../skillsStore'
 
-export function ProgressScreen(): React.JSX.Element {
+export function DashboardScreen(): React.JSX.Element {
   const go = useNavigation((state) => state.go)
   const skills = useSkills((state) => state.skills)
   // undefined = every skill
@@ -15,7 +15,7 @@ export function ProgressScreen(): React.JSX.Element {
 
   return (
     <section className="flex w-full max-w-4xl flex-col gap-6 self-start p-8">
-      <h1 className="text-3xl font-semibold">{t('screen.progress.title')}</h1>
+      <h1 className="text-3xl font-semibold">{t('screen.dashboard.title')}</h1>
 
       <label className="flex w-fit items-center gap-2">
         {t('progress.filter')}
@@ -50,7 +50,7 @@ export function ProgressScreen(): React.JSX.Element {
             <p className="text-slate-600 dark:text-slate-400">{t('progress.empty')}</p>
             <button
               type="button"
-              onClick={() => go('home')}
+              onClick={() => go('library')}
               className="rounded-md bg-emerald-700 px-4 py-2 text-white"
             >
               {t('progress.start')}

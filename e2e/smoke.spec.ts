@@ -48,46 +48,50 @@ async function launch(
 const nav = (page: Page, name: string): Locator =>
   page.getByRole('navigation').getByRole('button', { name })
 
-test('opens on the home screen with the three exercises', async () => {
+test('opens on the chat and offers the exercises in the library', async () => {
   const page = await launch()
 
   await expect(page).toHaveTitle('VYRO')
-  await expect(page.getByRole('heading', { level: 1, name: 'Inicio' })).toBeVisible()
+  await expect(nav(page, 'Inicio')).toHaveAttribute('aria-current', 'page')
+
+  await nav(page, 'Biblioteca').click()
+  await expect(nav(page, 'Biblioteca')).toHaveAttribute('aria-current', 'page')
   for (const exercise of ['Sentadilla', 'Flexión', 'Curl de bíceps']) {
     await expect(page.getByRole('button', { name: exercise })).toBeVisible()
   }
-  await expect(page.getByText('Todavía no tienes sesiones')).toBeVisible()
 })
 
 test('walks through the main screens', async () => {
   const page = await launch()
 
-  await nav(page, 'Progreso').click()
-  await expect(page.getByRole('heading', { level: 1, name: 'Progreso' })).toBeVisible()
+  await nav(page, 'Tablero').click()
+  await expect(page.getByRole('heading', { level: 1, name: 'Tablero' })).toBeVisible()
   await expect(page.getByText('Todavía no tienes sesiones guardadas')).toBeVisible()
 
   await nav(page, 'Ajustes').click()
   await expect(page.getByRole('heading', { level: 1, name: 'Ajustes' })).toBeVisible()
 
   await nav(page, 'Inicio').click()
-  await expect(page.getByRole('heading', { level: 1, name: 'Inicio' })).toBeVisible()
+  await expect(nav(page, 'Inicio')).toHaveAttribute('aria-current', 'page')
 })
 
-test('goes from the home screen to the calibration and back', async () => {
+test('goes from the library to the calibration and back', async () => {
   const page = await launch()
 
+  await nav(page, 'Biblioteca').click()
   await page.getByRole('button', { name: 'Sentadilla' }).click()
   await expect(page.getByRole('heading', { level: 1, name: /Calibración/ })).toBeVisible()
   // The navigation goes away while the user is in front of the camera.
   await expect(page.getByRole('navigation')).toHaveCount(0)
 
   await page.getByRole('button', { name: 'Cancelar' }).click()
-  await expect(page.getByRole('heading', { level: 1, name: 'Inicio' })).toBeVisible()
+  await expect(nav(page, 'Biblioteca')).toHaveAttribute('aria-current', 'page')
 })
 
 test('a skill of the hands is calibrated with the hands, not the body', async () => {
   const page = await launch()
 
+  await nav(page, 'Biblioteca').click()
   await page.getByRole('button', { name: 'Mano al piano' }).click()
 
   await expect(
@@ -101,6 +105,7 @@ test('a skill of the hands is calibrated with the hands, not the body', async ()
 test('a skill with the guitar is calibrated with the body, the hand, the guitar and the sound', async () => {
   const page = await launch()
 
+  await nav(page, 'Biblioteca').click()
   await page.getByRole('button', { name: 'Postura con guitarra' }).click()
 
   await expect(
@@ -145,7 +150,7 @@ test('remembers the language after the app is closed and opened again', async ()
   await app?.close()
 
   const second = await launch()
-  await expect(second.getByRole('heading', { level: 1, name: 'Home' })).toBeVisible()
+  await expect(nav(second, 'Home')).toHaveAttribute('aria-current', 'page')
 })
 
 test('the coach answers a question with data, and only the typed bridge reaches it', async () => {
@@ -200,6 +205,7 @@ test('shows a skill that was saved in the database after the app was built, and 
   db.close()
 
   const page = await launch()
+  await nav(page, 'Biblioteca').click()
 
   await expect(page.getByRole('button', { name: 'Yoga suave' })).toBeVisible()
   // The ones that come with the app are still there, and the others are not offered.
@@ -228,13 +234,14 @@ test('goes back to the skills of the app when all the data is deleted', async ()
   )
   db.close()
   const page = await launch()
+  await nav(page, 'Biblioteca').click()
   await expect(page.getByRole('button', { name: 'Yoga suave' })).toBeVisible()
 
   await nav(page, 'Ajustes').click()
   await page.getByRole('button', { name: 'Borrar todos los datos' }).click()
   await page.getByRole('button', { name: 'Sí, borrar todo' }).click()
   await expect(page.getByText('Datos borrados.')).toBeVisible()
-  await nav(page, 'Inicio').click()
+  await nav(page, 'Biblioteca').click()
 
   await expect(page.getByRole('button', { name: 'Yoga suave' })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Sentadilla' })).toBeVisible()
@@ -345,7 +352,7 @@ test.describe('AI coach screen', () => {
   test('invites to turn it on when it is off, and goes to the settings', async () => {
     const page = await launch()
 
-    await nav(page, 'Coach').click()
+    await nav(page, 'Inicio').click()
     await expect(page.getByRole('heading', { name: 'El coach con IA está apagado' })).toBeVisible()
     await page.getByRole('button', { name: 'Ir a Ajustes' }).click()
 
@@ -356,7 +363,7 @@ test.describe('AI coach screen', () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)
 
-    await nav(page, 'Coach').click()
+    await nav(page, 'Inicio').click()
     await page.getByLabel('Tu mensaje').fill('Quiero mejorar mi sentadilla')
     await page.getByLabel('Tu mensaje').press('Enter')
 
@@ -389,7 +396,7 @@ test.describe('AI coach screen', () => {
     const limit = page.getByLabel('Límite diario de uso (tokens)')
     await limit.fill('10000')
     await limit.blur()
-    await nav(page, 'Coach').click()
+    await nav(page, 'Inicio').click()
     await page.getByLabel('Tu mensaje').fill('Hola')
     await page.getByRole('button', { name: 'Enviar' }).click()
     await expect(page.getByText(REPLY)).toBeVisible()
@@ -409,7 +416,7 @@ test.describe('AI coach screen', () => {
     db.close()
 
     const again = await launch()
-    await nav(again, 'Coach').click()
+    await nav(again, 'Inicio').click()
     await again.getByLabel('Tu mensaje').fill('Otra pregunta')
     await again.getByRole('button', { name: 'Enviar' }).click()
 
@@ -431,13 +438,13 @@ test.describe('AI coach screen', () => {
     await turnOnWithFakeProvider(page)
 
     // Chat.
-    await nav(page, 'Coach').click()
+    await nav(page, 'Inicio').click()
     await page.getByLabel('Tu mensaje').fill('Quiero mejorar mi sentadilla')
     await page.getByRole('button', { name: 'Enviar' }).click()
     await expect(page.getByText(REPLY)).toBeVisible()
 
     // Path: it asks, then proposes, and the person keeps it.
-    await nav(page, 'Ruta').click()
+    await nav(page, 'Mi ruta').click()
     provider.setAnswer({
       action: 'ask',
       requirement: { channels: ['body'] },
@@ -468,11 +475,11 @@ test.describe('AI coach screen', () => {
     await page.getByRole('button', { name: 'Guardar ruta' }).click()
     await expect(page.getByText('Sentadilla lenta')).toBeVisible()
 
-    // A skill made by the AI, approved and offered in Home.
+    // A skill made by the AI, approved and offered in the library.
     const squat = JSON.parse(readFileSync('src/renderer/skills/squat.json', 'utf-8')) as object
     const yoga = { ...squat, id: 'custom_yoga', name: { es: 'Yoga suave', en: 'Gentle yoga' } }
     provider.setAnswer({ requirement: { channels: ['body'] }, skill: JSON.stringify(yoga) })
-    await nav(page, 'Coach').click()
+    await nav(page, 'Inicio').click()
     await page.getByRole('button', { name: 'Crear habilidad' }).click()
     await page.getByLabel('Qué habilidad quieres crear').fill('Quiero aprender yoga suave')
     await page.getByRole('button', { name: 'Enviar' }).click()
@@ -493,7 +500,7 @@ test.describe('AI coach screen', () => {
   test('keeps the whole conversation in what it sends next, and starts over when asked', async () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)
-    await nav(page, 'Coach').click()
+    await nav(page, 'Inicio').click()
 
     await page.getByLabel('Tu mensaje').fill('Hola')
     await page.getByRole('button', { name: 'Enviar' }).click()
@@ -512,7 +519,7 @@ test.describe('AI coach screen', () => {
   test('explains a rate limit with the wait and lets the user try again', async () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)
-    await nav(page, 'Coach').click()
+    await nav(page, 'Inicio').click()
     provider.script.push({ status: 429, headers: { 'retry-after': '7' } })
 
     await page.getByLabel('Tu mensaje').fill('Hola')
@@ -527,7 +534,7 @@ test.describe('AI coach screen', () => {
   test('says that the provider had a problem, and recovers on retry', async () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)
-    await nav(page, 'Coach').click()
+    await nav(page, 'Inicio').click()
     provider.script.push({ status: 503 })
 
     await page.getByLabel('Tu mensaje').fill('Hola')
@@ -653,7 +660,7 @@ test.describe('AI coach screen', () => {
   test('creates a path, and its steps advance, unlock and complete as sessions are saved', async () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)
-    await nav(page, 'Ruta').click()
+    await nav(page, 'Mi ruta').click()
 
     // The planner asks first, then proposes.
     provider.setAnswer({
@@ -733,7 +740,7 @@ test.describe('AI coach screen', () => {
       )
     const reopen = async (): Promise<void> => {
       await nav(page, 'Inicio').click()
-      await nav(page, 'Ruta').click()
+      await nav(page, 'Mi ruta').click()
     }
     const card = (title: string): ReturnType<Page['getByRole']> =>
       page.getByRole('listitem').filter({ hasText: title })
@@ -792,7 +799,7 @@ test.describe('AI coach screen', () => {
   test('opens the calibration of the skill from the step that is next', async () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)
-    await nav(page, 'Ruta').click()
+    await nav(page, 'Mi ruta').click()
     provider.setAnswer({
       action: 'propose',
       requirement: { channels: ['body'] },
@@ -868,7 +875,7 @@ test.describe('AI coach screen', () => {
       return (await bridge.api.paths.getCurrent())?.path.steps.map((step) => step.id) ?? []
     })
     const [squat, rest, pushup] = stepIds
-    await nav(page, 'Ruta').click()
+    await nav(page, 'Mi ruta').click()
     const card = (title: string): ReturnType<Page['getByRole']> =>
       page.getByRole('listitem').filter({ hasText: title })
 
@@ -969,7 +976,7 @@ test.describe('AI coach screen', () => {
         ]
       })
     )
-    await nav(page, 'Ruta').click()
+    await nav(page, 'Mi ruta').click()
     // A step that does not exist, which the coach is asked to fix and never does.
     provider.setAnswer({
       summary: 'x',
@@ -1018,7 +1025,7 @@ test.describe('AI coach screen', () => {
     expect(sent.slice(1)).toEqual([{ role: 'user', content: 'Quiero aprender yoga suave' }])
 
     // A draft is not a skill yet: it is not offered.
-    await nav(page, 'Inicio').click()
+    await nav(page, 'Biblioteca').click()
     await expect(page.getByRole('button', { name: 'Yoga suave' })).toHaveCount(0)
 
     // What cannot be coached is declined, and the draft is still the previous one.
@@ -1044,7 +1051,7 @@ test.describe('AI coach screen', () => {
     const yoga = { ...squat, id: 'custom_yoga', name: { es: 'Yoga suave', en: 'Gentle yoga' } }
     provider.setAnswer({ requirement: { channels: ['body'] }, skill: JSON.stringify(yoga) })
 
-    await nav(page, 'Coach').click()
+    await nav(page, 'Inicio').click()
     await page.getByRole('button', { name: 'Crear habilidad' }).click()
     await page.getByLabel('Qué habilidad quieres crear').fill('Quiero aprender yoga suave')
     await page.getByRole('button', { name: 'Enviar' }).click()
@@ -1053,7 +1060,7 @@ test.describe('AI coach screen', () => {
     ).toBeVisible()
   }
 
-  test('shows what a generated skill will do, and keeps it out of Home until approved', async () => {
+  test('shows what a generated skill will do, and keeps it out of the library until approved', async () => {
     const page = await launch()
     await makeYogaDraft(page)
 
@@ -1063,7 +1070,7 @@ test.describe('AI coach screen', () => {
     await expect(page.getByRole('button', { name: 'Aprobar y probar' })).toBeVisible()
 
     // Looking at the preview is not approving it.
-    await nav(page, 'Inicio').click()
+    await nav(page, 'Biblioteca').click()
     await expect(page.getByRole('button', { name: 'Yoga suave' })).toHaveCount(0)
   })
 
@@ -1081,7 +1088,7 @@ test.describe('AI coach screen', () => {
     expect(rows).toEqual([])
   })
 
-  test('approving a draft opens its calibration, and the skill appears in Home', async () => {
+  test('approving a draft opens its calibration, and the skill appears in the library', async () => {
     const page = await launch()
     await makeYogaDraft(page)
 
@@ -1162,7 +1169,7 @@ test.describe('AI coach screen', () => {
     await page.getByRole('button', { name: 'Eliminar Yoga suave' }).click()
     // Asking first: nothing is deleted yet, and cancelling leaves the skill.
     await page.getByRole('button', { name: 'Cancelar' }).click()
-    await nav(page, 'Inicio').click()
+    await nav(page, 'Biblioteca').click()
     await expect(page.getByRole('button', { name: 'Yoga suave' })).toBeVisible()
 
     await nav(page, 'Ajustes').click()
@@ -1170,7 +1177,7 @@ test.describe('AI coach screen', () => {
     await page.getByRole('button', { name: 'Sí, eliminar' }).click()
     await expect(page.getByText('Habilidad eliminada.')).toBeVisible()
 
-    await nav(page, 'Inicio').click()
+    await nav(page, 'Biblioteca').click()
     await expect(page.getByRole('button', { name: 'Yoga suave' })).toHaveCount(0)
     await app?.close()
 
@@ -1185,7 +1192,7 @@ test.describe('AI coach screen', () => {
   test('explains why a path cannot be made, and lets the person start again', async () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)
-    await nav(page, 'Ruta').click()
+    await nav(page, 'Mi ruta').click()
     provider.setAnswer({
       action: 'ask',
       requirement: { channels: [], outOfScope: ['invisible-outcome'] },
@@ -1207,7 +1214,7 @@ test.describe('AI coach screen', () => {
   test('invites to turn the AI on before making a path', async () => {
     const page = await launch()
 
-    await nav(page, 'Ruta').click()
+    await nav(page, 'Mi ruta').click()
 
     await expect(page.getByText('Para crear una ruta, activa el coach con IA')).toBeVisible()
     await page.getByRole('button', { name: 'Ir a Ajustes' }).click()
@@ -1217,7 +1224,7 @@ test.describe('AI coach screen', () => {
   test('writes a new line with Shift + Enter instead of sending', async () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)
-    await nav(page, 'Coach').click()
+    await nav(page, 'Inicio').click()
 
     await page.getByLabel('Tu mensaje').fill('Primera línea')
     await page.getByLabel('Tu mensaje').press('Shift+Enter')
