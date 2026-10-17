@@ -144,7 +144,7 @@ test('the coach answers a question with data, and only the typed bridge reaches 
     off: { ok: false, error: { kind: 'not-enabled' } },
     noKey: { ok: false, error: { kind: 'no-key' } },
     invalid: { ok: false, error: { kind: 'invalid-input' } },
-    methods: ['chat', 'summarize', 'planPath', 'reviewPath']
+    methods: ['chat', 'summarize', 'planPath', 'reviewPath', 'generateSkill']
   })
 })
 
@@ -810,6 +810,61 @@ test.describe('AI coach screen', () => {
     await expect(page.getByRole('alert')).toContainText('La respuesta no tuvo el formato esperado')
     // The planner was asked three times: the first answer and two corrections.
     expect(provider.received).toHaveLength(3)
+  })
+
+  test('generates a skill, keeps it as a draft in the database, and does not offer it', async () => {
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+
+    const squat = JSON.parse(readFileSync('src/renderer/skills/squat.json', 'utf-8')) as object
+    const yoga = { ...squat, id: 'custom_yoga', name: { es: 'Yoga suave', en: 'Gentle yoga' } }
+    provider.setAnswer({ requirement: { channels: ['body'] }, skill: JSON.stringify(yoga) })
+
+    const generate = (description: string): Promise<unknown> =>
+      page.evaluate(
+        (text) =>
+          (
+            window as unknown as {
+              api: { coach: { generateSkill: (input: unknown) => Promise<unknown> } }
+            }
+          ).api.coach.generateSkill({
+            description: text,
+            language: 'es',
+            existingSkillIds: ['squat', 'pushup', 'bicep_curl']
+          }),
+        description
+      )
+
+    // The page only learns the id: the skill itself stays in the main process.
+    expect(await generate('Quiero aprender yoga suave')).toEqual({
+      ok: true,
+      value: { kind: 'skill', id: 'custom_yoga' }
+    })
+
+    // The model was told the format, and was sent only what the person wrote.
+    const sent = provider.received[0]?.body['messages'] as Array<{ role: string; content: string }>
+    expect(sent[0]?.content).toContain('"custom_"')
+    expect(sent.slice(1)).toEqual([{ role: 'user', content: 'Quiero aprender yoga suave' }])
+
+    // A draft is not a skill yet: it is not offered.
+    await nav(page, 'Inicio').click()
+    await expect(page.getByRole('button', { name: 'Yoga suave' })).toHaveCount(0)
+
+    // What cannot be coached is declined, and the draft is still the previous one.
+    provider.setAnswer({
+      requirement: { channels: [], outOfScope: ['invisible-outcome'] },
+      skill: ''
+    })
+    expect(await generate('Quiero aprender a meditar')).toEqual({
+      ok: true,
+      value: { kind: 'out-of-scope', reasons: ['invisible-outcome', 'no-signal'], measurable: [] }
+    })
+    await app?.close()
+
+    const db = new DatabaseSync(join(userData, 'vyro.db'))
+    const rows = db.prepare('SELECT id, status FROM custom_skills').all()
+    db.close()
+    expect(rows).toEqual([{ id: 'custom_yoga', status: 'draft' }])
   })
 
   test('explains why a path cannot be made, and lets the person start again', async () => {

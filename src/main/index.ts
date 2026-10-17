@@ -84,8 +84,8 @@ app.whenReady().then(() => {
   const settings = new SettingsRepository(database)
   const paths = new PathRepository(database)
   const progress = new PathProgressService(paths, sessions)
-  registerPathsIpc(paths, progress)
   const customSkills = new CustomSkillRepository(database)
+  registerPathsIpc(paths, progress)
   registerSkillsIpc(customSkills)
   registerSettingsIpc(settings, sessions, paths, customSkills, keyStore)
   registerCoachIpc({
@@ -95,7 +95,11 @@ app.whenReady().then(() => {
       () => keyStore.get()
     ),
     getSettings: () => settings.getAll(),
-    loadReview: () => loadReviewSource(progress, sessions)
+    loadReview: () => loadReviewSource(progress, sessions),
+    customSkills: {
+      usedIds: () => customSkills.list('approved').map((record) => record.id),
+      saveDraft: (id, config) => customSkills.replaceDraft(id, config, Date.now())
+    }
   })
 
   app.on('browser-window-created', (_, window) => {

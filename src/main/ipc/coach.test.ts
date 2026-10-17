@@ -9,6 +9,8 @@ import type {
 import type { PlanPathInput, PlanPathResult } from '@shared/pathPlan'
 import { evaluatePath } from '@shared/pathProgress'
 import type { PathReview } from '@shared/pathReview'
+import type { GenerateSkillResult } from '@shared/skillGeneration'
+import { EXAMPLE_SKILL } from '../ai/skillPrompts'
 import type { LearningPath } from '@shared/paths'
 import { buildReviewDigest, type ReviewSource } from '../ai/reviewData'
 import { LlmError } from '../ai/errors'
@@ -33,6 +35,9 @@ interface Setup {
   reviewPath: (input: unknown) => Promise<CoachResult<PathReview>>
   // The path that a review would look at; null for none.
   review: { source: ReviewSource | null }
+  // The skills made later: the ids that are taken, and the drafts that were kept.
+  skills: { used: string[]; drafts: Array<{ id: string; config: unknown }> }
+  generateSkill: (input: unknown) => Promise<CoachResult<GenerateSkillResult>>
   requests: GenerateRequest<unknown>[]
   answer: (outcome: unknown) => void
   enabled: { value: boolean }
@@ -53,10 +58,15 @@ function setup(...outcomes: unknown[]): Setup {
     }
   }
   const review: Setup['review'] = { source: null }
-  const { chat, summarize, planPath, reviewPath } = createCoachHandlers({
+  const skills: Setup['skills'] = { used: [], drafts: [] }
+  const { chat, summarize, planPath, reviewPath, generateSkill } = createCoachHandlers({
     llm,
     getSettings: () => ({ aiEnabled: enabled.value }),
     loadReview: () => review.source,
+    customSkills: {
+      usedIds: () => skills.used,
+      saveDraft: (id, config) => void skills.drafts.push({ id, config })
+    },
     now: () => REVIEW_NOW
   })
   return {
@@ -64,7 +74,9 @@ function setup(...outcomes: unknown[]): Setup {
     summarize,
     planPath,
     reviewPath,
+    generateSkill,
     review,
+    skills,
     requests,
     answer: (outcome) => queue.push(outcome),
     enabled
@@ -537,5 +549,128 @@ describe('coach path review handler', () => {
       ok: false,
       error: { kind: 'rate-limit', retryAfterSeconds: 4 }
     })
+  })
+})
+
+const newSkill = { ...EXAMPLE_SKILL, id: 'custom_downward_dog', name: { es: 'Perro', en: 'Dog' } }
+const skillAnswer = (
+  skill: unknown = newSkill,
+  requirement: unknown = { channels: ['body'] }
+): { requirement: unknown; skill: string } => ({
+  requirement,
+  skill: typeof skill === 'string' ? skill : JSON.stringify(skill)
+})
+const generateInput = {
+  description: 'Quiero aprender el perro boca abajo',
+  language: 'es',
+  existingSkillIds: ['squat', 'pushup']
+}
+
+describe('coach skill generation handler', () => {
+  it('keeps the skill as a draft in the main process and gives back only its id', async () => {
+    const generating = setup(skillAnswer())
+
+    expect(await generating.generateSkill(generateInput)).toEqual({
+      ok: true,
+      value: { kind: 'skill', id: 'custom_downward_dog' }
+    })
+    expect(generating.skills.drafts).toEqual([{ id: 'custom_downward_dog', config: newSkill }])
+  })
+
+  it('does not hand the skill itself to the page', async () => {
+    const generating = setup(skillAnswer())
+
+    const result = await generating.generateSkill(generateInput)
+
+    expect(JSON.stringify(result)).not.toContain('torso_lean')
+  })
+
+  it('tells the model which ids are taken, the ones the page knows and the ones it has', async () => {
+    const generating = setup(skillAnswer())
+    generating.skills.used = ['custom_old']
+
+    await generating.generateSkill(generateInput)
+
+    // A skill that repeats a taken id is not accepted by the schema of the request.
+    const schema = generating.requests[0]?.schema
+    const taken = (id: string): boolean =>
+      schema?.safeParse(skillAnswer({ ...newSkill, id })).success === false
+    expect(taken('squat')).toBe(true)
+    expect(taken('custom_old')).toBe(true)
+    expect(taken('custom_fresh')).toBe(false)
+  })
+
+  it('declines what cannot be coached, and keeps nothing', async () => {
+    const generating = setup(skillAnswer('', { channels: [], outOfScope: ['invisible-outcome'] }))
+
+    expect(await generating.generateSkill(generateInput)).toEqual({
+      ok: true,
+      value: { kind: 'out-of-scope', reasons: ['invisible-outcome', 'no-signal'], measurable: [] }
+    })
+    expect(generating.skills.drafts).toEqual([])
+  })
+
+  it('says what has not arrived yet, and keeps nothing', async () => {
+    const generating = setup(skillAnswer('', { channels: ['audio'] }))
+
+    expect(await generating.generateSkill(generateInput)).toEqual({
+      ok: true,
+      value: {
+        kind: 'planned',
+        pending: [{ channel: 'audio', phase: 14 }],
+        measurable: ['audio']
+      }
+    })
+    expect(generating.skills.drafts).toEqual([])
+  })
+
+  it.each([
+    ['no description', { ...generateInput, description: '  ' }],
+    ['an id that is not an identifier', { ...generateInput, existingSkillIds: ['Not An Id'] }],
+    ['a field that is not listed', { ...generateInput, skill: { id: 'custom_x' } }],
+    ['something that is not an object', 'hola']
+  ])('rejects %s, so the page cannot bring its own skill', async (_name, bad) => {
+    const generating = setup(skillAnswer())
+
+    expect(await generating.generateSkill(bad)).toEqual({
+      ok: false,
+      error: { kind: 'invalid-input' }
+    })
+    expect(generating.requests).toEqual([])
+    expect(generating.skills.drafts).toEqual([])
+  })
+
+  it('does not ask while the AI coach is off', async () => {
+    const generating = setup(skillAnswer())
+    generating.enabled.value = false
+
+    expect(await generating.generateSkill(generateInput)).toEqual({
+      ok: false,
+      error: { kind: 'not-enabled' }
+    })
+  })
+
+  it('answers a failure as data and keeps nothing', async () => {
+    const failing = setup(new LlmError('network'))
+
+    expect(await failing.generateSkill(generateInput)).toEqual({
+      ok: false,
+      error: { kind: 'network' }
+    })
+    expect(failing.skills.drafts).toEqual([])
+  })
+
+  it('blocks a description that carries a picture', async () => {
+    const generating = setup(skillAnswer())
+    const withImage = {
+      ...generateInput,
+      description: `mira ${'iVBORw0KGgoAAAANSUhEUg'.repeat(20)}`
+    }
+
+    expect(await generating.generateSkill(withImage)).toEqual({
+      ok: false,
+      error: { kind: 'blocked' }
+    })
+    expect(generating.requests).toEqual([])
   })
 })

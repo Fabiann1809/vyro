@@ -11,6 +11,7 @@ import {
 import { IPC } from '@shared/ipc'
 import { planPathInputSchema, type PlanPathResult } from '@shared/pathPlan'
 import { reviewPathInputSchema, type PathReview } from '@shared/pathReview'
+import { generateSkillInputSchema, type GenerateSkillResult } from '@shared/skillGeneration'
 import type { AppSettings } from '@shared/settings'
 import { coachSystemPrompt, summarySystemPrompt } from '../ai/coachPrompts'
 import { LlmError } from '../ai/errors'
@@ -18,6 +19,7 @@ import type { LlmClient } from '../ai/llmClient'
 import { generatePathTurn } from '../ai/pathGenerator'
 import { buildReviewDigest, type ReviewSource } from '../ai/reviewData'
 import { generateReview } from '../ai/reviewGenerator'
+import { generateSkill } from '../ai/skillGenerator'
 import { buildMessages, textTurn } from '../ai/outbound'
 import { generateWithRepair } from '../ai/repair'
 
@@ -50,12 +52,15 @@ export function createCoachHandlers(deps: {
   getSettings: () => Pick<AppSettings, 'aiEnabled'>
   // The path being followed and its numbers, or null if there is none to review.
   loadReview: () => ReviewSource | null
+  // The skills made later: the ids that are taken, and where a new one is kept as a draft.
+  customSkills: { usedIds: () => string[]; saveDraft: (id: string, config: unknown) => void }
   now?: () => number
 }): {
   chat: (input: unknown) => Promise<CoachResult<CoachChatReply>>
   summarize: (input: unknown) => Promise<CoachResult<CoachSummaryReply>>
   planPath: (input: unknown) => Promise<CoachResult<PlanPathResult>>
   reviewPath: (input: unknown) => Promise<CoachResult<PathReview>>
+  generateSkill: (input: unknown) => Promise<CoachResult<GenerateSkillResult>>
 } {
   let busy = false
 
@@ -128,6 +133,22 @@ export function createCoachHandlers(deps: {
           skills,
           language
         })
+      }),
+
+    generateSkill: (input) =>
+      guarded(generateSkillInputSchema.safeParse(input), async (request) => {
+        const result = await generateSkill(deps.llm, {
+          ...request,
+          existingSkillIds: [
+            ...new Set([...request.existingSkillIds, ...deps.customSkills.usedIds()])
+          ]
+        })
+        if (result.kind !== 'skill') return result
+
+        // Kept here, in the main process: what is approved later is this, and not something the page
+        // could bring back.
+        deps.customSkills.saveDraft(result.skill.id, result.config)
+        return { kind: 'skill', id: result.skill.id } as const
       })
   }
 }
@@ -139,4 +160,5 @@ export function registerCoachIpc(deps: Parameters<typeof createCoachHandlers>[0]
   ipcMain.handle(IPC.coachSummarize, (_event, input: unknown) => handlers.summarize(input))
   ipcMain.handle(IPC.coachPlanPath, (_event, input: unknown) => handlers.planPath(input))
   ipcMain.handle(IPC.coachReviewPath, (_event, input: unknown) => handlers.reviewPath(input))
+  ipcMain.handle(IPC.coachGenerateSkill, (_event, input: unknown) => handlers.generateSkill(input))
 }

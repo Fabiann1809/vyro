@@ -27,7 +27,8 @@ const api: VyroApi = {
     chat: (input) => ipcRenderer.invoke(IPC.coachChat, input),
     summarize: (input) => ipcRenderer.invoke(IPC.coachSummarize, input),
     planPath: (input) => ipcRenderer.invoke(IPC.coachPlanPath, input),
-    reviewPath: (input) => ipcRenderer.invoke(IPC.coachReviewPath, input)
+    reviewPath: (input) => ipcRenderer.invoke(IPC.coachReviewPath, input),
+    generateSkill: (input) => ipcRenderer.invoke(IPC.coachGenerateSkill, input)
   },
   paths: {
     getCurrent: () => ipcRenderer.invoke(IPC.pathsGetCurrent),

@@ -1,21 +1,10 @@
-import { FLAGGABLE_REASONS, OBJECT_REGISTRY } from '@shared/feasibility'
 import { MAX_PATH_STEPS } from '@shared/paths'
 import { MAX_QUESTIONS, type PlanPathInput } from '@shared/pathPlan'
 import type { Language } from '@shared/settings'
 import { buildSystem, type OutboundSystem } from './outbound'
+import { requirementPrompt } from './requirementPrompt'
 
 const LANGUAGE_NAME: Record<Language, string> = { es: 'Spanish', en: 'English' }
-
-const REASON_HELP: Record<(typeof FLAGGABLE_REASONS)[number], string> = {
-  'invisible-outcome':
-    'the result cannot be seen or heard (meditation, chess, maths, languages beyond pronunciation)',
-  'too-fine-detail':
-    'the detail is too fine for a webcam (calligraphy, embroidery, the quality of a drawing stroke)',
-  'out-of-frame': 'the movement leaves the frame (running outdoors, swimming, team sports)',
-  'needs-touch': 'it is done by touch (massage, cooking, soldering)',
-  'physical-risk':
-    'there is a physical or clinical risk (diagnosis, rehabilitation, injuries, nutrition plans)'
-}
 
 // What the planner is, and what it may and may not do, in the words the model reads. The decision
 // about what VYRO can coach is NOT the model's: it only describes what the skill needs, and the
@@ -28,22 +17,14 @@ export function pathPlannerPrompt(input: PlanPathInput, canAsk: boolean): Outbou
         (skill.ruleIds.length > 0 ? `; it corrects: ${skill.ruleIds.join(', ')}` : '')
     )
     .join('\n')
-  const objects = Object.keys(OBJECT_REGISTRY).join(', ')
-  const reasons = FLAGGABLE_REASONS.map((reason) => `  - "${reason}": ${REASON_HELP[reason]}`).join(
-    '\n'
-  )
 
   return buildSystem(
     [
       'You plan learning paths for VYRO, a desktop app that watches a person practise a skill with the camera (and sometimes the microphone) and corrects their technique in real time.',
       `Write every piece of text for the user (questions, the goal, step titles and descriptions) in ${LANGUAGE_NAME[input.language]}, in a close, positive and precise tone.`,
       '',
-      'VYRO can only coach what it can MEASURE. Describe what the skill needs in "requirement":',
-      '- "channels": the signals that would measure whether the person does it well. "body" is posture and movement of the body; "hands" is the shape and movement of the fingers; "audio" is pitch, rhythm and volume; "object" is the position of a specific object. Use an empty list if nothing could measure it.',
-      `- "objects": the objects needed when "object" is a channel. VYRO has detectors for: ${objects}. Name any other object that is needed as well, so that the app can tell it is not supported.`,
-      '- "outOfScope": the reasons the skill cannot be coached whatever the channels, if any apply:',
-      reasons,
-      'Fill "requirement" in every answer, even when you ask a question. Judge the goal as the person stated it: for "learn to draw" the stroke is too fine, so say "too-fine-detail" (and the "hands" and "body" channels that could measure the grip and the posture).',
+      ...requirementPrompt(),
+      'Fill "requirement" in every answer, even when you ask a question.',
       '',
       'The skills VYRO can coach right now are the following, and a path may ONLY use these skill ids in its skill steps:',
       skills,

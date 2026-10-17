@@ -83,6 +83,33 @@ describe('CustomSkillRepository', () => {
     expect(repository.list()).toEqual([])
   })
 
+  describe('the draft', () => {
+    it('keeps a single one: a new draft takes the place of the old one', () => {
+      repository.replaceDraft('custom_a', { n: 1 }, 1)
+      repository.replaceDraft('custom_b', { n: 2 }, 2)
+
+      expect(repository.list('draft').map((record) => record.id)).toEqual(['custom_b'])
+    })
+
+    it('does not touch the approved skills', () => {
+      repository.save('custom_ok', {}, 'approved', 1)
+
+      repository.replaceDraft('custom_a', {}, 2)
+
+      expect(repository.list('approved').map((record) => record.id)).toEqual(['custom_ok'])
+    })
+
+    it('keeps the old draft if the new one cannot be saved', () => {
+      repository.save('custom_ok', {}, 'approved', 1)
+      repository.replaceDraft('custom_a', {}, 2)
+
+      // The id of an approved skill is taken.
+      expect(() => repository.replaceDraft('custom_ok', {}, 3)).toThrow()
+
+      expect(repository.list('draft').map((record) => record.id)).toEqual(['custom_a'])
+    })
+  })
+
   it('refuses a status that does not exist', () => {
     expect(() =>
       db.exec(

@@ -23,6 +23,20 @@ export class CustomSkillRepository {
       .run(id, JSON.stringify(config), status, createdAt)
   }
 
+  // Keeps this skill as the only draft: the one that was being looked at is dropped. Drafts are
+  // never offered to train, and only one is worked on at a time.
+  replaceDraft(id: string, config: unknown, createdAt: number): void {
+    this.db.exec('BEGIN')
+    try {
+      this.db.exec("DELETE FROM custom_skills WHERE status = 'draft'")
+      this.save(id, config, 'draft', createdAt)
+      this.db.exec('COMMIT')
+    } catch (error) {
+      this.db.exec('ROLLBACK')
+      throw error
+    }
+  }
+
   get(id: string): CustomSkillRecord | null {
     const row = this.db
       .prepare('SELECT id, config_json, status, created_at FROM custom_skills WHERE id = ?')

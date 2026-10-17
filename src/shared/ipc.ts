@@ -1,5 +1,6 @@
 import type { AiKeyStatus } from './ai'
 import type { CustomSkillSource } from './customSkills'
+import type { GenerateSkillInput, GenerateSkillResult } from './skillGeneration'
 import type { PathToSave } from './paths'
 import type { CurrentPath } from './pathProgress'
 import type { PlanPathInput, PlanPathResult } from './pathPlan'
@@ -32,6 +33,7 @@ export const IPC = {
   coachSummarize: 'coach:summarize',
   coachPlanPath: 'coach:plan-path',
   coachReviewPath: 'coach:review-path',
+  coachGenerateSkill: 'coach:generate-skill',
   pathsGetCurrent: 'paths:get-current',
   pathsSave: 'paths:save',
   pathsSetStepDone: 'paths:set-step-done',
@@ -73,6 +75,8 @@ export interface VyroApi {
     planPath: (input: PlanPathInput) => Promise<CoachResult<PlanPathResult>>
     // The weekly review of the path being followed, built from the numbers kept in this computer.
     reviewPath: (input: ReviewPathInput) => Promise<CoachResult<PathReview>>
+    // Makes a new skill with the AI. A valid one is kept as a draft, which has to be approved.
+    generateSkill: (input: GenerateSkillInput) => Promise<CoachResult<GenerateSkillResult>>
   }
   paths: {
     // The path being followed, with how far it has got, or null. Asking also brings the progress
