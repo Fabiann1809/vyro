@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
+import { parseJsonAnswer } from './answer'
 import { classifyError, LlmError } from './errors'
 import type { GenerateRequest, LlmClient, ModelTier } from './llmClient'
 
@@ -87,21 +88,5 @@ function readAnswer<T>(response: ClaudeResponse, schema: GenerateRequest<T>['sch
     .join('')
   if (response.stop_reason === 'max_tokens') throw new LlmError('truncated', { rawText: text })
 
-  let json: unknown
-  try {
-    json = JSON.parse(text)
-  } catch {
-    throw new LlmError('invalid-response', {
-      rawText: text,
-      issues: ['The answer is not valid JSON.']
-    })
-  }
-
-  const parsed = schema.safeParse(json)
-  if (parsed.success) return parsed.data
-
-  const issues = parsed.error.issues.map(
-    (issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`
-  )
-  throw new LlmError('invalid-response', { rawText: text, issues })
+  return parseJsonAnswer(text, schema)
 }

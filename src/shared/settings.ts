@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { AI_PROVIDER_IDS, isSafeAiBaseUrl, type AiProviderId } from './aiProviders'
 
 export type Language = 'es' | 'en'
 export type ThemePreference = 'dark' | 'light' | 'system'
@@ -16,6 +17,11 @@ export interface AppSettings {
   reduceMotion: boolean
   // The AI coach is off until the user turns it on (and has saved a key).
   aiEnabled: boolean
+  aiProvider: AiProviderId
+  // A model the user typed, for every kind of request; null uses the provider's own choice.
+  aiModel: string | null
+  // Only for the "custom" provider.
+  aiBaseUrl: string | null
 }
 
 // Dark by default: it reduces glare and makes the video stand out.
@@ -27,7 +33,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'dark',
   textSize: 'normal',
   reduceMotion: false,
-  aiEnabled: false
+  aiEnabled: false,
+  aiProvider: 'claude',
+  aiModel: null,
+  aiBaseUrl: null
 }
 
 // One schema per setting: the same rules check what is stored and what the renderer sends.
@@ -39,7 +48,10 @@ export const settingSchemas = {
   theme: z.enum(['dark', 'light', 'system']),
   textSize: z.enum(['normal', 'large', 'extra-large']),
   reduceMotion: z.boolean(),
-  aiEnabled: z.boolean()
+  aiEnabled: z.boolean(),
+  aiProvider: z.enum(AI_PROVIDER_IDS as [AiProviderId, ...AiProviderId[]]),
+  aiModel: z.string().trim().min(1).max(100).nullable(),
+  aiBaseUrl: z.string().max(300).refine(isSafeAiBaseUrl, 'Not a safe address').nullable()
 } satisfies { [K in keyof AppSettings]: z.ZodType<AppSettings[K]> }
 
 export const settingsPatchSchema = z.object(settingSchemas).partial().strict()

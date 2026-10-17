@@ -8,6 +8,8 @@ export type LlmErrorKind =
   | 'request'
   | 'refused'
   | 'cancelled'
+  // The provider choice is incomplete or unsafe (for example, a custom provider without a model).
+  | 'not-configured'
   // The model answered, but not with what the schema asks for. Worth asking again.
   | 'invalid-response'
   // The answer was cut off by the token limit: asking again as is would cut it off again.
@@ -26,6 +28,7 @@ const MESSAGES: Record<LlmErrorKind, string> = {
   request: 'The provider did not accept the request.',
   refused: 'The provider declined to answer.',
   cancelled: 'The request was cancelled.',
+  'not-configured': 'The AI provider is not fully set up.',
   'invalid-response': 'The answer did not match the expected format.',
   truncated: 'The answer was cut off because it was too long.',
   unknown: 'The AI request failed.'
@@ -35,6 +38,8 @@ const RETRYABLE: ReadonlySet<LlmErrorKind> = new Set(['rate-limit', 'timeout', '
 
 export interface LlmErrorDetails {
   status?: number
+  // How long the provider asked to wait before trying again, when it said so.
+  retryAfterSeconds?: number
   // What the model wrote, for the repair loop. Kept in memory only: never logged or sent to the page.
   rawText?: string
   // What was wrong with it, one line per problem.
@@ -43,6 +48,7 @@ export interface LlmErrorDetails {
 
 export class LlmError extends Error {
   readonly status: number | undefined
+  readonly retryAfterSeconds: number | undefined
   readonly rawText: string | undefined
   readonly issues: string[]
 
@@ -53,6 +59,7 @@ export class LlmError extends Error {
     super(MESSAGES[kind])
     this.name = 'LlmError'
     this.status = details.status
+    this.retryAfterSeconds = details.retryAfterSeconds
     this.rawText = details.rawText
     this.issues = details.issues ?? []
   }
@@ -80,7 +87,7 @@ const NETWORK_CODES = new Set([
 // Turns whatever a provider SDK or `fetch` threw into an LlmError, by its HTTP status and name
 // only, so every adapter classifies in the same way. The class name is read too, because not
 // every SDK sets `name` on its errors.
-export function classifyError(error: unknown): LlmError {
+export function classifyError(error: unknown, extra: LlmErrorDetails = {}): LlmError {
   if (error instanceof LlmError) return error
 
   const details = (typeof error === 'object' && error !== null ? error : {}) as ErrorLike
@@ -93,15 +100,16 @@ export function classifyError(error: unknown): LlmError {
 
   if (named(/abort/i)) return new LlmError('cancelled')
   if (named(/timeout/i) || httpStatus === 408)
-    return new LlmError('timeout', { status: httpStatus })
-  if (httpStatus === 401 || httpStatus === 403) return new LlmError('auth', { status: httpStatus })
-  if (httpStatus === 429) return new LlmError('rate-limit', { status: httpStatus })
+    return new LlmError('timeout', { ...extra, status: httpStatus })
+  if (httpStatus === 401 || httpStatus === 403)
+    return new LlmError('auth', { ...extra, status: httpStatus })
+  if (httpStatus === 429) return new LlmError('rate-limit', { ...extra, status: httpStatus })
   if (httpStatus !== undefined && httpStatus >= 500)
-    return new LlmError('server', { status: httpStatus })
+    return new LlmError('server', { ...extra, status: httpStatus })
   if (httpStatus !== undefined && httpStatus >= 400)
-    return new LlmError('request', { status: httpStatus })
+    return new LlmError('request', { ...extra, status: httpStatus })
   // `fetch` reports an unreachable host as a TypeError.
-  if (named(/connection/i) || error instanceof TypeError) return new LlmError('network')
-  if (typeof code === 'string' && NETWORK_CODES.has(code)) return new LlmError('network')
+  if (named(/connection/i) || error instanceof TypeError) return new LlmError('network', extra)
+  if (typeof code === 'string' && NETWORK_CODES.has(code)) return new LlmError('network', extra)
   return new LlmError('unknown')
 }

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { setLanguage } from '@renderer/i18n'
+import type { AiProviderId } from '@shared/aiProviders'
 import { DEFAULT_SETTINGS, type Language, type TextSize } from '@shared/settings'
 
 interface SettingsState {
@@ -12,6 +13,9 @@ interface SettingsState {
   textSize: TextSize
   reduceMotion: boolean
   aiEnabled: boolean
+  aiProvider: AiProviderId
+  aiModel: string | null
+  aiBaseUrl: string | null
   setLanguage: (language: Language) => void
   setVoiceEnabled: (enabled: boolean) => void
   setVolume: (volume: number) => void
@@ -19,6 +23,9 @@ interface SettingsState {
   setTextSize: (textSize: TextSize) => void
   setReduceMotion: (reduceMotion: boolean) => void
   setAiEnabled: (aiEnabled: boolean) => void
+  setAiProvider: (aiProvider: AiProviderId) => void
+  setAiModel: (aiModel: string | null) => void
+  setAiBaseUrl: (aiBaseUrl: string | null) => void
 }
 
 const clamp01 = (value: number): number => Math.min(1, Math.max(0, value))
@@ -31,6 +38,9 @@ export const useSettings = create<SettingsState>((set) => ({
   textSize: DEFAULT_SETTINGS.textSize,
   reduceMotion: DEFAULT_SETTINGS.reduceMotion,
   aiEnabled: DEFAULT_SETTINGS.aiEnabled,
+  aiProvider: DEFAULT_SETTINGS.aiProvider,
+  aiModel: DEFAULT_SETTINGS.aiModel,
+  aiBaseUrl: DEFAULT_SETTINGS.aiBaseUrl,
   // The texts change in the same instant, before the screens draw again.
   setLanguage: (language) => {
     setLanguage(language)
@@ -41,5 +51,8 @@ export const useSettings = create<SettingsState>((set) => ({
   setCameraId: (cameraId) => set({ cameraId }),
   setTextSize: (textSize) => set({ textSize }),
   setReduceMotion: (reduceMotion) => set({ reduceMotion }),
-  setAiEnabled: (aiEnabled) => set({ aiEnabled })
+  setAiEnabled: (aiEnabled) => set({ aiEnabled }),
+  setAiProvider: (aiProvider) => set({ aiProvider }),
+  setAiModel: (aiModel) => set({ aiModel }),
+  setAiBaseUrl: (aiBaseUrl) => set({ aiBaseUrl })
 }))
