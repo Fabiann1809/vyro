@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_SETTINGS } from '@shared/settings'
 import { ApiKeyStore, type KeyFile } from '../ai/keyStore'
 import { openDatabase } from '../db/database'
+import { PathRepository } from '../db/pathRepository'
 import { SessionRepository } from '../db/sessionRepository'
 import { SettingsRepository } from '../db/settingsRepository'
 import { createSettingsHandlers } from './settings'
@@ -12,10 +13,12 @@ vi.mock('electron', () => ({ ipcMain: { handle: vi.fn() } }))
 let handlers: ReturnType<typeof createSettingsHandlers>
 let sessions: SessionRepository
 let keyStore: ApiKeyStore
+let paths: PathRepository
 
 beforeEach(() => {
   const db = openDatabase(':memory:')
   sessions = new SessionRepository(db)
+  paths = new PathRepository(db)
   let keyFile: Buffer | null = null
   const file: KeyFile = {
     read: () => keyFile,
@@ -30,7 +33,7 @@ beforeEach(() => {
     },
     file
   )
-  handlers = createSettingsHandlers(new SettingsRepository(db), sessions, keyStore)
+  handlers = createSettingsHandlers(new SettingsRepository(db), sessions, paths, keyStore)
 })
 
 describe('settings handlers', () => {
@@ -62,9 +65,26 @@ describe('settings handlers', () => {
     })
 
     keyStore.save('sk-test-1234567890')
+    paths.create(
+      {
+        goal: 'Aprender yoga',
+        steps: [
+          {
+            title: 'Descansar',
+            description: '',
+            kind: 'auxiliary',
+            skillId: null,
+            criterionSessions: null,
+            criterionScore: null
+          }
+        ]
+      },
+      1
+    )
 
     handlers.deleteAllData()
 
+    expect(paths.list()).toEqual([])
     expect(keyStore.status().hasKey).toBe(false)
     expect(sessions.list()).toEqual([])
     expect(handlers.get()).toEqual(DEFAULT_SETTINGS)

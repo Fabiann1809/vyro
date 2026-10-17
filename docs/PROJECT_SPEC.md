@@ -103,7 +103,7 @@ No se guarda video, imágenes ni audio, solo métricas.
 Después del MVP (fases 10 y 11):
 ```
 learning_paths(id, goal, created_at, status)
-path_steps(id, path_id, position, title, kind, skill_id, criterion_sessions, criterion_score, done_at)
+path_steps(id, path_id, position, title, description, kind, skill_id, criterion_sessions, criterion_score, done_at)
                             -- kind: 'skill' (medible) o 'auxiliary' (descanso, teoría breve)
 custom_skills(id, config_json, status, created_at)   -- habilidades generadas por la IA
 ```
@@ -255,7 +255,7 @@ están menos detalladas que las anteriores y se afinarán al llegar a ellas.
 - [x] **T9.8 Resumen de sesión con IA.** Botón en el resumen que pide un texto natural a partir de las métricas numéricas. *Hecho cuando:* con clave muestra el resumen y la prueba confirma que solo se envían números.
 
 ### Fase 10 — Rutas de aprendizaje
-- [ ] **T10.1 Modelo de ruta.** Migración v2 (`learning_paths`, `path_steps`), tipos compartidos y repositorios. *Hecho cuando:* las pruebas con SQLite en memoria pasan y "borrar datos" también las vacía.
+- [x] **T10.1 Modelo de ruta.** Migración v2 (`learning_paths`, `path_steps`), tipos compartidos y repositorios. *Hecho cuando:* las pruebas con SQLite en memoria pasan y "borrar datos" también las vacía.
 - [ ] **T10.2 Viabilidad por canales.** Función pura que, dado lo que exige una habilidad, dice por canal (cuerpo, manos, objeto, audio) si está soportado, planificado para una fase o fuera de alcance, con un registro de canales soportados que crece con cada fase. *Hecho cuando:* las pruebas cubren los tres veredictos y una habilidad multicanal.
 - [ ] **T10.3 Generador de ruta.** Conversación con hasta tres preguntas aclaratorias y ruta en JSON validado, con reintento si la salida no cumple el esquema. Si la habilidad no tiene señal medible, el chat la rechaza, explica por qué y sugiere la parte medible. *Hecho cuando:* con un LLM falso se obtiene una ruta válida, una salida inválida se repara o falla con mensaje claro, y una habilidad fuera de alcance se rechaza.
 - [ ] **T10.4 Pantalla de ruta.** Pasos con habilidad medible (llevan a la calibración) y pasos auxiliares (descanso, teoría breve) marcados como tales. *Hecho cuando:* se recorre una ruta de ejemplo con ambos tipos de paso.

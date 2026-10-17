@@ -27,7 +27,14 @@ describe('openDatabase', () => {
   it('creates the tables of a new database', () => {
     const db = openDatabase(':memory:')
 
-    expect(tables(db)).toEqual(['rep_errors', 'reps', 'sessions', 'settings'])
+    expect(tables(db)).toEqual([
+      'learning_paths',
+      'path_steps',
+      'rep_errors',
+      'reps',
+      'sessions',
+      'settings'
+    ])
     expect(version(db)).toBe(MIGRATIONS.length)
   })
 
@@ -93,6 +100,19 @@ describe('migrate', () => {
     expect(() => migrate(db, [...MIGRATIONS, broken])).toThrow()
     expect(version(db)).toBe(MIGRATIONS.length)
     expect(tables(db)).not.toContain('half_done')
+  })
+
+  it('brings a database of the first version up to date without losing a session', () => {
+    const db = new DatabaseSync(':memory:')
+    migrate(db, MIGRATIONS.slice(0, 1))
+    db.exec("INSERT INTO sessions (skill_id, started_at, duration_ms) VALUES ('squat', 5, 1000)")
+    expect(tables(db)).not.toContain('learning_paths')
+
+    migrate(db)
+
+    expect(version(db)).toBe(MIGRATIONS.length)
+    expect(tables(db)).toEqual(expect.arrayContaining(['learning_paths', 'path_steps']))
+    expect((db.prepare('SELECT COUNT(*) AS n FROM sessions').get() as { n: number }).n).toBe(1)
   })
 
   it('refuses a database made by a newer version of the app', () => {
