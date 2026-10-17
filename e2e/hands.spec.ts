@@ -75,7 +75,7 @@ test('the hand model loads and runs with no network but this computer', async ()
   })
   try {
     const page = await app.firstWindow()
-    await expect.poll(() => page.title(), { timeout: 30_000 }).toMatch(/^(ready|error)/)
+    await expect.poll(() => page.title(), { timeout: 30_000 }).toMatch(/^(ready|loaded|error)/)
     // Loaded is what this is about; running it also needs WebGL, which a runner may not have.
     const title = await page.title()
     expect(title === 'ready:0' || /^loaded:.*activeTexture/.test(title)).toBe(true)
