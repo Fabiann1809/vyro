@@ -15,6 +15,7 @@ import {
 import type { Landmark } from '@renderer/core/landmarks'
 import { sampleLuminance } from '@renderer/core/lighting'
 import { localize, t, type MessageKey } from '@renderer/i18n'
+import { cameraOf } from '@shared/skill/cameraOf'
 import { skillChannels } from '@shared/skill/skillChannels'
 import { CameraStage } from '../CameraStage'
 import { useNavigation } from '../navigation'
@@ -134,12 +135,12 @@ export function CalibrationScreen(): React.JSX.Element {
       const frameSize = { width: video.videoWidth, height: video.videoHeight }
 
       const body = useBody
-        ? evaluateFraming({ landmarks, luminance, frameSize, camera: skill.camera })
+        ? evaluateFraming({ landmarks, luminance, frameSize, camera: cameraOf(skill) })
         : null
       const hand = useHands
         ? evaluateHandFraming({
             hands: frame.hands?.observations ?? [],
-            preference: skill.camera.hand,
+            preference: cameraOf(skill).hand,
             luminance,
             frameSize
           })

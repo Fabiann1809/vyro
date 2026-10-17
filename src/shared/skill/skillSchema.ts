@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { ANY_JOINT_NAMES } from './joints'
+import { isAudioMetric } from './skillChannels'
 
 // Names the rule expressions already use (functions and per-repetition values). A metric called
 // like one of them would be ambiguous inside an expression.
@@ -78,7 +79,36 @@ const gapMetric = z
   })
   .strict()
 
-const metric = z.discriminatedUnion('type', [angleMetric, tiltMetric, offsetMetric, gapMetric])
+// Audio metrics. They look at what the microphone hears, not at the body.
+// How far the pitch is from a note, in cents (positive when higher). "nearest" measures it from the
+// closest note, whichever it is, which is what tuning a string needs.
+const noteName = z.string().regex(/^[A-G][#b]?-?\d$/, 'must be a note such as "A4", "E2" or "C#3"')
+const pitchMetric = z
+  .object({ type: z.literal('pitch'), target: z.union([noteName, z.literal('nearest')]) })
+  .strict()
+
+// How loud the sound is, in dBFS (0 is the loudest, quiet rooms are around -60).
+const levelMetric = z.object({ type: z.literal('level') }).strict()
+
+// How far the step between the last two notes is from the one asked for, in cents. A step of
+// `semitones` is exact when the value is 0.
+const intervalMetric = z
+  .object({ type: z.literal('interval'), semitones: z.number().int().min(-24).max(24) })
+  .strict()
+
+// The beats per minute of the last notes.
+const tempoMetric = z.object({ type: z.literal('tempo') }).strict()
+
+const metric = z.discriminatedUnion('type', [
+  angleMetric,
+  tiltMetric,
+  offsetMetric,
+  gapMetric,
+  pitchMetric,
+  levelMetric,
+  intervalMetric,
+  tempoMetric
+])
 
 const threshold = z
   .object({ gt: z.number().optional(), lt: z.number().optional() })
@@ -113,6 +143,7 @@ export const skillConfigSchema = z
     id: identifier,
     category: identifier,
     name: localizedText,
+    // Skills that only listen have no use for the camera and leave this out.
     camera: z
       .object({
         view: z.enum(['side', 'front']),
@@ -121,7 +152,16 @@ export const skillConfigSchema = z
         // Which hand the hand points of the metrics belong to.
         hand: z.enum(['auto', 'left', 'right']).default('auto')
       })
-      .strict(),
+      .strict()
+      .optional(),
+    // Only for skills that listen.
+    audio: z
+      .object({
+        // The pitch of the A above middle C. Some instruments are tuned to 432 or 442.
+        a4: z.number().min(400).max(480).default(440)
+      })
+      .strict()
+      .optional(),
     metrics: z.record(z.string(), metric).refine((metrics) => Object.keys(metrics).length > 0, {
       message: 'needs at least one metric'
     }),
@@ -140,6 +180,14 @@ export const skillConfigSchema = z
   .strict()
   .superRefine((skill, ctx) => {
     const metricNames = Object.keys(skill.metrics)
+
+    if (!skill.camera && Object.values(skill.metrics).some((item) => !isAudioMetric(item))) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['camera'],
+        message: 'is needed when the skill looks at the body or the hands'
+      })
+    }
 
     for (const name of metricNames) {
       const problem = metricNameProblem(name)

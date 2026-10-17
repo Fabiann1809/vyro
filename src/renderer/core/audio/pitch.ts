@@ -119,3 +119,14 @@ export function nearestNote(frequency: number, a4 = A4_HZ): Note {
     cents: centsBetween(frequency, reference)
   }
 }
+
+const SEMITONES: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }
+
+// "A4" is 69, "C#3" is 49, "Bb2" is 46. Null for a text that is not a note.
+export function noteToMidi(name: string): number | null {
+  const match = /^([A-G])([#b]?)(-?\d)$/.exec(name)
+  if (!match) return null
+  const [, letter = '', accidental = '', octave = ''] = match
+  const shift = accidental === '#' ? 1 : accidental === 'b' ? -1 : 0
+  return (Number(octave) + 1) * 12 + (SEMITONES[letter] ?? 0) + shift
+}

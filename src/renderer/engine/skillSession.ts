@@ -6,6 +6,8 @@ import { computeMetrics, type FrameSize, type MetricValues } from './metrics'
 import { RepCounter, type CompletedRep, type RepEvent } from './repCounter'
 import { RepEvaluator, type RepResult } from './repEvaluator'
 import { skillChannels } from '@shared/skill/skillChannels'
+import type { AudioFeatures } from '@renderer/core/audio/capture'
+import { AudioTracker } from './audioTracker'
 import type { SkillConfig } from '@shared/skill/skillSchema'
 
 export interface FrameInput {
@@ -15,6 +17,9 @@ export interface FrameInput {
   // The 21 points of the hand the skill is judged by; null when no hand is in view. Only skills that
   // look at hands read it.
   hand?: readonly Landmark[] | null
+  // What the microphone heard in this frame (numbers only); null when it is not listening. Only
+  // skills that listen read it.
+  audio?: AudioFeatures | null
 }
 
 export interface FrameOutput {
@@ -54,6 +59,8 @@ export class SkillSession {
   private readonly handSmoother = new LandmarkSmoother()
   private readonly needsBody: boolean
   private readonly needsHand: boolean
+  private readonly needsAudio: boolean
+  private readonly audioTracker = new AudioTracker()
   private readonly sideTracker = new SideTracker()
   private readonly counter: RepCounter
   private readonly evaluator: RepEvaluator
@@ -69,6 +76,7 @@ export class SkillSession {
     const channels = skillChannels(skill)
     this.needsBody = channels.includes('body')
     this.needsHand = channels.includes('hands')
+    this.needsAudio = channels.includes('audio')
     this.counter = new RepCounter(skill)
     this.evaluator = new RepEvaluator(skill)
   }
@@ -98,15 +106,29 @@ export class SkillSession {
       this.needsHand && input.hand ? this.handSmoother.smooth(input.hand, input.timestampMs) : null
     if (this.needsHand && !hand) this.handSmoother.reset()
 
+    const audio =
+      this.needsAudio && input.audio
+        ? this.audioTracker.update(input.timestampMs, input.audio)
+        : null
+
     const bodyOk = !this.needsBody || (smoothed !== null && side !== null)
     const handOk = !this.needsHand || hand !== null
-    if (!bodyOk || !handOk) {
+    const audioOk = !this.needsAudio || audio !== null
+    if (!bodyOk || !handOk || !audioOk) {
       this.onBodyLost(input.timestampMs)
       return NOTHING
     }
     this.lostSinceMs = undefined
 
-    const metrics = computeMetrics(this.skill.metrics, smoothed, side, this.frame, hand)
+    const metrics = computeMetrics(
+      this.skill.metrics,
+      smoothed,
+      side,
+      this.frame,
+      hand,
+      audio,
+      this.skill.audio?.a4
+    )
     const repEvent = this.counter.update(input.timestampMs, metrics)
 
     if (repEvent?.type !== 'completed') {
@@ -142,6 +164,7 @@ export class SkillSession {
     this.counter.reset()
     this.smoother.reset()
     this.handSmoother.reset()
+    this.audioTracker.reset()
     this.sideTracker.reset()
     this.lostSinceMs = undefined
   }

@@ -19,7 +19,11 @@ export const DEFAULT_HYSTERESIS: Record<MetricType, number> = {
   angle: 5,
   tilt: 5,
   offset: 0.03,
-  gap: 0.03
+  gap: 0.03,
+  pitch: 3,
+  level: 3,
+  interval: 5,
+  tempo: 2
 }
 
 type Verdict = 'yes' | 'no' | 'unknown'

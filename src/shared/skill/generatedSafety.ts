@@ -1,3 +1,4 @@
+import { isAudioMetric } from './skillChannels'
 import type { SkillConfig, SkillMetric } from './skillSchema'
 
 export const GENERATED_ID_PREFIX = 'custom_'
@@ -12,8 +13,21 @@ export const isGeneratedSkillId = (id: string): boolean => id.startsWith(GENERAT
 // Values that a metric can really take. Angles and tilts are in degrees; an offset is a fraction
 // of a body segment, so a few units at most.
 function plausibleRange(metric: SkillMetric): [number, number] {
-  if (metric.type === 'offset') return [-3, 3]
-  return metric.type === 'gap' ? [0, 5] : [0, 180]
+  switch (metric.type) {
+    case 'offset':
+      return [-3, 3]
+    case 'gap':
+      return [0, 5]
+    case 'pitch':
+    case 'interval':
+      return [-1200, 1200]
+    case 'level':
+      return [-100, 0]
+    case 'tempo':
+      return [30, 240]
+    default:
+      return [0, 180]
+  }
 }
 
 function thresholdProblems(skill: SkillConfig): string[] {
@@ -44,6 +58,10 @@ export function generatedSkillProblems(skill: SkillConfig): string[] {
   const problems: string[] = []
   if (!isGeneratedSkillId(skill.id)) {
     problems.push(`id: "${skill.id}" must start with "${GENERATED_ID_PREFIX}"`)
+  }
+  // Skills that listen are not made by the coach until it is taught how (see the audio channel).
+  if (Object.values(skill.metrics).some(isAudioMetric)) {
+    problems.push('metrics: only metrics of the body and the hands may be used for now')
   }
   if (!skill.rules.some((rule) => rule.severity === 'high')) {
     problems.push('rules: needs at least one rule with severity "high", the one that matters most')

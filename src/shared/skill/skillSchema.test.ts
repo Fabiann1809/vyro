@@ -18,7 +18,7 @@ describe('skillConfigSchema', () => {
   it('fills the defaults: automatic side and end-of-repetition rules', () => {
     const skill = skillConfigSchema.parse(validSkill)
 
-    expect(skill.camera.side).toBe('auto')
+    expect(skill.camera?.side).toBe('auto')
     expect(skill.rules[0]?.live).toBe(false)
   })
 

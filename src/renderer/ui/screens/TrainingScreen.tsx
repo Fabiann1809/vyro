@@ -10,6 +10,7 @@ import { localize, t, type MessageKey } from '@renderer/i18n'
 import { voice } from '@renderer/voice'
 import { VoicePolicy } from '@renderer/voice/voicePolicy'
 import { pickHand } from '@renderer/core/handJoints'
+import { cameraOf } from '@shared/skill/cameraOf'
 import { skillChannels } from '@shared/skill/skillChannels'
 import { CameraStage } from '../CameraStage'
 import { useNavigation } from '../navigation'
@@ -101,7 +102,7 @@ export function TrainingScreen(): React.JSX.Element {
         width: video.videoWidth,
         height: video.videoHeight
       })
-      const hand = pickHand(frame.hands?.observations ?? [], skill.camera.hand)
+      const hand = pickHand(frame.hands?.observations ?? [], cameraOf(skill).hand)
       const next = runRef.current.processFrame({
         timestampMs: frame.timestampMs,
         landmarks: frame.landmarks,

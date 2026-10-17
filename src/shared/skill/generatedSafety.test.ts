@@ -82,6 +82,22 @@ describe('generatedSkillProblems', () => {
     expect(generatedSkillProblems(hands)).toEqual([])
   })
 
+  it('rejects a skill that listens, which the coach cannot make yet', () => {
+    const listening = skill({
+      metrics: { cents: { type: 'pitch', target: 'nearest' } },
+      phases: [
+        { id: 'sharp', when: { cents: { gt: 20 } } },
+        { id: 'tuned', when: { cents: { lt: 10 } } }
+      ],
+      rep: { sequence: ['tuned', 'sharp', 'tuned'], minDurationMs: 800 },
+      rules: [
+        { id: 'tuned', severity: 'high', check: 'max(cents) <= 15', message: { es: 'a', en: 'a' } }
+      ]
+    })
+
+    expect(generatedSkillProblems(listening).join(' ')).toContain('only metrics of the body')
+  })
+
   it('knows which ids are generated', () => {
     expect(isGeneratedSkillId('custom_yoga')).toBe(true)
     expect(isGeneratedSkillId('squat')).toBe(false)

@@ -1,5 +1,6 @@
 import { localize, t, type MessageKey } from '@renderer/i18n'
 import type { AnyJointName } from '@shared/skill/joints'
+import { cameraOf } from '@shared/skill/cameraOf'
 import { skillChannels } from '@shared/skill/skillChannels'
 import type { Severity, SkillConfig, SkillMetric } from '@shared/skill/skillSchema'
 
@@ -61,6 +62,17 @@ function metricText(name: string, metric: SkillMetric): string {
         to: joint(metric.to),
         axis: t(metric.axis === 'x' ? 'skill.axis.x' : 'skill.axis.y')
       })
+    case 'pitch':
+      return t('skill.metric.pitch', {
+        name,
+        target: metric.target === 'nearest' ? t('skill.metric.nearestNote') : metric.target
+      })
+    case 'level':
+      return t('skill.metric.level', { name })
+    case 'interval':
+      return t('skill.metric.interval', { name, semitones: metric.semitones })
+    case 'tempo':
+      return t('skill.metric.tempo', { name })
     case 'gap':
       return t('skill.metric.gap', {
         name,
@@ -70,6 +82,17 @@ function metricText(name: string, metric: SkillMetric): string {
         scaleTo: joint(metric.scale[1])
       })
   }
+}
+
+function cameraText(skill: SkillConfig): string {
+  const channels = skillChannels(skill)
+  const { view, fullBody } = cameraOf(skill)
+  if (channels.includes('body')) {
+    return t(view === 'side' ? 'skill.camera.side' : 'skill.camera.front', {
+      body: t(fullBody ? 'skill.camera.fullBody' : 'skill.camera.upperBody')
+    })
+  }
+  return t(channels.includes('hands') ? 'skill.camera.hands' : 'skill.camera.none')
 }
 
 export interface SkillPreview {
@@ -85,11 +108,7 @@ export interface SkillPreview {
 export function describeSkill(skill: SkillConfig): SkillPreview {
   return {
     name: localize(skill.name),
-    camera: skillChannels(skill).includes('body')
-      ? t(skill.camera.view === 'side' ? 'skill.camera.side' : 'skill.camera.front', {
-          body: t(skill.camera.fullBody ? 'skill.camera.fullBody' : 'skill.camera.upperBody')
-        })
-      : t('skill.camera.hands'),
+    camera: cameraText(skill),
     metrics: Object.entries(skill.metrics).map(([name, metric]) => metricText(name, metric)),
     phases: skill.phases.map((phase) => {
       const conditions = Object.entries(phase.when).flatMap(([name, { gt, lt }]) => [
