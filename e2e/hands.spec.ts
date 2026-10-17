@@ -67,11 +67,11 @@ test('the hand model loads and runs with no network but this computer', async ()
 
   const app = await electron.launch({
     args: [
-      resolve('e2e/handsLoad/main.cjs'),
+      resolve('e2e/modelLoad/main.cjs'),
       '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1',
       ...(process.env['CI'] ? ['--no-sandbox'] : [])
     ],
-    env: { ...process.env, HANDS_PAGE_URL: `http://127.0.0.1:${port}/` } as Record<string, string>
+    env: { ...process.env, MODEL_PAGE_URL: `http://127.0.0.1:${port}/` } as Record<string, string>
   })
   try {
     const page = await app.firstWindow()
