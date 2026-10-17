@@ -1,13 +1,14 @@
 import { useEffect, useRef } from 'react'
 import type { PoseFrame } from '@renderer/core/detectionLoop'
 import type { Landmark } from '@renderer/core/landmarks'
-import { drawSkeleton } from '@renderer/core/skeleton'
+import { drawHands, drawSkeleton } from '@renderer/core/skeleton'
 import { LandmarkSmoother } from '@renderer/core/smoothing'
 import { t } from '@renderer/i18n'
 import { cameraSettingsUrl } from '@shared/camera'
 import { CameraProblem } from './CameraProblem'
 import { useCamera } from './useCamera'
 import { usePoseDetection } from './usePoseDetection'
+import { useHandLandmarker } from './useHandLandmarker'
 import { usePoseLandmarker } from './usePoseLandmarker'
 
 interface Props {
@@ -16,6 +17,8 @@ interface Props {
   // Elements drawn over the video, such as a framing guide.
   children?: React.ReactNode
   showDevicePicker?: boolean
+  // Look for hands too, which loads the hand model.
+  withHands?: boolean
   videoClassName?: string
 }
 
@@ -24,10 +27,12 @@ export function CameraStage({
   onFrame,
   children,
   showDevicePicker,
+  withHands = false,
   videoClassName = 'max-h-[65vh]'
 }: Props): React.JSX.Element {
   const { status, stream, devices, activeDeviceId, errorKind, selectDevice, retry } = useCamera()
   const pose = usePoseLandmarker()
+  const hands = useHandLandmarker(withHands)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const smootherRef = useRef(new LandmarkSmoother())
@@ -36,20 +41,27 @@ export function CameraStage({
     if (videoRef.current) videoRef.current.srcObject = stream
   }, [stream])
 
-  usePoseDetection(videoRef, pose.pose?.landmarker ?? null, status === 'ready', (frame) => {
-    const video = videoRef.current
-    const canvas = canvasRef.current
-    const ctx = canvas?.getContext('2d')
-    if (!video || !canvas || !ctx || !video.videoWidth) return
+  usePoseDetection(
+    videoRef,
+    pose.pose?.landmarker ?? null,
+    status === 'ready',
+    (frame) => {
+      const video = videoRef.current
+      const canvas = canvasRef.current
+      const ctx = canvas?.getContext('2d')
+      if (!video || !canvas || !ctx || !video.videoWidth) return
 
-    if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
-      canvas.width = video.videoWidth
-      canvas.height = video.videoHeight
-    }
-    const landmarks = smootherRef.current.smooth(frame.landmarks, frame.timestampMs)
-    drawSkeleton(ctx, landmarks, canvas.width, canvas.height)
-    onFrame?.(frame, landmarks, video)
-  })
+      if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+        canvas.width = video.videoWidth
+        canvas.height = video.videoHeight
+      }
+      const landmarks = smootherRef.current.smooth(frame.landmarks, frame.timestampMs)
+      drawSkeleton(ctx, landmarks, canvas.width, canvas.height)
+      if (frame.hands) drawHands(ctx, frame.hands.observations, canvas.width, canvas.height)
+      onFrame?.(frame, landmarks, video)
+    },
+    hands.hands?.landmarker ?? null
+  )
 
   // A stale skeleton must not stay on screen when the camera stops or changes.
   useEffect(() => {
@@ -89,8 +101,10 @@ export function CameraStage({
       </div>
       <p role="status" className="text-sm text-slate-500 dark:text-slate-400">
         {status === 'starting' && t('camera.starting')}
-        {status === 'ready' && pose.status === 'loading' && t('pose.loading')}
-        {pose.status === 'error' && t('pose.error')}
+        {status === 'ready' &&
+          (pose.status === 'loading' || hands.status === 'loading') &&
+          t('pose.loading')}
+        {(pose.status === 'error' || hands.status === 'error') && t('pose.error')}
       </p>
       {showDevicePicker && devices.length > 1 && (
         <label className="flex items-center gap-2 text-sm">

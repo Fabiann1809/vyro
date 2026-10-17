@@ -1,10 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { CalibrationFlow, type CalibrationState } from '@renderer/core/calibrationFlow'
 import type { PoseFrame } from '@renderer/core/detectionLoop'
-import { evaluateFraming, type CheckState, type FramingReport } from '@renderer/core/framing'
+import {
+  evaluateFraming,
+  type CheckState,
+  type FramingInstruction,
+  type FramingReport
+} from '@renderer/core/framing'
+import {
+  evaluateHandFraming,
+  type HandFramingReport,
+  type HandInstruction
+} from '@renderer/core/handFraming'
 import type { Landmark } from '@renderer/core/landmarks'
 import { sampleLuminance } from '@renderer/core/lighting'
 import { localize, t, type MessageKey } from '@renderer/i18n'
+import { skillChannels } from '@shared/skill/skillChannels'
 import { CameraStage } from '../CameraStage'
 import { useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
@@ -12,21 +23,30 @@ import { useSkills } from '../skillsStore'
 
 const LUMINANCE_EVERY_MS = 500
 
-const INSTRUCTION: Record<NonNullable<FramingReport['instruction']>, MessageKey> = {
+const INSTRUCTION: Record<FramingInstruction | HandInstruction, MessageKey> = {
   stepIntoView: 'calibration.instruction.stepIntoView',
   showFullBody: 'calibration.instruction.showFullBody',
   moveBack: 'calibration.instruction.moveBack',
   moveCloser: 'calibration.instruction.moveCloser',
   turnSideways: 'calibration.instruction.turnSideways',
-  moreLight: 'calibration.instruction.moreLight'
+  moreLight: 'calibration.instruction.moreLight',
+  showHands: 'calibration.instruction.showHands',
+  showWholeHand: 'calibration.instruction.showWholeHand',
+  handsCloser: 'calibration.instruction.handsCloser',
+  handsBack: 'calibration.instruction.handsBack'
 }
 
-const CHECKS: ReadonlyArray<{ id: keyof Omit<FramingReport, 'instruction'>; label: MessageKey }> = [
-  { id: 'fullBody', label: 'calibration.check.fullBody' },
-  { id: 'profile', label: 'calibration.check.profile' },
-  { id: 'distance', label: 'calibration.check.distance' },
-  { id: 'lighting', label: 'calibration.check.lighting' }
-]
+interface Check {
+  id: string
+  label: MessageKey
+  state: CheckState
+}
+
+// What the screen shows: the checks that apply to the skill and the one thing to fix first.
+interface Report {
+  checks: Check[]
+  instruction: FramingInstruction | HandInstruction | null
+}
 
 // Never colour alone: every state also has its own symbol and its own words.
 const STATE: Record<CheckState, { symbol: string; label: MessageKey }> = {
@@ -35,20 +55,55 @@ const STATE: Record<CheckState, { symbol: string; label: MessageKey }> = {
   fix: { symbol: '✗', label: 'calibration.state.fix' }
 }
 
-const WAITING: FramingReport = {
-  fullBody: 'pending',
-  profile: 'pending',
-  distance: 'pending',
-  lighting: 'pending',
-  instruction: 'stepIntoView'
+function bodyChecks(report: FramingReport): Check[] {
+  return [
+    { id: 'fullBody', label: 'calibration.check.fullBody', state: report.fullBody },
+    { id: 'profile', label: 'calibration.check.profile', state: report.profile },
+    { id: 'distance', label: 'calibration.check.distance', state: report.distance },
+    { id: 'lighting', label: 'calibration.check.lighting', state: report.lighting }
+  ]
 }
 
-const sameReport = (a: FramingReport, b: FramingReport): boolean =>
-  a.fullBody === b.fullBody &&
-  a.profile === b.profile &&
-  a.distance === b.distance &&
-  a.lighting === b.lighting &&
-  a.instruction === b.instruction
+function handChecks(report: HandFramingReport): Check[] {
+  return [
+    { id: 'hands', label: 'calibration.check.hands', state: report.hands },
+    { id: 'handDistance', label: 'calibration.check.distance', state: report.distance },
+    { id: 'handLighting', label: 'calibration.check.lighting', state: report.lighting }
+  ]
+}
+
+// Both together for a skill of the body and the hands; lighting is the same one, so it shows once.
+function combine(body: FramingReport | null, hand: HandFramingReport | null): Report {
+  const checks = [
+    ...(body ? bodyChecks(body) : []),
+    ...(hand ? handChecks(hand).filter((check) => !body || check.id !== 'handLighting') : [])
+  ]
+  return { checks, instruction: body?.instruction ?? hand?.instruction ?? null }
+}
+
+// Before the first frame nothing is known yet: every check waits, and there is somebody to wait for.
+function waitingReport(useBody: boolean, useHands: boolean): Report {
+  const report = combine(
+    useBody
+      ? {
+          fullBody: 'pending',
+          profile: 'pending',
+          distance: 'pending',
+          lighting: 'pending',
+          instruction: null
+        }
+      : null,
+    useHands
+      ? { hands: 'pending', distance: 'pending', lighting: 'pending', instruction: null }
+      : null
+  )
+  return { ...report, instruction: useBody ? 'stepIntoView' : 'showHands' }
+}
+
+const sameReport = (a: Report, b: Report): boolean =>
+  a.instruction === b.instruction &&
+  a.checks.length === b.checks.length &&
+  a.checks.every((check, index) => check.state === b.checks[index]?.state)
 
 const sameCountdown = (a: CalibrationState, b: CalibrationState): boolean =>
   a.phase === b.phase &&
@@ -59,10 +114,13 @@ export function CalibrationScreen(): React.JSX.Element {
   const skillId = useSession((state) => state.skillId)
   const skills = useSkills((state) => state.skills)
   const skill = skills.find((candidate) => candidate.id === skillId)
+  const channels = skill ? skillChannels(skill) : []
+  const useBody = channels.includes('body')
+  const useHands = channels.includes('hands')
 
   const flowRef = useRef(new CalibrationFlow())
   const luminanceRef = useRef<{ value: number | null; at: number }>({ value: null, at: -Infinity })
-  const [report, setReport] = useState<FramingReport>(WAITING)
+  const [report, setReport] = useState<Report>(() => waitingReport(useBody, useHands))
   const [countdown, setCountdown] = useState<CalibrationState>({ phase: 'checking' })
 
   const handleFrame = useCallback(
@@ -72,19 +130,27 @@ export function CalibrationScreen(): React.JSX.Element {
       if (frame.timestampMs - light.at >= LUMINANCE_EVERY_MS) {
         luminanceRef.current = { value: sampleLuminance(video), at: frame.timestampMs }
       }
+      const luminance = luminanceRef.current.value
+      const frameSize = { width: video.videoWidth, height: video.videoHeight }
 
-      const next = evaluateFraming({
-        landmarks,
-        luminance: luminanceRef.current.value,
-        frameSize: { width: video.videoWidth, height: video.videoHeight },
-        camera: skill.camera
-      })
+      const body = useBody
+        ? evaluateFraming({ landmarks, luminance, frameSize, camera: skill.camera })
+        : null
+      const hand = useHands
+        ? evaluateHandFraming({
+            hands: frame.hands?.observations ?? [],
+            preference: skill.camera.hand,
+            luminance,
+            frameSize
+          })
+        : null
+      const next = combine(body, hand)
       const state = flowRef.current.update(next.instruction === null, frame.timestampMs)
 
       setReport((previous) => (sameReport(previous, next) ? previous : next))
       setCountdown((previous) => (sameCountdown(previous, state) ? previous : state))
     },
-    [skill]
+    [skill, useBody, useHands]
   )
 
   // Without a chosen skill there is nothing to calibrate for.
@@ -106,11 +172,13 @@ export function CalibrationScreen(): React.JSX.Element {
         {t('screen.calibration.title')} · {localize(skill.name)}
       </h1>
 
-      <CameraStage onFrame={handleFrame} showDevicePicker>
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-[6%] left-1/2 w-[28%] -translate-x-1/2 rounded-3xl border-2 border-dashed border-white/60"
-        />
+      <CameraStage onFrame={handleFrame} showDevicePicker withHands={useHands}>
+        {useBody && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-[6%] left-1/2 w-[28%] -translate-x-1/2 rounded-3xl border-2 border-dashed border-white/60"
+          />
+        )}
       </CameraStage>
 
       <p role="status" aria-live="polite" className="text-center text-4xl font-bold">
@@ -122,10 +190,10 @@ export function CalibrationScreen(): React.JSX.Element {
       </p>
 
       <ul className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-lg">
-        {CHECKS.map(({ id, label }) => (
+        {report.checks.map(({ id, label, state }) => (
           <li key={id}>
-            <span aria-hidden="true">{STATE[report[id]].symbol}</span> {t(label)}
-            <span className="sr-only">: {t(STATE[report[id]].label)}</span>
+            <span aria-hidden="true">{STATE[state].symbol}</span> {t(label)}
+            <span className="sr-only">: {t(STATE[state].label)}</span>
           </li>
         ))}
       </ul>
