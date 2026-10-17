@@ -63,6 +63,10 @@ session, and your settings. It never stores video, images or body landmarks, and
 anywhere unless you turn on the optional AI coach (see below). You can erase everything in
 **Settings → Data and privacy**.
 
+The microphone is used only in skills that listen (tuning a string, keeping a beat), and only while
+they are open. The sound is measured on the spot and forgotten: it is never recorded, saved or
+sent, and only numbers remain.
+
 The database is a single file, `vyro.db`, in the app's data folder:
 
 - Windows: `%APPDATA%\vyro`

@@ -64,6 +64,10 @@ VYRO guarda **solo números** en tu computador: las repeticiones, la puntuación
 sesión, y tus ajustes. Nunca guarda video, imágenes ni puntos del cuerpo, y no envía nada a ningún
 sitio, salvo que actives el coach con IA opcional (ver abajo). Puedes borrarlo todo en **Ajustes → Datos y privacidad**.
 
+El micrófono se usa solo en las habilidades que escuchan (afinar una cuerda, llevar un pulso) y solo
+mientras están abiertas. El sonido se mide al momento y se olvida: nunca se graba, guarda ni envía, y
+solo quedan números.
+
 La base de datos es un único archivo, `vyro.db`, en la carpeta de datos de la app:
 
 - Windows: `%APPDATA%\vyro`

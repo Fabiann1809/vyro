@@ -1,4 +1,3 @@
-import { isAudioMetric } from './skillChannels'
 import type { SkillConfig, SkillMetric } from './skillSchema'
 
 export const GENERATED_ID_PREFIX = 'custom_'
@@ -58,10 +57,6 @@ export function generatedSkillProblems(skill: SkillConfig): string[] {
   const problems: string[] = []
   if (!isGeneratedSkillId(skill.id)) {
     problems.push(`id: "${skill.id}" must start with "${GENERATED_ID_PREFIX}"`)
-  }
-  // Skills that listen are not made by the coach until it is taught how (see the audio channel).
-  if (Object.values(skill.metrics).some(isAudioMetric)) {
-    problems.push('metrics: only metrics of the body and the hands may be used for now')
   }
   if (!skill.rules.some((rule) => rule.severity === 'high')) {
     problems.push('rules: needs at least one rule with severity "high", the one that matters most')

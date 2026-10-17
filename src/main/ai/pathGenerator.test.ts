@@ -263,10 +263,7 @@ describe('a skill that needs a channel that has not arrived yet', () => {
 
     expect(result).toEqual({
       kind: 'planned',
-      pending: [
-        { channel: 'audio', phase: 14 },
-        { channel: 'object', phase: 15 }
-      ],
+      pending: [{ channel: 'object', phase: 15 }],
       measurable: ['body', 'hands', 'audio', 'object']
     })
   })

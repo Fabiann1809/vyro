@@ -11,13 +11,13 @@ técnica con la cámara y guardar tu progreso no usan IA ni internet.
 - **Revisión semanal:** a partir de tus números propone ajustes a la ruta. Tú aceptas o rechazas
   cada uno.
 - **Resumen de sesión:** un texto natural a partir de los números de una sesión.
-- **Crear habilidad:** diseña una habilidad nueva de cuerpo o de manos. Es **experimental**: se te muestra qué
+- **Crear habilidad:** diseña una habilidad nueva de cuerpo, de manos o de sonido (afinar una cuerda, llevar un pulso). Es **experimental**: se te muestra qué
   medirá y qué corregirá antes de usarla, y puedes ajustarla a tu cuerpo con una repetición buena.
 
 Solo se puede coachear lo que la cámara o el micrófono pueden medir. Hoy los canales soportados
-son el cuerpo y las manos (con la cámara); si pides algo que no se puede medir (meditar, ajedrez) o
-que necesita un canal que aún no llega (sonido, objetos: la guitarra completa), el coach lo dice y
-sugiere la parte medible.
+son el cuerpo y las manos (con la cámara) y el sonido (con el micrófono); si pides algo que no se
+puede medir (meditar, ajedrez) o que necesita un canal que aún no llega (objetos: la guitarra
+completa), el coach lo dice y sugiere la parte medible.
 
 ## Activarlo
 
@@ -57,7 +57,9 @@ para mejorar sus productos: si te importa, usa Claude de pago u Ollama.
 - Las rutas y habilidades de la IA **no son consejo médico**. Si sientes dolor o mareo, detente.
 - La IA puede equivocarse. Las habilidades creadas están marcadas como experimentales y sus valores
   pasan una validación de seguridad antes de poder usarse.
-- No puedes crear habilidades que necesiten sonido u objetos hasta que existan esos canales.
+- No puedes crear habilidades que necesiten detectar objetos hasta que exista ese canal.
+- El micrófono solo se enciende en las habilidades con sonido; el audio nunca se guarda ni se envía:
+  se analiza al momento y solo quedan números.
 
 ## Apagarlo y borrarlo
 

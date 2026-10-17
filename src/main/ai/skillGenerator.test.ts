@@ -4,7 +4,7 @@ import { parseSkillConfig } from '@shared/skill/skillLoader'
 import { parseJsonAnswer } from './answer'
 import type { GenerateRequest, LlmClient } from './llmClient'
 import { generateSkill, readSkillText } from './skillGenerator'
-import { EXAMPLE_HAND_SKILL, EXAMPLE_SKILL } from './skillPrompts'
+import { EXAMPLE_AUDIO_SKILL, EXAMPLE_HAND_SKILL, EXAMPLE_SKILL } from './skillPrompts'
 
 const input = (overrides: Partial<GenerateSkillInput> = {}): GenerateSkillInput => ({
   description: 'Quiero aprender la postura del perro boca abajo',
@@ -55,6 +55,87 @@ describe('the example in the prompt', () => {
     expect(readSkillText(JSON.stringify(EXAMPLE_HAND_SKILL), [], ['hands'])).toMatchObject({
       ok: true
     })
+  })
+})
+
+describe('a skill that listens', () => {
+  const tuner = {
+    ...EXAMPLE_AUDIO_SKILL,
+    id: 'custom_low_a',
+    name: { es: 'La grave', en: 'Low A' }
+  }
+
+  it('has an example that is valid and passes the limits of generated skills', () => {
+    expect(parseSkillConfig(EXAMPLE_AUDIO_SKILL).ok).toBe(true)
+    expect(readSkillText(JSON.stringify(EXAMPLE_AUDIO_SKILL), [], ['audio'])).toMatchObject({
+      ok: true
+    })
+  })
+
+  it('is generated and validated when the coach says it needs the sound', async () => {
+    const model = scriptedModel(answer(tuner, { channels: ['audio'] }))
+
+    const result = await generateSkill(model, input({ description: 'Quiero afinar mi guitarra' }))
+
+    expect(result).toMatchObject({ kind: 'skill', skill: { id: 'custom_low_a' } })
+    expect(result.kind === 'skill' && result.skill.camera).toBeUndefined()
+  })
+
+  it('is asked to be fixed when it listens but the coach did not say so', async () => {
+    const model = scriptedModel(answer(tuner, bodyOnly), answer(tuner, { channels: ['audio'] }))
+
+    const result = await generateSkill(model, input())
+
+    expect(result.kind).toBe('skill')
+    const repair = model.requests[1]?.messages.at(-1)?.content ?? ''
+    expect(repair).toContain('"requirement.channels" does not list it')
+  })
+
+  it('is asked to be fixed when a note is not a note', async () => {
+    const wrong = {
+      ...tuner,
+      metrics: { ...tuner.metrics, cents: { type: 'pitch', target: 'Z9' } }
+    }
+    const model = scriptedModel(
+      answer(wrong, { channels: ['audio'] }),
+      answer(tuner, { channels: ['audio'] })
+    )
+
+    const result = await generateSkill(model, input())
+
+    expect(result.kind).toBe('skill')
+    expect(model.requests[1]?.messages.at(-1)?.content).toContain('must be a note')
+  })
+
+  it('is rejected when its thresholds cannot happen', async () => {
+    const impossible = {
+      ...tuner,
+      phases: [
+        { id: 'quiet', when: { level: { lt: -42 } } },
+        { id: 'ringing', when: { level: { gt: 20 } } }
+      ]
+    }
+    const model = scriptedModel(
+      answer(impossible, { channels: ['audio'] }),
+      answer(tuner, { channels: ['audio'] })
+    )
+
+    await generateSkill(model, input())
+
+    expect(model.requests[1]?.messages.at(-1)?.content).toContain(
+      'outside what "level" can measure'
+    )
+  })
+
+  it('shows the model the sound metrics and the example', async () => {
+    const model = scriptedModel(answer(tuner, { channels: ['audio'] }))
+
+    await generateSkill(model, input())
+
+    const system = String(model.requests[0]?.system)
+    expect(system).toContain('"type": "pitch"')
+    expect(system).toContain('"type": "tempo"')
+    expect(system).toContain('custom_open_string_example')
   })
 })
 
@@ -241,13 +322,15 @@ describe('what VYRO cannot coach', () => {
     expect(model.requests).toHaveLength(1)
   })
 
-  it('says what has not arrived yet when it needs the audio, and does not read the skill', async () => {
-    const model = scriptedModel(answer('not even json', { channels: ['body', 'audio'] }))
+  it('says what has not arrived yet when it needs an object, and does not read the skill', async () => {
+    const model = scriptedModel(
+      answer('not even json', { channels: ['body', 'object'], objects: ['guitar'] })
+    )
 
     expect(await generateSkill(model, input())).toEqual({
       kind: 'planned',
-      pending: [{ channel: 'audio', phase: 14 }],
-      measurable: ['body', 'audio']
+      pending: [{ channel: 'object', phase: 15 }],
+      measurable: ['body', 'object']
     })
   })
 })

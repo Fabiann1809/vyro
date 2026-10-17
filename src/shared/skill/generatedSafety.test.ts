@@ -82,7 +82,7 @@ describe('generatedSkillProblems', () => {
     expect(generatedSkillProblems(hands)).toEqual([])
   })
 
-  it('rejects a skill that listens, which the coach cannot make yet', () => {
+  it('accepts a skill that listens, when its numbers are plausible', () => {
     const listening = skill({
       metrics: { cents: { type: 'pitch', target: 'nearest' } },
       phases: [
@@ -95,7 +95,7 @@ describe('generatedSkillProblems', () => {
       ]
     })
 
-    expect(generatedSkillProblems(listening).join(' ')).toContain('only metrics of the body')
+    expect(generatedSkillProblems(listening)).toEqual([])
   })
 
   it('knows which ids are generated', () => {

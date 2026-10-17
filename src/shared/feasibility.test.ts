@@ -21,14 +21,6 @@ describe('a skill that can be coached today', () => {
 })
 
 describe('a skill that will be coached in a later phase', () => {
-  it.each([['audio', 14]] as const)('is planned for the phase of %s', (channel, phase) => {
-    const result = assessFeasibility({ channels: [channel] })
-
-    expect(result.verdict).toBe('planned')
-    expect(result.channels).toEqual([{ channel, status: 'planned', phase, unsupportedObjects: [] }])
-    expect(result.reasons).toEqual([])
-  })
-
   it('is planned for the phase of the objects when one has a detector on the way', () => {
     const result = assessFeasibility({ channels: ['body', 'object'], objects: ['dumbbell'] })
 
@@ -40,7 +32,7 @@ describe('a skill that will be coached in a later phase', () => {
   })
 
   it('tells apart what is ready from what is not in a skill with several channels', () => {
-    const result = assessFeasibility({ channels: ['body', 'audio'] })
+    const result = assessFeasibility({ channels: ['body', 'object'], objects: ['guitar'] })
 
     expect(result.verdict).toBe('planned')
     expect(result.channels.map((c) => c.status)).toEqual(['supported', 'planned'])
@@ -67,7 +59,7 @@ describe('a skill that needs several channels at once', () => {
     expect(result.channels.map((c) => [c.channel, c.status, c.phase])).toEqual([
       ['body', 'supported', null],
       ['hands', 'supported', null],
-      ['audio', 'planned', 14],
+      ['audio', 'supported', null],
       ['object', 'planned', 15]
     ])
   })
@@ -79,13 +71,14 @@ describe('a skill that needs several channels at once', () => {
   })
 
   it('becomes supported by itself as the phases ship, without any other change', () => {
-    const inPhase14: ChannelRegistry = {
+    const inPhase15: ChannelRegistry = {
       ...CHANNEL_REGISTRY,
-      audio: { status: 'supported', phase: null }
+      object: { status: 'supported', phase: null }
     }
+    const readyObjects = { guitar: { status: 'supported', phase: null } } as const
 
-    expect(assessFeasibility({ channels: ['body', 'audio'] }, inPhase14).verdict).toBe('supported')
-    expect(assessFeasibility({ channels: ['body', 'audio'] }).verdict).toBe('planned')
+    expect(assessFeasibility(guitar, inPhase15, readyObjects).verdict).toBe('supported')
+    expect(assessFeasibility(guitar).verdict).toBe('planned')
   })
 
   it('needs the object to be ready as well as the object channel', () => {

@@ -621,14 +621,14 @@ describe('coach skill generation handler', () => {
   })
 
   it('says what has not arrived yet, and keeps nothing', async () => {
-    const generating = setup(skillAnswer('', { channels: ['audio'] }))
+    const generating = setup(skillAnswer('', { channels: ['object'], objects: ['guitar'] }))
 
     expect(await generating.generateSkill(generateInput)).toEqual({
       ok: true,
       value: {
         kind: 'planned',
-        pending: [{ channel: 'audio', phase: 14 }],
-        measurable: ['audio']
+        pending: [{ channel: 'object', phase: 15 }],
+        measurable: ['object']
       }
     })
     expect(generating.skills.drafts).toEqual([])

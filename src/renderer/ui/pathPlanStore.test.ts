@@ -98,7 +98,7 @@ describe('planning a path', () => {
 
   it.each([
     [{ kind: 'out-of-scope', reasons: ['invisible-outcome'], measurable: [] }],
-    [{ kind: 'planned', pending: [{ channel: 'audio', phase: 14 }], measurable: ['body'] }],
+    [{ kind: 'planned', pending: [{ channel: 'object', phase: 15 }], measurable: ['body'] }],
     [{ kind: 'no-matching-skill' }]
   ] as Array<[PlanPathResult]>)('ends with the reason when there is no path: %j', async (value) => {
     const { api } = fakeApi({ ok: true, value })
