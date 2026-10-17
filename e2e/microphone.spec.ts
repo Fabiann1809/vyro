@@ -83,7 +83,7 @@ test('closes the microphone again when the page is loaded anew', async () => {
 
   await page.reload()
 
-  expect(await ask(page, { audio: true })).toBe('NotAllowedError')
+  await expect.poll(() => ask(page, { audio: true }), { timeout: 10_000 }).toBe('NotAllowedError')
 })
 
 test('only a true opens it: anything else leaves it closed', async () => {

@@ -48,6 +48,7 @@ export function setupWindowSecurity(
 ): void {
   // A page that is loaded again has not opened any skill yet.
   win.webContents.on('did-start-loading', () => microphone.set(false))
+  win.webContents.on('did-navigate', () => microphone.set(false))
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (isExternalHttpsUrl(url)) shell.openExternal(url)
