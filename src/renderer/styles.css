@@ -220,6 +220,23 @@ body {
   }
 }
 
+/* Fills that differ in shape as well as in colour, so that good, so-so and bad can be told apart
+   without seeing colours. */
+@utility pattern-warn {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--warn) 0 6px,
+    color-mix(in oklab, var(--warn) 70%, black) 6px 8px
+  );
+}
+@utility pattern-bad {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--bad) 0 4px,
+    color-mix(in oklab, var(--bad) 70%, black) 4px 7px
+  );
+}
+
 @utility anim-up {
   animation: vy-up 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }

@@ -491,5 +491,10 @@
   "route.saving": "Guardando…",
   "route.saved": "Ruta guardada",
   "route.failed": "No se pudo guardar la ruta. Inténtalo de nuevo.",
-  "reject.restart": "Probar con otra cosa"
+  "reject.restart": "Probar con otra cosa",
+  "chart.best": "Mejor marca · {value}",
+  "chart.trend": "Tendencia",
+  "chart.table.when": "Fecha",
+  "chart.outOf100": "de 100",
+  "chart.inTune": "afinado ±{cents}"
 }

@@ -491,5 +491,10 @@
   "route.saving": "Saving…",
   "route.saved": "Path saved",
   "route.failed": "The path could not be saved. Try again.",
-  "reject.restart": "Try something else"
+  "reject.restart": "Try something else",
+  "chart.best": "Best · {value}",
+  "chart.trend": "Trend",
+  "chart.table.when": "Date",
+  "chart.outOf100": "out of 100",
+  "chart.inTune": "in tune ±{cents}"
 }
