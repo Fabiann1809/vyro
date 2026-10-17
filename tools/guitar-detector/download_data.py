@@ -1,8 +1,6 @@
 # %%
-# Part 1 of the guitar detector: install the tools.
-# If Colab asks to restart the session after this cell, do it (Runtime > Restart session) and
-# continue from the next cell.
-%pip install -q fiftyone mediapipe-model-maker
+# Part 1 of the guitar detector: the tool that downloads the pictures.
+%pip install -q fiftyone
 
 # %%
 # Downloads boxes of guitars from Open Images V7 and writes them in the COCO layout that

@@ -20,3 +20,12 @@ The `lite` variant is the default. Whether to switch to `full` is decided from t
 - License: Apache 2.0 (Google MediaPipe)
 - Contents: a zip with `hand_detector.tflite` and `hand_landmarks_detector.tflite`.
 - Used by the hands channel (up to two hands per frame, 21 points each).
+
+## guitar_detector.tflite
+
+- Source: trained by this project (`tools/guitar-detector/`, MediaPipe Model Maker, base model `MOBILENET_V2`, 30 epochs) on 2,999 guitar pictures of Open Images V7. Data and license: `docs/OBJECT_DATA.md`.
+- SHA-256: `6943399a47747038722ef4b6eb9308f00694bd0350d0b42f2ce26afa7678a716`
+- Size: 10,902,227 bytes
+- License: the pictures are CC BY 2.0 and the boxes CC BY 4.0 (Open Images); credit goes to the dataset.
+- Class: `Guitar`. Measured on 296 pictures it never saw: AP50 0.822 (the minimum is 0.5), AP 0.534. It fails on small guitars (AP of medium objects 0.03); the full numbers are in `tools/guitar-detector/metrics.json`.
+- Used by the object channel (T15.3 on).

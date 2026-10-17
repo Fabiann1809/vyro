@@ -297,7 +297,7 @@ están menos detalladas que las anteriores y se afinarán al llegar a ellas.
 
 ### Fase 15 — Canal objetos
 - [x] **T15.1 Objetos y datos de entrenamiento.** Lista inicial: solo la guitarra (la mancuerna queda aplazada: el curl ya se mide con el cuerpo). Origen y licencia de las imágenes (Open Images V7, CC BY; ver `docs/OBJECT_DATA.md`), y un script reproducible; ninguna imagen entra al repositorio. *Hecho cuando:* un documento recoge fuente y licencia de cada conjunto.
-- [ ] **T15.2 Entrenamiento del detector.** Script en `tools/` con MediaPipe Model Maker y evaluación con un conjunto aparte. *Hecho cuando:* existe un modelo con sus métricas registradas y un umbral mínimo acordado.
+- [x] **T15.2 Entrenamiento del detector.** Script en `tools/` con MediaPipe Model Maker y evaluación con un conjunto aparte. *Hecho cuando:* existe un modelo con sus métricas registradas y un umbral mínimo acordado.
 - [ ] **T15.3 Detector empaquetado.** Modelo `ObjectDetector` cargado sin red. *Hecho cuando:* carga con internet desactivado.
 - [ ] **T15.4 Detección en el bucle.** Con suavizado de la caja y presupuesto de tiempo por fotograma. *Hecho cuando:* la caja sigue al objeto en vivo con FPS aceptables.
 - [ ] **T15.5 Esquema y métricas de objeto.** Posición del objeto respecto a la muñeca y al cuerpo, e inclinación de su eje. *Hecho cuando:* las pruebas con cajas conocidas dan los valores esperados.

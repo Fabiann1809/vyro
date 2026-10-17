@@ -32,3 +32,18 @@ dropped from the first round (the bicep curl is already measured from the body).
   is turned into a notebook for Colab with `build_notebook.py`.
 - The photos are only used to train the detector. Nothing that VYRO records with the camera or
   the microphone is used for training or uploaded anywhere.
+
+## Result
+
+Trained on 2,999 pictures and measured on 296 test pictures that the model never saw (2026-10-17):
+
+| Metric | Value |
+| --- | --- |
+| AP at IoU 0.5 (the one that sets the minimum, 0.5) | **0.822** |
+| AP at IoU 0.5 to 0.95 | 0.534 |
+| AP of large objects | 0.553 |
+| AP of medium objects | 0.031 |
+
+A guitar that fills a good part of the picture is found; a small or far one is mostly missed. The
+skill that uses it asks the player to keep the guitar in view. All the numbers are in
+`tools/guitar-detector/metrics.json`.
