@@ -11,12 +11,14 @@ interface SettingsState {
   cameraId: string | null
   textSize: TextSize
   reduceMotion: boolean
+  aiEnabled: boolean
   setLanguage: (language: Language) => void
   setVoiceEnabled: (enabled: boolean) => void
   setVolume: (volume: number) => void
   setCameraId: (cameraId: string | null) => void
   setTextSize: (textSize: TextSize) => void
   setReduceMotion: (reduceMotion: boolean) => void
+  setAiEnabled: (aiEnabled: boolean) => void
 }
 
 const clamp01 = (value: number): number => Math.min(1, Math.max(0, value))
@@ -28,6 +30,7 @@ export const useSettings = create<SettingsState>((set) => ({
   cameraId: DEFAULT_SETTINGS.cameraId,
   textSize: DEFAULT_SETTINGS.textSize,
   reduceMotion: DEFAULT_SETTINGS.reduceMotion,
+  aiEnabled: DEFAULT_SETTINGS.aiEnabled,
   // The texts change in the same instant, before the screens draw again.
   setLanguage: (language) => {
     setLanguage(language)
@@ -37,5 +40,6 @@ export const useSettings = create<SettingsState>((set) => ({
   setVolume: (volume) => set({ volume: clamp01(volume) }),
   setCameraId: (cameraId) => set({ cameraId }),
   setTextSize: (textSize) => set({ textSize }),
-  setReduceMotion: (reduceMotion) => set({ reduceMotion })
+  setReduceMotion: (reduceMotion) => set({ reduceMotion }),
+  setAiEnabled: (aiEnabled) => set({ aiEnabled })
 }))

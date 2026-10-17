@@ -1,11 +1,13 @@
-import { app, BrowserWindow, dialog } from 'electron'
+import { app, BrowserWindow, dialog, safeStorage } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { APP_NAME } from '@shared/app'
 import icon from '../../resources/icon.png?asset'
+import { ApiKeyStore, createKeyFile } from './ai/keyStore'
 import { openDatabase, type Database } from './db/database'
 import { SessionRepository } from './db/sessionRepository'
 import { SettingsRepository } from './db/settingsRepository'
+import { registerAiIpc } from './ipc/ai'
 import { registerCameraIpc } from './ipc/camera'
 import { registerSessionsIpc } from './ipc/sessions'
 import { registerSettingsIpc } from './ipc/settings'
@@ -59,7 +61,19 @@ app.whenReady().then(() => {
   registerCameraIpc()
   const sessions = new SessionRepository(database)
   registerSessionsIpc(sessions)
-  registerSettingsIpc(new SettingsRepository(database), sessions)
+  const keyStore = new ApiKeyStore(
+    {
+      isEncryptionAvailable: () => safeStorage.isEncryptionAvailable(),
+      encryptString: (plain) => safeStorage.encryptString(plain),
+      decryptString: (encrypted) => safeStorage.decryptString(encrypted),
+      // Linux without a keyring falls back to a fixed key: that is not protection.
+      isWeakBackend: () =>
+        process.platform === 'linux' && safeStorage.getSelectedStorageBackend() === 'basic_text'
+    },
+    createKeyFile(join(app.getPath('userData'), 'ai-key.bin'))
+  )
+  registerAiIpc(keyStore)
+  registerSettingsIpc(new SettingsRepository(database), sessions, keyStore)
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

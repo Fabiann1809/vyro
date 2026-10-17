@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { TextSize } from '@shared/settings'
 import { SAMPLE_CLIP_ID } from '@renderer/voice/clipList'
 import { voice } from '@renderer/voice'
+import { AiSettings } from '../AiSettings'
 import { CameraStage } from '../CameraStage'
 import { deleteAllData } from '../settingsSync'
 import { useSettings } from '../settingsStore'
@@ -152,6 +153,10 @@ export function SettingsScreen(): React.JSX.Element {
           />
           {t('settings.reduceMotion')}
         </label>
+      </Group>
+
+      <Group title="settings.ai">
+        <AiSettings />
       </Group>
 
       <Group title="settings.privacy">

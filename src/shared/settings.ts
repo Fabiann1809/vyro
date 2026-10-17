@@ -14,6 +14,8 @@ export interface AppSettings {
   theme: ThemePreference
   textSize: TextSize
   reduceMotion: boolean
+  // The AI coach is off until the user turns it on (and has saved a key).
+  aiEnabled: boolean
 }
 
 // Dark by default: it reduces glare and makes the video stand out.
@@ -24,7 +26,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   cameraId: null,
   theme: 'dark',
   textSize: 'normal',
-  reduceMotion: false
+  reduceMotion: false,
+  aiEnabled: false
 }
 
 // One schema per setting: the same rules check what is stored and what the renderer sends.
@@ -35,7 +38,8 @@ export const settingSchemas = {
   cameraId: z.string().min(1).max(512).nullable(),
   theme: z.enum(['dark', 'light', 'system']),
   textSize: z.enum(['normal', 'large', 'extra-large']),
-  reduceMotion: z.boolean()
+  reduceMotion: z.boolean(),
+  aiEnabled: z.boolean()
 } satisfies { [K in keyof AppSettings]: z.ZodType<AppSettings[K]> }
 
 export const settingsPatchSchema = z.object(settingSchemas).partial().strict()

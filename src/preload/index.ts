@@ -18,6 +18,11 @@ const api: VyroApi = {
     get: () => ipcRenderer.invoke(IPC.settingsGet),
     set: (patch) => ipcRenderer.invoke(IPC.settingsSet, patch)
   },
+  ai: {
+    keyStatus: () => ipcRenderer.invoke(IPC.aiKeyStatus),
+    saveKey: (key) => ipcRenderer.invoke(IPC.aiKeySave, key),
+    clearKey: () => ipcRenderer.invoke(IPC.aiKeyClear)
+  },
   data: {
     deleteAll: () => ipcRenderer.invoke(IPC.dataDeleteAll)
   }

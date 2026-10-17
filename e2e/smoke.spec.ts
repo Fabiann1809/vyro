@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
@@ -114,4 +114,41 @@ test('remembers the language after the app is closed and opened again', async ()
 
   const second = await launch()
   await expect(second.getByRole('heading', { level: 1, name: 'Home' })).toBeVisible()
+})
+
+// The system key store is only dependable on the Windows runner: Linux CI has no keyring and a
+// macOS runner may have no unlocked keychain. The logic itself is covered by the unit tests.
+test.describe('API key', () => {
+  test.skip(process.platform !== 'win32', 'Needs the Windows key store')
+
+  const SECRET = 'sk-e2e-secret-1234567890'
+
+  test('is stored encrypted, survives a restart and never comes back to the page', async () => {
+    const first = await launch()
+    await nav(first, 'Ajustes').click()
+    await first.getByLabel('Clave de API').fill(SECRET)
+    await first.getByRole('button', { name: 'Guardar clave' }).click()
+    await expect(first.getByText('Clave guardada en este equipo')).toBeVisible()
+    // The page forgets what was typed once the key has been handed over.
+    await expect(first.getByLabel('Clave de API')).toHaveValue('')
+
+    const exposed = await first.evaluate(async () => {
+      const ai = (window as unknown as { api: { ai: { keyStatus: () => Promise<unknown> } } }).api
+        .ai
+      return { methods: Object.keys(ai).sort(), status: await ai.keyStatus() }
+    })
+    expect(exposed.methods).toEqual(['clearKey', 'keyStatus', 'saveKey'])
+    expect(JSON.stringify(exposed.status)).not.toContain(SECRET)
+
+    // On disk, only the encrypted bytes.
+    expect(readFileSync(join(userData, 'ai-key.bin')).toString('latin1')).not.toContain(SECRET)
+    await app?.close()
+
+    const second = await launch()
+    await nav(second, 'Ajustes').click()
+    await expect(second.getByText('Clave guardada en este equipo')).toBeVisible()
+
+    await second.getByRole('button', { name: 'Quitar clave' }).click()
+    await expect(second.getByText('Aún no has guardado ninguna clave')).toBeVisible()
+  })
 })

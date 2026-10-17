@@ -1,3 +1,4 @@
+import type { AiKeyStatus } from './ai'
 import type { CameraAccessStatus } from './camera'
 import type { AppSettings, SettingsPatch } from './settings'
 import type { ErrorCount, SessionDetail, SessionQuery, SessionRow, SessionToSave } from './sessions'
@@ -11,7 +12,10 @@ export const IPC = {
   sessionsErrorCounts: 'sessions:error-counts',
   settingsGet: 'settings:get',
   settingsSet: 'settings:set',
-  dataDeleteAll: 'data:delete-all'
+  dataDeleteAll: 'data:delete-all',
+  aiKeyStatus: 'ai:key-status',
+  aiKeySave: 'ai:key-save',
+  aiKeyClear: 'ai:key-clear'
 } as const
 
 // The only API the renderer can call. Everything else stays in the main process.
@@ -31,6 +35,12 @@ export interface VyroApi {
   settings: {
     get: () => Promise<AppSettings>
     set: (patch: SettingsPatch) => Promise<void>
+  }
+  ai: {
+    // Whether a key exists; its value never reaches the page.
+    keyStatus: () => Promise<AiKeyStatus>
+    saveKey: (key: string) => Promise<void>
+    clearKey: () => Promise<void>
   }
   data: {
     // Empties the database: sessions and settings.

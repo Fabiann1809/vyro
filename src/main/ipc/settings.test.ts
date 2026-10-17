@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_SETTINGS } from '@shared/settings'
+import { ApiKeyStore, type KeyFile } from '../ai/keyStore'
 import { openDatabase } from '../db/database'
 import { SessionRepository } from '../db/sessionRepository'
 import { SettingsRepository } from '../db/settingsRepository'
@@ -10,11 +11,26 @@ vi.mock('electron', () => ({ ipcMain: { handle: vi.fn() } }))
 
 let handlers: ReturnType<typeof createSettingsHandlers>
 let sessions: SessionRepository
+let keyStore: ApiKeyStore
 
 beforeEach(() => {
   const db = openDatabase(':memory:')
   sessions = new SessionRepository(db)
-  handlers = createSettingsHandlers(new SettingsRepository(db), sessions)
+  let keyFile: Buffer | null = null
+  const file: KeyFile = {
+    read: () => keyFile,
+    write: (data) => void (keyFile = data),
+    remove: () => void (keyFile = null)
+  }
+  keyStore = new ApiKeyStore(
+    {
+      isEncryptionAvailable: () => true,
+      encryptString: (plain) => Buffer.from(plain),
+      decryptString: (encrypted) => encrypted.toString()
+    },
+    file
+  )
+  handlers = createSettingsHandlers(new SettingsRepository(db), sessions, keyStore)
 })
 
 describe('settings handlers', () => {
@@ -45,8 +61,11 @@ describe('settings handlers', () => {
       reps: [{ index: 1, quality: 'good', durationMs: 1, failedRuleIds: [] }]
     })
 
+    keyStore.save('sk-test-1234567890')
+
     handlers.deleteAllData()
 
+    expect(keyStore.status().hasKey).toBe(false)
     expect(sessions.list()).toEqual([])
     expect(handlers.get()).toEqual(DEFAULT_SETTINGS)
   })
