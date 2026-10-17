@@ -98,6 +98,19 @@ test('a skill of the hands is calibrated with the hands, not the body', async ()
   await expect(page.getByText('Cuerpo completo')).toHaveCount(0)
 })
 
+test('a skill with the guitar is calibrated with the body, the hand, the guitar and the sound', async () => {
+  const page = await launch()
+
+  await page.getByRole('button', { name: 'Postura con guitarra' }).click()
+
+  await expect(
+    page.getByRole('heading', { level: 1, name: /Calibración · Postura con guitarra/ })
+  ).toBeVisible()
+  for (const check of ['Cuerpo completo', 'Mano completa', 'Objeto completo', 'Ruido de la sala']) {
+    await expect(page.getByText(check)).toBeVisible()
+  }
+})
+
 test('keeps the page isolated from Node and exposes only the typed bridge', async () => {
   const page = await launch()
 

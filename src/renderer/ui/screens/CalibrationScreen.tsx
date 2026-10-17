@@ -19,6 +19,11 @@ import {
   type HandInstruction
 } from '@renderer/core/handFraming'
 import type { Landmark } from '@renderer/core/landmarks'
+import {
+  evaluateObjectFraming,
+  type ObjectFramingReport,
+  type ObjectInstruction
+} from '@renderer/core/objectFraming'
 import { sampleLuminance } from '@renderer/core/lighting'
 import { localize, t, type MessageKey } from '@renderer/i18n'
 import { cameraOf } from '@shared/skill/cameraOf'
@@ -32,7 +37,7 @@ import { useMicrophoneFeatures } from '../useMicrophoneFeatures'
 
 const LUMINANCE_EVERY_MS = 500
 
-type Instruction = FramingInstruction | HandInstruction | AudioInstruction
+type Instruction = FramingInstruction | HandInstruction | ObjectInstruction | AudioInstruction
 
 const INSTRUCTION: Record<Instruction, MessageKey> = {
   stepIntoView: 'calibration.instruction.stepIntoView',
@@ -45,6 +50,10 @@ const INSTRUCTION: Record<Instruction, MessageKey> = {
   showWholeHand: 'calibration.instruction.showWholeHand',
   handsCloser: 'calibration.instruction.handsCloser',
   handsBack: 'calibration.instruction.handsBack',
+  showObject: 'calibration.instruction.showObject',
+  showWholeObject: 'calibration.instruction.showWholeObject',
+  objectCloser: 'calibration.instruction.objectCloser',
+  objectBack: 'calibration.instruction.objectBack',
   waitForMicrophone: 'calibration.instruction.waitForMicrophone',
   measuringRoom: 'calibration.instruction.measuringRoom',
   quietRoom: 'calibration.instruction.quietRoom',
@@ -76,6 +85,7 @@ const STATE: Record<CheckState, { symbol: string; label: MessageKey }> = {
 interface Sources {
   body: FramingReport | null
   hand: HandFramingReport | null
+  object: ObjectFramingReport | null
   audio: AudioFramingReport | null
 }
 
@@ -99,6 +109,13 @@ function handChecks(report: HandFramingReport, withLighting: boolean): Check[] {
   return checks
 }
 
+function objectChecks(report: ObjectFramingReport): Check[] {
+  return [
+    { id: 'object', label: 'calibration.check.object', state: report.object },
+    { id: 'objectDistance', label: 'calibration.check.distance', state: report.distance }
+  ]
+}
+
 function audioChecks(report: AudioFramingReport): Check[] {
   return [
     { id: 'noise', label: 'calibration.check.noise', state: report.noise },
@@ -107,19 +124,26 @@ function audioChecks(report: AudioFramingReport): Check[] {
 }
 
 // Everything together; lighting is the same one for the body and the hands, so it shows once.
-function combine({ body, hand, audio }: Sources): Report {
+function combine({ body, hand, object, audio }: Sources): Report {
   return {
     checks: [
       ...(body ? bodyChecks(body) : []),
       ...(hand ? handChecks(hand, !body) : []),
+      ...(object ? objectChecks(object) : []),
       ...(audio ? audioChecks(audio) : [])
     ],
-    instruction: body?.instruction ?? hand?.instruction ?? audio?.instruction ?? null
+    instruction:
+      body?.instruction ?? hand?.instruction ?? object?.instruction ?? audio?.instruction ?? null
   }
 }
 
 // Before the first frame nothing is known yet: every check waits, and there is somebody to wait for.
-function waitingSources(useBody: boolean, useHands: boolean, useAudio: boolean): Sources {
+function waitingSources(
+  useBody: boolean,
+  useHands: boolean,
+  useObject: boolean,
+  useAudio: boolean
+): Sources {
   return {
     body: useBody
       ? {
@@ -136,6 +160,13 @@ function waitingSources(useBody: boolean, useHands: boolean, useAudio: boolean):
           distance: 'pending',
           lighting: 'pending',
           instruction: useBody ? null : 'showHands'
+        }
+      : null,
+    object: useObject
+      ? {
+          object: 'pending',
+          distance: 'pending',
+          instruction: useBody || useHands ? null : 'showObject'
         }
       : null,
     audio: useAudio ? new AudioFraming().waiting() : null
@@ -159,13 +190,14 @@ export function CalibrationScreen(): React.JSX.Element {
   const channels = skill ? skillChannels(skill) : []
   const useBody = channels.includes('body')
   const useHands = channels.includes('hands')
+  const useObject = channels.includes('object')
   const useAudio = channels.includes('audio')
-  const useCamera = useBody || useHands
+  const useCamera = useBody || useHands || useObject
 
   const flowRef = useRef(new CalibrationFlow())
   const audioFramingRef = useRef(new AudioFraming())
   const luminanceRef = useRef<{ value: number | null; at: number }>({ value: null, at: -Infinity })
-  const [waiting] = useState(() => waitingSources(useBody, useHands, useAudio))
+  const [waiting] = useState(() => waitingSources(useBody, useHands, useObject, useAudio))
   const sourcesRef = useRef<Sources>(waiting)
   const [report, setReport] = useState<Report>(() => combine(waiting))
   const [countdown, setCountdown] = useState<CalibrationState>({ phase: 'checking' })
@@ -201,11 +233,12 @@ export function CalibrationScreen(): React.JSX.Element {
               luminance,
               frameSize
             })
-          : null
+          : null,
+        object: useObject ? evaluateObjectFraming(frame.objects?.box ?? null) : null
       }
       publish(frame.timestampMs)
     },
-    [skill, useBody, useHands, publish]
+    [skill, useBody, useHands, useObject, publish]
   )
 
   const handleSound = useCallback(
@@ -243,7 +276,12 @@ export function CalibrationScreen(): React.JSX.Element {
       </h1>
 
       {useCamera && (
-        <CameraStage onFrame={handleFrame} showDevicePicker withHands={useHands}>
+        <CameraStage
+          onFrame={handleFrame}
+          showDevicePicker
+          withHands={useHands}
+          withObjects={useObject}
+        >
           {useBody && (
             <div
               aria-hidden="true"

@@ -108,7 +108,8 @@ export function TrainingScreen(): React.JSX.Element {
   const [personalResult, setPersonalResult] = useState<PersonalOutcome | null>(null)
 
   const channels = skill ? skillChannels(skill) : []
-  const useCamera = channels.includes('body') || channels.includes('hands')
+  const useCamera =
+    channels.includes('body') || channels.includes('hands') || channels.includes('object')
   const useAudio = channels.includes('audio')
   // What the microphone heard last, for the skills that look and listen at once.
   const audioRef = useRef<AudioFeatures | null>(null)
@@ -165,7 +166,8 @@ export function TrainingScreen(): React.JSX.Element {
         timestampMs: frame.timestampMs,
         landmarks: frame.landmarks,
         hand: hand?.landmarks ?? null,
-        audio: audioRef.current
+        audio: audioRef.current,
+        object: frame.objects?.box ?? null
       },
       { width: video.videoWidth, height: video.videoHeight }
     )
@@ -298,6 +300,7 @@ export function TrainingScreen(): React.JSX.Element {
             <CameraStage
               onFrame={handleFrame}
               withHands={channels.includes('hands')}
+              withObjects={channels.includes('object')}
               videoClassName="max-h-[70vh]"
             >
               {(paused || snapshot.tracking === 'lost') && (

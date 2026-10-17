@@ -135,6 +135,17 @@ export function curlPose(elbowAngleDeg: number, options: CurlOptions = {}): Land
   return sidePose({ shoulder, elbow, wrist, hip, knee, ankle }, side)
 }
 
+// A person sitting up, seen from the front, with the torso leaning `leanDeg` from the vertical.
+// The shoulder is at the top and the hip 280 px below it when the person sits straight.
+export function seatedPose(leanDeg = 0, side: Side = 'left'): Landmark[] {
+  const lean = rad(leanDeg)
+  const hip = { x: 640, y: 450 }
+  const shoulder = { x: hip.x + TORSO * Math.sin(lean), y: hip.y - TORSO * Math.cos(lean) }
+  const knee = { x: hip.x + THIGH, y: hip.y }
+  const ankle = { x: knee.x, y: knee.y + SHIN }
+  return sidePose({ shoulder, hip, knee, ankle }, side)
+}
+
 // One smooth squat from standing, down to `bottomDeg` and back up, over `frames` frames.
 export function squatAngles(frames: number, bottomDeg = 90, topDeg = 175): number[] {
   const middle = (topDeg + bottomDeg) / 2
