@@ -1,0 +1,62 @@
+{
+  "id": "piano_note",
+  "category": "instrument",
+  "name": { "es": "Nota Do al piano", "en": "C note on the piano" },
+  "camera": { "view": "side", "fullBody": false, "hand": "auto" },
+  "metrics": {
+    "arch": { "type": "angle", "points": ["indexMcp", "indexPip", "indexDip"] },
+    "wrist": { "type": "tilt", "from": "handWrist", "to": "middleMcp" },
+    "tipLift": {
+      "type": "offset",
+      "from": "indexMcp",
+      "to": "indexTip",
+      "axis": "y",
+      "scale": ["handWrist", "middleMcp"]
+    },
+    "level": { "type": "level" },
+    "cents": { "type": "pitch", "target": "C4" }
+  },
+  "phases": [
+    { "id": "lifted", "when": { "tipLift": { "lt": 0.25 } } },
+    { "id": "pressed", "when": { "tipLift": { "gt": 0.45 } } }
+  ],
+  "rep": { "sequence": ["lifted", "pressed", "lifted"], "minDurationMs": 300 },
+  "rules": [
+    {
+      "id": "wrong_note",
+      "severity": "high",
+      "check": "abs(avg(cents)) <= 50",
+      "message": {
+        "es": "Esa no es la nota Do: busca la tecla",
+        "en": "That is not the note C: find the key"
+      }
+    },
+    {
+      "id": "flat_finger",
+      "severity": "high",
+      "check": "max(arch) <= 168",
+      "message": {
+        "es": "Curva más el dedo, como si sostuvieras una pelota",
+        "en": "Curve your finger more, as if holding a ball"
+      }
+    },
+    {
+      "id": "wrist_level",
+      "severity": "medium",
+      "check": "min(wrist) >= 70 && max(wrist) <= 110",
+      "message": {
+        "es": "Mantén la muñeca a la altura de los nudillos",
+        "en": "Keep your wrist level with your knuckles"
+      }
+    },
+    {
+      "id": "too_soft",
+      "severity": "low",
+      "check": "max(level) >= -30",
+      "message": {
+        "es": "Pulsa la tecla con más decisión",
+        "en": "Press the key more firmly"
+      }
+    }
+  ]
+}

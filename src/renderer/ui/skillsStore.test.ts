@@ -3,7 +3,15 @@ import squatConfig from '@renderer/skills/squat.json'
 import type { CustomSkillSource } from '@shared/customSkills'
 import { loadCustomSkills, mergeSkills, useSkills } from './skillsStore'
 
-const BUNDLED = ['bicep_curl', 'piano_hand', 'pushup', 'squat', 'steady_beat', 'string_tuning']
+const BUNDLED = [
+  'bicep_curl',
+  'piano_hand',
+  'piano_note',
+  'pushup',
+  'squat',
+  'steady_beat',
+  'string_tuning'
+]
 
 // A valid skill made from one that comes with the app.
 const customSkill = (id: string): CustomSkillSource => ({

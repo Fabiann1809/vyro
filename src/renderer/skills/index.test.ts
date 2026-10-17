@@ -7,6 +7,7 @@ describe('bundled skills', () => {
     expect(bundledSkills.skills.map((skill) => skill.id)).toEqual([
       'bicep_curl',
       'piano_hand',
+      'piano_note',
       'pushup',
       'squat',
       'steady_beat',

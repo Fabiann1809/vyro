@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { AudioFeatures } from '@renderer/core/audio/capture'
+import { measureSound, type AudioFeatures } from '@renderer/core/audio/capture'
 import type { PoseFrame } from '@renderer/core/detectionLoop'
 import type { Landmark } from '@renderer/core/landmarks'
 import type { FeedbackMessage } from '@renderer/engine/feedback'
@@ -180,7 +180,7 @@ export function TrainingScreen(): React.JSX.Element {
     }
   }
 
-  const microphone = useMicrophoneFeatures(useAudio && !paused, handleSound)
+  const microphone = useMicrophoneFeatures(useAudio && !paused, handleSound, measureSound)
 
   const startAdjusting = (): void => {
     adjustFrom.current = runRef.current?.lastRep ?? null

@@ -1,4 +1,9 @@
-import { AudioCapture, type AudioFeatures, type CaptureDeps } from '@renderer/core/audio/capture'
+import {
+  AudioCapture,
+  type AudioFeatures,
+  type CaptureDeps,
+  type FeatureExtractor
+} from '@renderer/core/audio/capture'
 import type { VyroApi } from '@shared/ipc'
 
 type MicrophoneApi = { microphone: Pick<VyroApi['microphone'], 'setOpen' | 'requestAccess'> }
@@ -13,7 +18,7 @@ export interface Listening {
 export async function listenToMicrophone(
   api: MicrophoneApi,
   onFeatures: (features: AudioFeatures) => void,
-  options: { deviceId?: string; deps?: CaptureDeps } = {}
+  options: { deviceId?: string; deps?: CaptureDeps; extract?: FeatureExtractor } = {}
 ): Promise<Listening> {
   await api.microphone.setOpen(true)
   try {

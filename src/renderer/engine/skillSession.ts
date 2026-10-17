@@ -103,7 +103,9 @@ export class SkillSession {
         : null
     const side = this.needsBody ? this.sideTracker.update(smoothed) : null
     const hand =
-      this.needsHand && input.hand ? this.handSmoother.smooth(input.hand, input.timestampMs) : null
+      this.needsHand && input.hand && input.hand.length > 0
+        ? this.handSmoother.smooth(input.hand, input.timestampMs)
+        : null
     if (this.needsHand && !hand) this.handSmoother.reset()
 
     const audio =

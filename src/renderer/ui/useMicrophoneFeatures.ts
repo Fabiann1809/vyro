@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { AudioFeatures } from '@renderer/core/audio/capture'
+import type { AudioFeatures, FeatureExtractor } from '@renderer/core/audio/capture'
 import { classifyCameraError, type CameraErrorKind } from '@renderer/core/camera'
 import type { MessageKey } from '@renderer/i18n'
 import { listenToMicrophone } from './microphone'
@@ -24,7 +24,9 @@ export interface MicrophoneFeatures {
 // The microphone is opened only now, and let go of when this stops being active.
 export function useMicrophoneFeatures(
   active: boolean,
-  onFeatures: (features: AudioFeatures) => void
+  onFeatures: (features: AudioFeatures) => void,
+  // What to measure in the sound; only how loud it is, unless asked for more.
+  extract?: FeatureExtractor
 ): MicrophoneFeatures {
   const [failure, setFailure] = useState<CameraErrorKind | null>(null)
   const [heard, setHeard] = useState(false)
@@ -48,7 +50,7 @@ export function useMicrophoneFeatures(
         setHeard(true)
         callback.current(features)
       },
-      { deviceId: useSettings.getState().audioDeviceId ?? undefined }
+      { deviceId: useSettings.getState().audioDeviceId ?? undefined, extract }
     )
       .then((listening) => {
         if (cancelled) listening.close()
@@ -64,7 +66,7 @@ export function useMicrophoneFeatures(
       setHeard(false)
       setFailure(null)
     }
-  }, [active, attempt])
+  }, [active, attempt, extract])
 
   const retry = useCallback(() => setAttempt((count) => count + 1), [])
 
