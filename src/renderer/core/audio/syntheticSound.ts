@@ -93,3 +93,30 @@ export function levelSeries(
   }
   return readings
 }
+
+// A plucked string: a note with its partials that dies away, `decaySeconds` being the time it takes
+// to fall to a third of its loudness.
+export function pluck(
+  frequency: number,
+  seconds: number,
+  options: { amplitude?: number; decaySeconds?: number; harmonics?: readonly number[] } = {}
+): Float32Array {
+  const { decaySeconds = 1.2, harmonics = [1, 0.5, 0.3] } = options
+  const note = tone(frequency, seconds, { amplitude: options.amplitude ?? 0.5, harmonics })
+  return note.map((sample, index) => sample * Math.exp(-index / SAMPLE_RATE / decaySeconds))
+}
+
+export function silence(seconds: number): Float32Array {
+  return new Float32Array(Math.round(seconds * SAMPLE_RATE))
+}
+
+// Sounds one after another.
+export function sequence(...parts: Float32Array[]): Float32Array {
+  const joined = new Float32Array(parts.reduce((sum, part) => sum + part.length, 0))
+  let at = 0
+  for (const part of parts) {
+    joined.set(part, at)
+    at += part.length
+  }
+  return joined
+}

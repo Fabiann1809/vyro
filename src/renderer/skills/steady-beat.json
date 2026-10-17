@@ -1,0 +1,34 @@
+{
+  "id": "steady_beat",
+  "category": "instrument",
+  "name": { "es": "Pulso constante a 80", "en": "Steady beat at 80" },
+  "metrics": {
+    "level": { "type": "level" },
+    "pace": { "type": "tempo" }
+  },
+  "phases": [
+    { "id": "quiet", "when": { "level": { "lt": -45 } } },
+    { "id": "hit", "when": { "level": { "gt": -30 } } }
+  ],
+  "rep": { "sequence": ["quiet", "hit", "quiet"], "minDurationMs": 40 },
+  "rules": [
+    {
+      "id": "too_fast",
+      "severity": "high",
+      "check": "last(pace) <= 88",
+      "message": {
+        "es": "Vas deprisa: baja el ritmo",
+        "en": "You are rushing: slow down"
+      }
+    },
+    {
+      "id": "too_slow",
+      "severity": "high",
+      "check": "last(pace) >= 72",
+      "message": {
+        "es": "Vas despacio: sube un poco el ritmo",
+        "en": "You are dragging: speed up a little"
+      }
+    }
+  ]
+}

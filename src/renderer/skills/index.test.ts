@@ -8,7 +8,9 @@ describe('bundled skills', () => {
       'bicep_curl',
       'piano_hand',
       'pushup',
-      'squat'
+      'squat',
+      'steady_beat',
+      'string_tuning'
     ])
   })
 })

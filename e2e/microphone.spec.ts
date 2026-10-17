@@ -25,9 +25,14 @@ test.afterEach(async () => {
   rmSync(userData, { recursive: true, force: true })
 })
 
-async function launch(): Promise<Page> {
+async function launch(extra: string[] = []): Promise<Page> {
   app = await electron.launch({
-    args: ['.', `--user-data-dir=${userData}`, ...(process.env['CI'] ? ['--no-sandbox'] : [])]
+    args: [
+      '.',
+      `--user-data-dir=${userData}`,
+      ...extra,
+      ...(process.env['CI'] ? ['--no-sandbox'] : [])
+    ]
   })
   return app.firstWindow()
 }
@@ -105,5 +110,28 @@ test('the test button in Settings listens only while it is on', async () => {
   await page.getByRole('button', { name: 'Parar la prueba' }).click()
   await expect(page.getByRole('meter')).toHaveCount(0)
   // Once it stops, the microphone is closed again.
+  await expect.poll(() => ask(page, { audio: true })).toBe('NotAllowedError')
+})
+
+test('a skill that only listens is calibrated with the microphone, not the camera', async () => {
+  // Chromium's own fake devices stand in for a microphone, so this runs on any machine.
+  const page = await launch(['--use-fake-device-for-media-stream'])
+
+  await page.getByRole('button', { name: 'Afinar una cuerda' }).click()
+
+  await expect(
+    page.getByRole('heading', { level: 1, name: /Calibración · Afinar una cuerda/ })
+  ).toBeVisible()
+  await expect(page.getByText('Ruido de la sala')).toBeVisible()
+  await expect(page.getByRole('listitem').filter({ hasText: 'Sonido' })).toBeVisible()
+  await expect(page.getByText('Cuerpo completo')).toHaveCount(0)
+  await expect(page.locator('video')).toHaveCount(0)
+  // The microphone really opened: the level is on show.
+  await expect(page.getByRole('meter', { name: 'Nivel del micrófono' })).toBeVisible({
+    timeout: 15_000
+  })
+
+  // Leaving the screen lets go of it.
+  await page.getByRole('button', { name: 'Cancelar' }).click()
   await expect.poll(() => ask(page, { audio: true })).toBe('NotAllowedError')
 })

@@ -1,0 +1,43 @@
+{
+  "id": "string_tuning",
+  "category": "instrument",
+  "name": { "es": "Afinar una cuerda", "en": "Tune a string" },
+  "metrics": {
+    "level": { "type": "level" },
+    "cents": { "type": "pitch", "target": "nearest" }
+  },
+  "phases": [
+    { "id": "quiet", "when": { "level": { "lt": -42 } } },
+    { "id": "ringing", "when": { "level": { "gt": -32 } } }
+  ],
+  "rep": { "sequence": ["quiet", "ringing", "quiet"], "minDurationMs": 200 },
+  "rules": [
+    {
+      "id": "too_flat",
+      "severity": "high",
+      "check": "avg(cents) >= -10",
+      "message": {
+        "es": "Está baja: aprieta un poco la clavija",
+        "en": "It is flat: tighten the peg a little"
+      }
+    },
+    {
+      "id": "too_sharp",
+      "severity": "high",
+      "check": "avg(cents) <= 10",
+      "message": {
+        "es": "Está alta: afloja un poco la clavija",
+        "en": "It is sharp: loosen the peg a little"
+      }
+    },
+    {
+      "id": "let_it_ring",
+      "severity": "low",
+      "check": "durationMs >= 600",
+      "message": {
+        "es": "Deja que la cuerda suene más tiempo",
+        "en": "Let the string ring for longer"
+      }
+    }
+  ]
+}

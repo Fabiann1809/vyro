@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { AudioFeatures } from '@renderer/core/audio/capture'
 import type { PoseFrame } from '@renderer/core/detectionLoop'
 import type { Landmark } from '@renderer/core/landmarks'
 import type { FeedbackMessage } from '@renderer/engine/feedback'
 import type { RepQuality } from '@renderer/engine/repEvaluator'
 import type { CompletedRep } from '@renderer/engine/repCounter'
 import { buildSessionToSave } from '@renderer/engine/sessionSummary'
+import type { FrameInput } from '@renderer/engine/skillSession'
+import type { FrameSize } from '@renderer/engine/metrics'
 import { TrainingRun, type TrainingSnapshot } from '@renderer/engine/trainingRun'
 import { localize, t, type MessageKey } from '@renderer/i18n'
 import { voice } from '@renderer/voice'
@@ -13,14 +16,19 @@ import { pickHand } from '@renderer/core/handJoints'
 import { cameraOf } from '@shared/skill/cameraOf'
 import { skillChannels } from '@shared/skill/skillChannels'
 import { CameraStage } from '../CameraStage'
+import { LevelMeter } from '../LevelMeter'
 import { useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
 import { useSettings } from '../settingsStore'
 import { adjustSkillToPerson, type PersonalOutcome } from '../personalSkill'
 import { useSkills } from '../skillsStore'
+import { useMicrophoneFeatures } from '../useMicrophoneFeatures'
 import { isGeneratedSkillId } from '@shared/skill/generatedSafety'
 
 const MESSAGE_VISIBLE_MS = 4000
+
+// The same clock as the frames of the camera.
+const now = (): number => performance.now()
 
 const PERSONAL_RESULT: Record<PersonalOutcome, MessageKey> = {
   saved: 'training.personal.done',
@@ -32,7 +40,12 @@ const PHASE_LABEL: Record<string, MessageKey> = {
   up: 'training.phase.up',
   down: 'training.phase.down',
   extended: 'training.phase.extended',
-  curled: 'training.phase.curled'
+  curled: 'training.phase.curled',
+  resting: 'training.phase.resting',
+  lifted: 'training.phase.lifted',
+  quiet: 'training.phase.quiet',
+  ringing: 'training.phase.ringing',
+  hit: 'training.phase.hit'
 }
 
 const PRAISE: readonly MessageKey[] = [
@@ -94,54 +107,80 @@ export function TrainingScreen(): React.JSX.Element {
   const adjustFrom = useRef<CompletedRep | null>(null)
   const [personalResult, setPersonalResult] = useState<PersonalOutcome | null>(null)
 
-  const handleFrame = useCallback(
-    (frame: PoseFrame, _smoothed: Landmark[] | null, video: HTMLVideoElement) => {
-      if (!skill) return
-      // The engine smooths on its own, so it gets the raw landmarks.
-      runRef.current ??= new TrainingRun(skill, {
-        width: video.videoWidth,
-        height: video.videoHeight
+  const channels = skill ? skillChannels(skill) : []
+  const useCamera = channels.includes('body') || channels.includes('hands')
+  const useAudio = channels.includes('audio')
+  // What the microphone heard last, for the skills that look and listen at once.
+  const audioRef = useRef<AudioFeatures | null>(null)
+  const [levelDb, setLevelDb] = useState(-100)
+
+  // One step of the session, from the camera, the microphone or both.
+  const advance = (input: FrameInput, size: FrameSize): void => {
+    if (!skill) return
+    // The engine smooths on its own, so it gets the raw landmarks.
+    runRef.current ??= new TrainingRun(skill, size)
+    const next = runRef.current.processFrame(input)
+
+    if (next.feedback) {
+      setBanner(bannerOf(next.feedback, ++bannerId.current))
+      const { voiceEnabled, language, volume } = useSettings.getState()
+      policyRef.current ??= new VoicePolicy(voice, skill.id)
+      policyRef.current.consider(
+        next.feedback,
+        { enabled: voiceEnabled, language, volume },
+        input.timestampMs
+      )
+    }
+    const rep = runRef.current.lastRep
+    if (adjusting && skill && rep && rep !== adjustFrom.current) {
+      setAdjusting(false)
+      void adjustSkillToPerson(window.api, skill, rep).then((outcome) => {
+        setPersonalResult(outcome)
+        // The skill changed, so the session goes on with a run that uses the new thresholds.
+        if (outcome === 'saved') {
+          runRef.current = null
+          policyRef.current = null
+        }
       })
-      const hand = pickHand(frame.hands?.observations ?? [], cameraOf(skill).hand)
-      const next = runRef.current.processFrame({
+    }
+    setSnapshot((previous) =>
+      previous.repCount === next.repCount &&
+      previous.phase === next.phase &&
+      previous.lastQuality === next.lastQuality &&
+      previous.tracking === next.tracking
+        ? previous
+        : next
+    )
+  }
+
+  const handleFrame = (
+    frame: PoseFrame,
+    _smoothed: Landmark[] | null,
+    video: HTMLVideoElement
+  ): void => {
+    if (!skill) return
+    const hand = pickHand(frame.hands?.observations ?? [], cameraOf(skill).hand)
+    advance(
+      {
         timestampMs: frame.timestampMs,
         landmarks: frame.landmarks,
-        hand: hand?.landmarks ?? null
-      })
+        hand: hand?.landmarks ?? null,
+        audio: audioRef.current
+      },
+      { width: video.videoWidth, height: video.videoHeight }
+    )
+  }
 
-      if (next.feedback) {
-        setBanner(bannerOf(next.feedback, ++bannerId.current))
-        const { voiceEnabled, language, volume } = useSettings.getState()
-        policyRef.current ??= new VoicePolicy(voice, skill.id)
-        policyRef.current.consider(
-          next.feedback,
-          { enabled: voiceEnabled, language, volume },
-          frame.timestampMs
-        )
-      }
-      const rep = runRef.current.lastRep
-      if (adjusting && skill && rep && rep !== adjustFrom.current) {
-        setAdjusting(false)
-        void adjustSkillToPerson(window.api, skill, rep).then((outcome) => {
-          setPersonalResult(outcome)
-          // The skill changed, so the session goes on with a run that uses the new thresholds.
-          if (outcome === 'saved') {
-            runRef.current = null
-            policyRef.current = null
-          }
-        })
-      }
-      setSnapshot((previous) =>
-        previous.repCount === next.repCount &&
-        previous.phase === next.phase &&
-        previous.lastQuality === next.lastQuality &&
-        previous.tracking === next.tracking
-          ? previous
-          : next
-      )
-    },
-    [skill, adjusting]
-  )
+  // A skill that only listens has no frames of video: every reading of the sound moves it on.
+  const handleSound = (features: AudioFeatures): void => {
+    audioRef.current = features
+    setLevelDb(features.levelDb)
+    if (!useCamera) {
+      advance({ timestampMs: now(), landmarks: null, audio: features }, { width: 1, height: 1 })
+    }
+  }
+
+  const microphone = useMicrophoneFeatures(useAudio && !paused, handleSound)
 
   const startAdjusting = (): void => {
     adjustFrom.current = runRef.current?.lastRep ?? null
@@ -216,7 +255,7 @@ export function TrainingScreen(): React.JSX.Element {
   return (
     <section className="flex h-full w-full flex-col gap-3 p-4">
       <header className="flex items-center gap-4 text-sm">
-        <span>{t('training.privacy')}</span>
+        <span>{t(useAudio ? 'training.privacyAudio' : 'training.privacy')}</span>
         <span className="ml-auto tabular-nums">{clock(elapsedMs)}</span>
         {isGeneratedSkillId(skill.id) && (
           <button
@@ -255,31 +294,68 @@ export function TrainingScreen(): React.JSX.Element {
 
       <div className="flex flex-1 items-start justify-center gap-6">
         <div className="relative">
-          <CameraStage
-            onFrame={handleFrame}
-            withHands={skillChannels(skill).includes('hands')}
-            videoClassName="max-h-[70vh]"
-          >
-            {(paused || snapshot.tracking === 'lost') && (
-              <div
-                role="alert"
-                className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-lg bg-black/70 text-center text-white"
-              >
-                <p className="text-3xl font-bold">
-                  {paused ? t('training.paused') : t('training.lost')}
-                </p>
-                {!paused && (
+          {useCamera ? (
+            <CameraStage
+              onFrame={handleFrame}
+              withHands={channels.includes('hands')}
+              videoClassName="max-h-[70vh]"
+            >
+              {(paused || snapshot.tracking === 'lost') && (
+                <div
+                  role="alert"
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-lg bg-black/70 text-center text-white"
+                >
+                  <p className="text-3xl font-bold">
+                    {paused ? t('training.paused') : t('training.lost')}
+                  </p>
+                  {!paused && (
+                    <button
+                      type="button"
+                      onClick={() => go('calibration')}
+                      className="rounded-md bg-white px-4 py-2 text-slate-900"
+                    >
+                      {t('training.recalibrate')}
+                    </button>
+                  )}
+                </div>
+              )}
+            </CameraStage>
+          ) : (
+            <div className="relative flex min-h-64 w-96 flex-col items-center justify-center gap-4 rounded-lg bg-slate-200 p-6 dark:bg-slate-800">
+              {microphone.status === 'listening' && <LevelMeter levelDb={levelDb} />}
+              {microphone.status === 'error' && (
+                <div role="alert" className="flex flex-col items-center gap-2">
+                  <p>{t(microphone.errorMessage ?? 'microphone.error.unknown')}</p>
                   <button
                     type="button"
-                    onClick={() => go('calibration')}
+                    onClick={microphone.retry}
                     className="rounded-md bg-white px-4 py-2 text-slate-900"
                   >
-                    {t('training.recalibrate')}
+                    {t('calibration.retry')}
                   </button>
-                )}
-              </div>
-            )}
-          </CameraStage>
+                </div>
+              )}
+              {(paused || snapshot.tracking === 'lost') && (
+                <div
+                  role="alert"
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-lg bg-black/70 text-center text-white"
+                >
+                  <p className="text-3xl font-bold">
+                    {paused ? t('training.paused') : t('training.lost')}
+                  </p>
+                  {!paused && (
+                    <button
+                      type="button"
+                      onClick={() => go('calibration')}
+                      className="rounded-md bg-white px-4 py-2 text-slate-900"
+                    >
+                      {t('training.recalibrate')}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <aside className="flex w-64 flex-col gap-4 text-center">
