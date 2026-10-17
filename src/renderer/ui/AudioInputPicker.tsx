@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { t } from '@renderer/i18n'
+import { MicrophoneTest } from './MicrophoneTest'
 import { useSettings } from './settingsStore'
 
 interface Input {
@@ -54,6 +55,7 @@ export function AudioInputPicker(): React.JSX.Element {
           ))}
         </select>
       </label>
+      <MicrophoneTest />
     </>
   )
 }

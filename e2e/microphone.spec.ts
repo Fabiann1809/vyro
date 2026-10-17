@@ -89,3 +89,21 @@ test('only a true opens it: anything else leaves it closed', async () => {
 
   expect(await ask(page, { audio: true })).toBe('NotAllowedError')
 })
+
+test('the test button in Settings listens only while it is on', async () => {
+  const page = await launch()
+  await page.getByRole('navigation').getByRole('button', { name: 'Ajustes' }).click()
+
+  await page.getByRole('button', { name: 'Probar micrófono' }).click()
+  // A computer with a microphone shows the level; one without it says so. Either way the page asked.
+  await expect(
+    page
+      .getByRole('meter', { name: 'Nivel del micrófono' })
+      .or(page.getByRole('alert').filter({ hasText: 'micrófono' }))
+  ).toBeVisible({ timeout: 15_000 })
+
+  await page.getByRole('button', { name: 'Parar la prueba' }).click()
+  await expect(page.getByRole('meter')).toHaveCount(0)
+  // Once it stops, the microphone is closed again.
+  await expect.poll(() => ask(page, { audio: true })).toBe('NotAllowedError')
+})
