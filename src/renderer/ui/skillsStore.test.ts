@@ -23,6 +23,23 @@ describe('mergeSkills', () => {
     expect(mergeSkills([]).errors).toEqual([])
   })
 
+  it('leaves out a stored skill that breaks the limits of generated skills', () => {
+    const unsafe = customSkill('yoga')
+    const noHigh = {
+      ...squatConfig,
+      id: 'custom_soft',
+      rules: squatConfig.rules.map((rule) => ({ ...rule, severity: 'low' }))
+    }
+
+    const merged = mergeSkills([unsafe, { id: 'custom_soft', config: noHigh }])
+
+    expect(merged.skills.map((skill) => skill.id)).toEqual(BUNDLED)
+    expect(merged.errors.map((error) => error.source)).toEqual([
+      'custom:custom_soft',
+      'custom:yoga'
+    ])
+  })
+
   it('adds a valid skill made later', () => {
     const merged = mergeSkills([customSkill('custom_yoga')])
 

@@ -126,6 +126,21 @@ describe('a skill that has to be fixed', () => {
     expect(model.requests[1]?.messages.at(-1)?.content).toContain('rules.0.check')
   })
 
+  it('sends back the limits of safety when a threshold is impossible', async () => {
+    const reckless = {
+      ...yoga,
+      phases: [
+        { id: 'up', when: { knee: { gt: 400 } } },
+        { id: 'down', when: { knee: { lt: 110 } } }
+      ]
+    }
+    const model = scriptedModel(answer(reckless), answer(yoga))
+
+    await generateSkill(model, input())
+
+    expect(model.requests[1]?.messages.at(-1)?.content).toContain('outside what "knee" can measure')
+  })
+
   it('asks for another id when the one it chose is in use', async () => {
     const taken = { ...yoga, id: 'squat' }
     const model = scriptedModel(answer(taken), answer(yoga))

@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { assessFeasibility, skillRequirementSchema } from '@shared/feasibility'
 import type { GenerateSkillInput, GenerateSkillResult } from '@shared/skillGeneration'
+import { generatedSkillProblems } from '@shared/skill/generatedSafety'
 import { parseSkillConfig } from '@shared/skill/skillLoader'
 import type { SkillConfig } from '@shared/skill/skillSchema'
 import type { LlmClient } from './llmClient'
@@ -47,6 +48,8 @@ export function readSkillText(text: string, usedIds: readonly string[]): SkillTe
       problems: [`id: "${parsed.skill.id}" is already used. Pick another id.`]
     }
   }
+  const unsafe = generatedSkillProblems(parsed.skill)
+  if (unsafe.length > 0) return { ok: false, problems: unsafe }
   return { ok: true, skill: parsed.skill, config: config as Record<string, unknown> }
 }
 
