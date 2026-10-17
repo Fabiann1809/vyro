@@ -1,15 +1,32 @@
-import { t, type Language, type MessageKey } from '@renderer/i18n'
 import { useState } from 'react'
+import { t, type Language, type MessageKey } from '@renderer/i18n'
 import type { TextSize } from '@shared/settings'
 import { SAMPLE_CLIP_ID } from '@renderer/voice/clipList'
 import { voice } from '@renderer/voice'
 import { AiSettings } from '../AiSettings'
-import { GeneratedSkillsSettings } from '../GeneratedSkillsSettings'
 import { AudioInputPicker } from '../AudioInputPicker'
 import { CameraStage } from '../CameraStage'
+import { GeneratedSkillsSettings } from '../GeneratedSkillsSettings'
+import { Button } from '../kit/Button'
+import { Card } from '../kit/Card'
+import { FIELD } from '../kit/fields'
+import { Switch } from '../kit/Switch'
+import { Choice, SettingsCard } from '../settings/SettingsCard'
 import { deleteAllData } from '../settingsSync'
 import { useSettings } from '../settingsStore'
+import { SETTINGS_TABS, useSettingsTab, type SettingsTab } from '../settingsTabStore'
 import { THEME_PREFERENCES, useTheme, type ThemePreference } from '../theme'
+
+const TAB_LABEL: Record<SettingsTab, MessageKey> = {
+  general: 'settings.tab.general',
+  voice: 'settings.voice',
+  camera: 'settings.camera',
+  microphone: 'settings.microphone',
+  ai: 'settings.ai',
+  skills: 'settings.tab.skills',
+  privacy: 'settings.tab.privacy',
+  about: 'settings.tab.about'
+}
 
 const TEXT_SIZES: ReadonlyArray<{ id: TextSize; label: MessageKey }> = [
   { id: 'normal', label: 'settings.textSize.normal' },
@@ -28,51 +45,18 @@ const LANGUAGE_LABEL: Record<Language, MessageKey> = {
   en: 'settings.language.en'
 }
 
-function Group({
-  title,
-  children
-}: {
-  title: MessageKey
-  children: React.ReactNode
-}): React.JSX.Element {
-  return (
-    <fieldset className="flex flex-col gap-3 rounded-lg border border-slate-300 p-4 dark:border-slate-700">
-      <legend className="px-2 text-lg font-semibold">{t(title)}</legend>
-      {children}
-    </fieldset>
-  )
-}
-
-export function SettingsScreen(): React.JSX.Element {
+function General(): React.JSX.Element {
   const settings = useSettings()
   const { preference, setPreference } = useTheme()
-  const [voiceMissing, setVoiceMissing] = useState(false)
-  const [deleteStep, setDeleteStep] = useState<'idle' | 'confirm' | 'done' | 'failed'>('idle')
-
-  const deleteEverything = (): void => {
-    deleteAllData(window.api)
-      .then(() => setDeleteStep('done'))
-      .catch(() => setDeleteStep('failed'))
-  }
-
-  const testVoice = (): void => {
-    const result = voice.say(
-      { clipId: SAMPLE_CLIP_ID, text: t('settings.voice.sample') },
-      { language: settings.language, volume: settings.volume }
-    )
-    setVoiceMissing(result === 'silent')
-  }
 
   return (
-    <section className="flex w-full max-w-3xl flex-col gap-5 self-start p-8">
-      <h1 className="text-3xl font-semibold">{t('screen.settings.title')}</h1>
-
-      <Group title="settings.language">
+    <>
+      <SettingsCard title={t('settings.language')}>
         <select
           aria-label={t('settings.language')}
           value={settings.language}
           onChange={(event) => settings.setLanguage(event.target.value as Language)}
-          className="w-fit rounded bg-slate-200 px-3 py-2 dark:bg-slate-800"
+          className={`${FIELD} w-60`}
         >
           {(['es', 'en'] as const).map((language) => (
             <option key={language} value={language}>
@@ -80,137 +64,209 @@ export function SettingsScreen(): React.JSX.Element {
             </option>
           ))}
         </select>
-      </Group>
+      </SettingsCard>
 
-      <Group title="settings.voice">
-        <label className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            checked={settings.voiceEnabled}
-            onChange={(event) => settings.setVoiceEnabled(event.target.checked)}
-            className="size-5"
-          />
-          {t('settings.voice.enabled')}
-        </label>
-        <label className="flex items-center gap-3">
-          {t('settings.voice.volume')}
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={Math.round(settings.volume * 100)}
-            disabled={!settings.voiceEnabled}
-            onChange={(event) => settings.setVolume(Number(event.target.value) / 100)}
-          />
-          <span className="tabular-nums">{Math.round(settings.volume * 100)}%</span>
-        </label>
-        <button
-          type="button"
+      <SettingsCard title={t('settings.appearance')} description={t('settings.appearance.note')}>
+        <Choice
+          name="theme"
+          label={t('settings.appearance')}
+          value={preference}
+          options={THEME_PREFERENCES.map((option) => ({
+            id: option,
+            label: t(THEME_LABEL[option])
+          }))}
+          onChange={setPreference}
+        />
+      </SettingsCard>
+
+      <SettingsCard title={t('settings.accessibility')}>
+        <p className="text-[0.8125rem] text-mut">{t('settings.textSize')}</p>
+        <Choice
+          name="text-size"
+          label={t('settings.textSize')}
+          value={settings.textSize}
+          options={TEXT_SIZES.map((option) => ({ id: option.id, label: t(option.label) }))}
+          onChange={settings.setTextSize}
+        />
+        <Switch
+          label={t('settings.reduceMotion')}
+          checked={settings.reduceMotion}
+          onChange={settings.setReduceMotion}
+        />
+      </SettingsCard>
+    </>
+  )
+}
+
+function Voice(): React.JSX.Element {
+  const settings = useSettings()
+  const [missing, setMissing] = useState(false)
+
+  const test = (): void => {
+    const result = voice.say(
+      { clipId: SAMPLE_CLIP_ID, text: t('settings.voice.sample') },
+      { language: settings.language, volume: settings.volume }
+    )
+    setMissing(result === 'silent')
+  }
+
+  return (
+    <SettingsCard title={t('settings.voice')}>
+      <Switch
+        label={t('settings.voice.enabled')}
+        checked={settings.voiceEnabled}
+        onChange={settings.setVoiceEnabled}
+      />
+      <label className="flex items-center gap-4">
+        <span className="text-[0.9375rem]">{t('settings.voice.volume')}</span>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={Math.round(settings.volume * 100)}
           disabled={!settings.voiceEnabled}
-          onClick={testVoice}
-          className="w-fit rounded-md bg-slate-200 px-4 py-2 disabled:opacity-50 dark:bg-slate-800"
+          onChange={(event) => settings.setVolume(Number(event.target.value) / 100)}
+          className="w-64 accent-brand"
+        />
+        <span className="tabular-nums">{Math.round(settings.volume * 100)}%</span>
+      </label>
+      <Button
+        variant="secondary"
+        className="self-start"
+        disabled={!settings.voiceEnabled}
+        onClick={test}
+      >
+        {t('settings.voice.test')}
+      </Button>
+      {missing && (
+        <p role="status" className="text-sm text-warn-text">
+          {t('settings.voice.missing')}
+        </p>
+      )}
+    </SettingsCard>
+  )
+}
+
+function Privacy(): React.JSX.Element {
+  const [step, setStep] = useState<'idle' | 'confirm' | 'done' | 'failed'>('idle')
+
+  const deleteEverything = (): void => {
+    deleteAllData(window.api)
+      .then(() => setStep('done'))
+      .catch(() => setStep('failed'))
+  }
+
+  return (
+    <SettingsCard title={t('settings.privacy')} description={t('settings.privacy.explanation')}>
+      {step === 'confirm' ? (
+        <Card
+          role="alertdialog"
+          aria-label={t('settings.delete.question')}
+          className="flex flex-col gap-3 border-bad/40 p-5"
         >
-          {t('settings.voice.test')}
-        </button>
-        {voiceMissing && <p role="status">{t('settings.voice.missing')}</p>}
-      </Group>
-
-      <Group title="settings.appearance">
-        <div role="radiogroup" aria-label={t('settings.appearance')} className="flex gap-4">
-          {THEME_PREFERENCES.map((option) => (
-            <label key={option} className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="theme"
-                checked={preference === option}
-                onChange={() => setPreference(option)}
-              />
-              {t(THEME_LABEL[option])}
-            </label>
-          ))}
-        </div>
-      </Group>
-
-      <Group title="settings.accessibility">
-        <div role="radiogroup" aria-label={t('settings.textSize')} className="flex flex-wrap gap-4">
-          <span>{t('settings.textSize')}</span>
-          {TEXT_SIZES.map((option) => (
-            <label key={option.id} className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="text-size"
-                checked={settings.textSize === option.id}
-                onChange={() => settings.setTextSize(option.id)}
-              />
-              {t(option.label)}
-            </label>
-          ))}
-        </div>
-        <label className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            checked={settings.reduceMotion}
-            onChange={(event) => settings.setReduceMotion(event.target.checked)}
-            className="size-5"
-          />
-          {t('settings.reduceMotion')}
-        </label>
-      </Group>
-
-      <Group title="settings.ai">
-        <AiSettings />
-      </Group>
-
-      <Group title="settings.skills">
-        <GeneratedSkillsSettings />
-      </Group>
-
-      <Group title="settings.privacy">
-        <p>{t('settings.privacy.explanation')}</p>
-        {deleteStep === 'confirm' ? (
-          <div
-            role="alertdialog"
-            aria-label={t('settings.delete.question')}
-            className="flex flex-col gap-3"
-          >
-            <p className="font-semibold">{t('settings.delete.question')}</p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={deleteEverything}
-                className="rounded-md bg-red-700 px-4 py-2 text-white"
-              >
-                {t('settings.delete.confirm')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setDeleteStep('idle')}
-                className="rounded-md bg-slate-200 px-4 py-2 dark:bg-slate-800"
-              >
-                {t('settings.delete.cancel')}
-              </button>
-            </div>
+          <p className="font-semibold">{t('settings.delete.question')}</p>
+          <div className="flex gap-2.5">
+            <Button variant="danger" onClick={deleteEverything}>
+              {t('settings.delete.confirm')}
+            </Button>
+            <Button variant="secondary" onClick={() => setStep('idle')}>
+              {t('settings.delete.cancel')}
+            </Button>
           </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setDeleteStep('confirm')}
-            className="w-fit rounded-md bg-red-700 px-4 py-2 text-white"
-          >
-            {t('settings.delete')}
-          </button>
-        )}
-        {deleteStep === 'done' && <p role="status">{t('settings.delete.done')}</p>}
-        {deleteStep === 'failed' && <p role="alert">{t('settings.delete.failed')}</p>}
-      </Group>
+        </Card>
+      ) : (
+        <Button variant="danger" className="self-start" onClick={() => setStep('confirm')}>
+          {t('settings.delete')}
+        </Button>
+      )}
+      {step === 'done' && (
+        <p role="status" className="text-sm text-t4">
+          {t('settings.delete.done')}
+        </p>
+      )}
+      {step === 'failed' && (
+        <p role="alert" className="text-sm text-bad-text">
+          {t('settings.delete.failed')}
+        </p>
+      )}
+    </SettingsCard>
+  )
+}
 
-      <Group title="settings.camera">
-        <CameraStage showDevicePicker videoClassName="max-h-60" />
-      </Group>
+function About(): React.JSX.Element {
+  return (
+    <SettingsCard title={t('settings.tab.about')}>
+      <p className="text-[0.9375rem] leading-normal text-t4">{t('settings.about.what')}</p>
+      <p className="text-[0.9375rem] leading-normal text-t4">{t('settings.about.license')}</p>
+      <p className="rounded-2xl bg-sunk p-4 text-sm leading-normal text-t4">
+        {t('settings.about.safety')}
+      </p>
+    </SettingsCard>
+  )
+}
 
-      <Group title="settings.microphone">
-        <AudioInputPicker />
-      </Group>
+const PANEL: Record<SettingsTab, () => React.JSX.Element> = {
+  general: General,
+  voice: Voice,
+  camera: () => (
+    <SettingsCard title={t('settings.camera')}>
+      <CameraStage showDevicePicker videoClassName="max-h-60 rounded-2xl" />
+    </SettingsCard>
+  ),
+  microphone: () => (
+    <SettingsCard title={t('settings.microphone')}>
+      <AudioInputPicker />
+    </SettingsCard>
+  ),
+  ai: AiSettings,
+  skills: () => (
+    <div className="flex flex-col gap-3.5">
+      <div>
+        <h3 className="text-lg font-semibold">{t('settings.skills')}</h3>
+      </div>
+      <GeneratedSkillsSettings />
+    </div>
+  ),
+  privacy: Privacy,
+  about: About
+}
+
+export function SettingsScreen(): React.JSX.Element {
+  const { tab, setTab } = useSettingsTab()
+  const Panel = PANEL[tab]
+
+  return (
+    <section className="anim-fade mx-auto grid h-full w-full max-w-275 grid-cols-1 gap-8 self-start overflow-y-auto px-8 pt-7 pb-12 md:grid-cols-[15rem_minmax(0,1fr)]">
+      <div className="flex flex-col gap-0.5">
+        <h1 className="mb-4.5 font-display text-[1.75rem] font-semibold">
+          {t('screen.settings.title')}
+        </h1>
+        <div role="tablist" aria-orientation="vertical" className="flex flex-col gap-0.5">
+          {SETTINGS_TABS.map((id) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              id={`settings-tab-${id}`}
+              aria-selected={tab === id}
+              aria-controls="settings-panel"
+              onClick={() => setTab(id)}
+              className="flex h-10 items-center rounded-xl px-3.5 text-left text-sm text-mut transition-colors hover:bg-line/5 hover:text-t1 aria-selected:bg-line/7 aria-selected:text-t1"
+            >
+              {t(TAB_LABEL[id])}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div
+        role="tabpanel"
+        id="settings-panel"
+        aria-labelledby={`settings-tab-${tab}`}
+        className="flex flex-col gap-4 md:pt-12"
+      >
+        <Panel />
+      </div>
     </section>
   )
 }

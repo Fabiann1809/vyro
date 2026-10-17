@@ -1,12 +1,14 @@
 // The buttons of the interface. One main action per area (primary); the rest are quieter.
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'light'
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'light' | 'danger'
 export type ButtonSize = 'md' | 'lg'
 
 const VARIANT: Record<ButtonVariant, string> = {
   primary: 'bg-brand text-on-brand font-semibold',
   secondary: 'border border-line/14 bg-transparent text-t1 hover:bg-line/5',
   ghost: 'bg-transparent text-mut hover:bg-line/5 hover:text-t1',
-  light: 'bg-t1 text-inv font-semibold hover:bg-brand hover:text-on-brand'
+  light: 'bg-t1 text-inv font-semibold hover:bg-brand hover:text-on-brand',
+  // For what cannot be undone.
+  danger: 'bg-bad text-on-brand font-semibold'
 }
 
 const SIZE: Record<ButtonSize, string> = {

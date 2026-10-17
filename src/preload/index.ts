@@ -24,6 +24,7 @@ const api: VyroApi = {
   },
   ai: {
     keyStatus: () => ipcRenderer.invoke(IPC.aiKeyStatus),
+    usageToday: () => ipcRenderer.invoke(IPC.aiUsageToday),
     saveKey: (key) => ipcRenderer.invoke(IPC.aiKeySave, key),
     clearKey: () => ipcRenderer.invoke(IPC.aiKeyClear)
   },

@@ -4,7 +4,7 @@ import type { CoachError, CoachSummaryReply, SessionDigest } from '@shared/coach
 import { CoachErrorNotice } from './CoachErrorNotice'
 import { Button } from './kit/Button'
 import { CoachAvatar } from './kit/CoachAvatar'
-import { useNavigation } from './navigation'
+import { openSettings } from './settingsTabStore'
 import { useSettings } from './settingsStore'
 
 type State =
@@ -16,7 +16,6 @@ type State =
 // A few words from the coach about the session that just ended. What is sent is the digest of
 // numbers, never anything of the picture; the main process checks it again before it leaves.
 export function CoachSummary({ digest }: { digest: SessionDigest }): React.JSX.Element {
-  const go = useNavigation((state) => state.go)
   const aiEnabled = useSettings((state) => state.aiEnabled)
   const language = useSettings((state) => state.language)
   const [state, setState] = useState<State>({ status: 'idle' })
@@ -45,7 +44,7 @@ export function CoachSummary({ digest }: { digest: SessionDigest }): React.JSX.E
       {!aiEnabled ? (
         <div className="flex flex-col items-start gap-3">
           <p className="text-sm leading-normal text-t4">{t('coach.summary.off')}</p>
-          <Button variant="secondary" onClick={() => go('settings')}>
+          <Button variant="secondary" onClick={() => openSettings('ai')}>
             {t('coach.openSettings')}
           </Button>
         </div>

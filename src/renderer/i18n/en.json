@@ -617,5 +617,15 @@
   "how.trust.offline.title": "Works offline",
   "how.trust.offline.body": "The AI is optional. Without it you can practise any skill from the Library.",
   "how.trust.measure.title": "It measures what can be measured",
-  "how.trust.measure.body": "Yes: posture, angles, the position of the guitar, tuning, rhythm. No: intention, emotion or whatever the camera cannot see."
+  "how.trust.measure.body": "Yes: posture, angles, the position of the guitar, tuning, rhythm. No: intention, emotion or whatever the camera cannot see.",
+  "settings.tab.general": "General",
+  "settings.tab.skills": "My generated skills",
+  "settings.tab.privacy": "Privacy and data",
+  "settings.tab.about": "About",
+  "settings.appearance.note": "Calibration and training are always dark so that they do not dazzle in front of the camera.",
+  "settings.about.what": "VYRO is a skill coach that runs on your computer: it watches through the camera and listens through the microphone, and none of that leaves here.",
+  "settings.about.license": "Free software under the MIT license.",
+  "settings.about.safety": "VYRO helps you improve your technique, but it does not replace a health or training professional. If you feel pain, dizziness or discomfort, stop. Practise in a free and safe space.",
+  "settings.ai.usage": "Today's use against the daily limit",
+  "settings.ai.usageValue": "{used} of {limit} tokens"
 }

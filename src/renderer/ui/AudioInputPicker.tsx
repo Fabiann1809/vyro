@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { t } from '@renderer/i18n'
+import { FIELD, FIELD_LABEL } from './kit/fields'
 import { MicrophoneTest } from './MicrophoneTest'
 import { useSettings } from './settingsStore'
 
@@ -37,15 +38,15 @@ export function AudioInputPicker(): React.JSX.Element {
 
   return (
     <>
-      <p>{t('settings.microphone.note')}</p>
-      <label className="flex flex-wrap items-center gap-3">
-        {t('settings.microphone.choose')}
+      <p className="text-sm leading-normal text-t4">{t('settings.microphone.note')}</p>
+      <label className="flex flex-col gap-2">
+        <span className={FIELD_LABEL}>{t('settings.microphone.choose')}</span>
         <select
           value={audioDeviceId ?? ''}
           onChange={(event) =>
             setAudioDeviceId(event.target.value === '' ? null : event.target.value)
           }
-          className="rounded bg-slate-200 px-3 py-2 dark:bg-slate-800"
+          className={`${FIELD} max-w-sm`}
         >
           <option value="">{t('settings.microphone.default')}</option>
           {inputs.map((input, index) => (

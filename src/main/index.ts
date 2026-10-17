@@ -5,7 +5,7 @@ import { APP_NAME } from '@shared/app'
 import icon from '../../resources/icon.png?asset'
 import { ApiKeyStore, createKeyFile } from './ai/keyStore'
 import { ConfiguredLlmClient } from './ai/provider'
-import { SpendLimitedClient } from './ai/spendGuard'
+import { dayOf, SpendLimitedClient } from './ai/spendGuard'
 import { AiUsageRepository } from './db/aiUsageRepository'
 import { loadReviewSource } from './ai/reviewData'
 import { openDatabase, type Database } from './db/database'
@@ -88,7 +88,8 @@ app.whenReady().then(() => {
     },
     createKeyFile(join(app.getPath('userData'), 'ai-key.bin'))
   )
-  registerAiIpc(keyStore)
+  const aiUsage = new AiUsageRepository(database)
+  registerAiIpc(keyStore, { tokensToday: () => aiUsage.tokensOn(dayOf(Date.now())) })
   const settings = new SettingsRepository(database)
   const paths = new PathRepository(database)
   const progress = new PathProgressService(paths, sessions)
@@ -103,7 +104,7 @@ app.whenReady().then(() => {
         () => settings.getAll(),
         () => keyStore.get()
       ),
-      new AiUsageRepository(database),
+      aiUsage,
       () => settings.getAll().aiDailyTokenLimit
     ),
     getSettings: () => settings.getAll(),

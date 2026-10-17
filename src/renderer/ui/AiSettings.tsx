@@ -12,6 +12,12 @@ import {
   MAX_DAILY_TOKEN_LIMIT,
   MIN_DAILY_TOKEN_LIMIT
 } from '@shared/settings'
+import { Button } from './kit/Button'
+import { Card } from './kit/Card'
+import { CoachAvatar } from './kit/CoachAvatar'
+import { FIELD, FIELD_LABEL } from './kit/fields'
+import { Switch } from './kit/Switch'
+import { SettingsCard } from './settings/SettingsCard'
 import { useSettings } from './settingsStore'
 
 const PROVIDER_LABEL: Record<AiProviderId, MessageKey> = {
@@ -24,13 +30,12 @@ const PROVIDER_LABEL: Record<AiProviderId, MessageKey> = {
 
 const MAX_MODEL_LENGTH = 100
 
-const inputClass = 'min-w-64 rounded bg-slate-200 px-3 py-2 dark:bg-slate-800'
-
 // The AI coach: off until there is a key (when the provider needs one) and the user turns it on.
 // The key goes to the main process and stays there; this page only learns whether one exists.
 export function AiSettings(): React.JSX.Element {
   const settings = useSettings()
   const [status, setStatus] = useState<AiKeyStatus | null>(null)
+  const [used, setUsed] = useState(0)
   const [draft, setDraft] = useState('')
   const [saveFailed, setSaveFailed] = useState(false)
   // What is typed is only saved when the field is left and it makes sense.
@@ -58,9 +63,23 @@ export function AiSettings(): React.JSX.Element {
     }
   }, [statusVersion])
 
+  useEffect(() => {
+    let cancelled = false
+    window.api.ai
+      .usageToday()
+      .then((usage) => {
+        if (!cancelled) setUsed(usage.tokens)
+      })
+      .catch(() => undefined)
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const provider = AI_PROVIDERS[settings.aiProvider]
   const hasKey = status?.hasKey === true
   const canEnable = !provider.requiresKey || hasKey
+  const percent = Math.min(100, Math.round((used / settings.aiDailyTokenLimit) * 100))
 
   const saveKey = (): void => {
     window.api.ai
@@ -115,176 +134,211 @@ export function AiSettings(): React.JSX.Element {
   }
 
   return (
-    <>
-      <p>{t('settings.ai.sends')}</p>
-      <p>{t('settings.ai.neverSends')}</p>
-
-      <label className="flex flex-wrap items-center gap-3">
-        {t('settings.ai.provider')}
-        <select
-          value={settings.aiProvider}
-          onChange={(event) => settings.setAiProvider(event.target.value as AiProviderId)}
-          className="rounded bg-slate-200 px-3 py-2 dark:bg-slate-800"
-        >
-          {AI_PROVIDER_IDS.map((id) => (
-            <option key={id} value={id}>
-              {t(PROVIDER_LABEL[id])}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      {(settings.aiProvider === 'groq' || settings.aiProvider === 'gemini') && (
-        <p className="text-slate-600 dark:text-slate-400">{t('settings.ai.hint.free')}</p>
-      )}
-      {settings.aiProvider === 'ollama' && (
-        <p className="text-slate-600 dark:text-slate-400">{t('settings.ai.hint.ollama')}</p>
-      )}
-
-      {settings.aiProvider !== 'claude' && (
-        <label className="flex flex-wrap items-center gap-3">
-          {t('settings.ai.model')}
-          <input
-            type="text"
-            value={modelDraft}
-            maxLength={MAX_MODEL_LENGTH}
-            placeholder={provider.models.capable ?? ''}
-            onChange={(event) => setModelDraft(event.target.value)}
-            onBlur={commitModel}
-            className={inputClass}
-          />
-          <span className="text-slate-600 dark:text-slate-400">{t('settings.ai.modelHint')}</span>
-        </label>
-      )}
-
-      {provider.baseUrlEditable && (
-        <div className="flex flex-col gap-1">
-          <label className="flex flex-wrap items-center gap-3">
-            {t('settings.ai.baseUrl')}
-            <input
-              type="url"
-              value={urlDraft}
-              placeholder={provider.baseUrl ?? 'https://…/v1'}
-              aria-invalid={urlInvalid}
-              onChange={(event) => setUrlDraft(event.target.value)}
-              onBlur={commitUrl}
-              className={inputClass}
-            />
-          </label>
-          {urlInvalid && <p role="alert">{t('settings.ai.baseUrlInvalid')}</p>}
+    <div className="flex flex-col gap-4">
+      <Card className="flex items-center gap-5 p-6">
+        <CoachAvatar size={44} />
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold">{t('settings.ai')}</h3>
+          <p className="mt-1 text-sm leading-normal text-mut">{t('settings.ai.sends')}</p>
+          <p className="mt-1 text-sm leading-normal text-mut">{t('settings.ai.neverSends')}</p>
         </div>
-      )}
+        <div className="w-60 shrink-0">
+          <Switch
+            label={t('settings.ai.enabled')}
+            checked={settings.aiEnabled && canEnable}
+            disabled={!canEnable}
+            onChange={(checked) => {
+              if (checked && !settings.aiConsent) setAskingConsent(true)
+              else settings.setAiEnabled(checked)
+            }}
+          />
+        </div>
+      </Card>
 
-      <label className="flex flex-wrap items-center gap-3">
-        {t('settings.ai.dailyLimit')}
-        <input
-          type="number"
-          inputMode="numeric"
-          min={MIN_DAILY_TOKEN_LIMIT}
-          max={MAX_DAILY_TOKEN_LIMIT}
-          step={10_000}
-          value={limitDraft}
-          onChange={(event) => setLimitDraft(event.target.value)}
-          onBlur={commitLimit}
-          className={inputClass}
-        />
-      </label>
-      <p className="text-slate-600 dark:text-slate-400">
-        {t('settings.ai.dailyLimitHint', { tokens: DEFAULT_DAILY_TOKEN_LIMIT.toLocaleString() })}
-      </p>
-
-      <label className="flex items-center gap-3">
-        <input
-          type="checkbox"
-          checked={settings.aiEnabled && canEnable}
-          disabled={!canEnable}
-          onChange={(event) => {
-            if (event.target.checked && !settings.aiConsent) setAskingConsent(true)
-            else settings.setAiEnabled(event.target.checked)
-          }}
-          className="size-5"
-        />
-        {t('settings.ai.enabled')}
-      </label>
       {askingConsent && (
-        <div
+        <Card
           role="alertdialog"
           aria-label={t('settings.ai.consent.title')}
-          className="flex flex-col gap-3 rounded-lg border border-slate-400 p-4"
+          className="flex flex-col gap-3 border-warn/50 p-6"
         >
-          <p className="font-semibold">{t('settings.ai.consent.title')}</p>
-          <p>{t('settings.ai.consent.sends')}</p>
-          <p>{t('settings.ai.consent.to', { provider: t(PROVIDER_LABEL[settings.aiProvider]) })}</p>
-          <p>{t('settings.ai.consent.notAdvice')}</p>
-          <p>{t('settings.ai.consent.off')}</p>
-          <div className="flex gap-3">
-            <button
-              type="button"
+          <p className="text-lg font-semibold">{t('settings.ai.consent.title')}</p>
+          <p className="text-sm leading-normal text-t4">{t('settings.ai.consent.sends')}</p>
+          <p className="text-sm leading-normal text-t4">
+            {t('settings.ai.consent.to', { provider: t(PROVIDER_LABEL[settings.aiProvider]) })}
+          </p>
+          <p className="text-sm leading-normal text-t4">{t('settings.ai.consent.notAdvice')}</p>
+          <p className="text-sm leading-normal text-t4">{t('settings.ai.consent.off')}</p>
+          <div className="flex gap-2.5">
+            <Button
               onClick={() => {
                 settings.setAiConsent(true)
                 settings.setAiEnabled(true)
                 setAskingConsent(false)
               }}
-              className="rounded-md bg-emerald-700 px-4 py-2 text-white"
             >
               {t('settings.ai.consent.accept')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setAskingConsent(false)}
-              className="rounded-md bg-slate-200 px-4 py-2 dark:bg-slate-800"
-            >
+            </Button>
+            <Button variant="secondary" onClick={() => setAskingConsent(false)}>
               {t('settings.ai.consent.cancel')}
-            </button>
+            </Button>
+          </div>
+        </Card>
+      )}
+      {!canEnable && <p className="text-sm text-mut">{t('settings.ai.needKey')}</p>}
+
+      <SettingsCard>
+        <div className="grid grid-cols-1 gap-4.5 sm:grid-cols-2">
+          <label className="flex flex-col gap-2">
+            <span className={FIELD_LABEL}>{t('settings.ai.provider')}</span>
+            <select
+              value={settings.aiProvider}
+              onChange={(event) => settings.setAiProvider(event.target.value as AiProviderId)}
+              className={FIELD}
+            >
+              {AI_PROVIDER_IDS.map((id) => (
+                <option key={id} value={id}>
+                  {t(PROVIDER_LABEL[id])}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {provider.requiresKey &&
+            (status && !status.encryptionAvailable ? (
+              <p role="alert" className="self-end text-sm text-bad-text">
+                {t('settings.ai.noEncryption')}
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <span className={FIELD_LABEL}>{t('settings.ai.keyLabel')}</span>
+                <div className="flex gap-2.5">
+                  <input
+                    type="password"
+                    autoComplete="off"
+                    spellCheck={false}
+                    aria-label={t('settings.ai.keyLabel')}
+                    placeholder={hasKey ? '••••••••••••' : t('settings.ai.keyLabel')}
+                    value={draft}
+                    onChange={(event) => setDraft(event.target.value)}
+                    className={`${FIELD} min-w-0 flex-1 font-mono`}
+                  />
+                  <Button disabled={draft.trim().length === 0} onClick={saveKey}>
+                    {t('settings.ai.save')}
+                  </Button>
+                  {hasKey && (
+                    <Button variant="secondary" onClick={removeKey}>
+                      {t('settings.ai.remove')}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+
+          {settings.aiProvider !== 'claude' && (
+            <label className="flex flex-col gap-2">
+              <span className={FIELD_LABEL}>{t('settings.ai.model')}</span>
+              <input
+                type="text"
+                value={modelDraft}
+                maxLength={MAX_MODEL_LENGTH}
+                placeholder={provider.models.capable ?? ''}
+                onChange={(event) => setModelDraft(event.target.value)}
+                onBlur={commitModel}
+                className={FIELD}
+              />
+              <span className="text-[0.78rem] text-mut2">{t('settings.ai.modelHint')}</span>
+            </label>
+          )}
+
+          {provider.baseUrlEditable && (
+            <div className="flex flex-col gap-2">
+              <label className="flex flex-col gap-2">
+                <span className={FIELD_LABEL}>{t('settings.ai.baseUrl')}</span>
+                <input
+                  type="url"
+                  value={urlDraft}
+                  placeholder={provider.baseUrl ?? 'https://…/v1'}
+                  aria-invalid={urlInvalid}
+                  onChange={(event) => setUrlDraft(event.target.value)}
+                  onBlur={commitUrl}
+                  className={FIELD}
+                />
+              </label>
+              {urlInvalid && (
+                <p role="alert" className="text-sm text-bad-text">
+                  {t('settings.ai.baseUrlInvalid')}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {(settings.aiProvider === 'groq' || settings.aiProvider === 'gemini') && (
+          <p className="text-sm text-mut">{t('settings.ai.hint.free')}</p>
+        )}
+        {settings.aiProvider === 'ollama' && (
+          <p className="text-sm text-mut">{t('settings.ai.hint.ollama')}</p>
+        )}
+        {provider.requiresKey && (
+          <>
+            <p role="status" className="text-sm text-t4">
+              {hasKey ? t('settings.ai.keySaved') : t('settings.ai.noKey')}
+            </p>
+            <p className="text-[0.8125rem] text-mut2">{t('settings.ai.keyShared')}</p>
+          </>
+        )}
+        {saveFailed && (
+          <p role="alert" className="text-sm text-bad-text">
+            {t('settings.ai.saveFailed')}
+          </p>
+        )}
+      </SettingsCard>
+
+      <SettingsCard>
+        <label className="flex flex-col gap-2">
+          <span className={FIELD_LABEL}>{t('settings.ai.dailyLimit')}</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            min={MIN_DAILY_TOKEN_LIMIT}
+            max={MAX_DAILY_TOKEN_LIMIT}
+            step={10_000}
+            value={limitDraft}
+            onChange={(event) => setLimitDraft(event.target.value)}
+            onBlur={commitLimit}
+            className={`${FIELD} w-60`}
+          />
+        </label>
+        <div>
+          <div className="flex justify-between text-[0.8125rem] text-mut">
+            <span>{t('settings.ai.usage')}</span>
+            <span className="text-t1">
+              {t('settings.ai.usageValue', {
+                used: used.toLocaleString(),
+                limit: settings.aiDailyTokenLimit.toLocaleString()
+              })}
+            </span>
+          </div>
+          <div
+            role="progressbar"
+            aria-valuenow={percent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={t('settings.ai.usage')}
+            className="mt-2 h-2.5 overflow-hidden rounded-full bg-line/7"
+          >
+            <div
+              className={`h-full rounded-full transition-[width] duration-700 ${percent >= 90 ? 'bg-warn' : 'bg-good'}`}
+              style={{ width: `${percent}%` }}
+            />
           </div>
         </div>
-      )}
-      {!canEnable && (
-        <p className="text-slate-600 dark:text-slate-400">{t('settings.ai.needKey')}</p>
-      )}
-
-      {provider.requiresKey &&
-        (status && !status.encryptionAvailable ? (
-          <p role="alert">{t('settings.ai.noEncryption')}</p>
-        ) : (
-          <div className="flex flex-wrap items-center gap-3">
-            <input
-              type="password"
-              autoComplete="off"
-              spellCheck={false}
-              aria-label={t('settings.ai.keyLabel')}
-              placeholder={t('settings.ai.keyLabel')}
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              className={inputClass}
-            />
-            <button
-              type="button"
-              disabled={draft.trim().length === 0}
-              onClick={saveKey}
-              className="rounded-md bg-emerald-700 px-4 py-2 text-white disabled:opacity-50"
-            >
-              {t('settings.ai.save')}
-            </button>
-            {hasKey && (
-              <button
-                type="button"
-                onClick={removeKey}
-                className="rounded-md bg-slate-200 px-4 py-2 dark:bg-slate-800"
-              >
-                {t('settings.ai.remove')}
-              </button>
-            )}
-          </div>
-        ))}
-
-      {provider.requiresKey && (
-        <>
-          <p role="status">{hasKey ? t('settings.ai.keySaved') : t('settings.ai.noKey')}</p>
-          <p className="text-slate-600 dark:text-slate-400">{t('settings.ai.keyShared')}</p>
-        </>
-      )}
-      {saveFailed && <p role="alert">{t('settings.ai.saveFailed')}</p>}
-    </>
+        <p className="text-sm text-mut">
+          {t('settings.ai.dailyLimitHint', {
+            tokens: DEFAULT_DAILY_TOKEN_LIMIT.toLocaleString()
+          })}
+        </p>
+      </SettingsCard>
+    </div>
   )
 }

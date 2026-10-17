@@ -101,6 +101,7 @@ test('only a true opens it: anything else leaves it closed', async () => {
 test('the test button in Settings listens only while it is on', async () => {
   const page = await launch()
   await page.getByRole('navigation').getByRole('button', { name: 'Ajustes' }).click()
+  await page.getByRole('tab', { name: 'Micrófono' }).click()
 
   await page.getByRole('button', { name: 'Probar micrófono' }).click()
   // A computer with a microphone shows the level; one without it says so. Either way the page asked.

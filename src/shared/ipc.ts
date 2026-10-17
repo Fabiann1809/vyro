@@ -29,6 +29,7 @@ export const IPC = {
   settingsSet: 'settings:set',
   dataDeleteAll: 'data:delete-all',
   aiKeyStatus: 'ai:key-status',
+  aiUsageToday: 'ai:usage-today',
   aiKeySave: 'ai:key-save',
   aiKeyClear: 'ai:key-clear',
   coachChat: 'coach:chat',
@@ -75,6 +76,8 @@ export interface VyroApi {
   ai: {
     // Whether a key exists; its value never reaches the page.
     keyStatus: () => Promise<AiKeyStatus>
+    // The tokens the coach has used today (an estimate), to show next to the daily limit.
+    usageToday: () => Promise<{ tokens: number }>
     saveKey: (key: string) => Promise<void>
     clearKey: () => Promise<void>
   }

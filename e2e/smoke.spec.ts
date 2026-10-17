@@ -287,6 +287,40 @@ test('keeps the page isolated from Node and exposes only the typed bridge', asyn
   })
 })
 
+test('moves between the sections of the settings, one at a time', async () => {
+  const page = await launch()
+  await nav(page, 'Ajustes').click()
+
+  // It opens on the general part; the others wait behind their tabs.
+  await expect(page.getByRole('tab', { name: 'General' })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByLabel('Idioma')).toBeVisible()
+  await expect(page.getByLabel('Voz activada')).toHaveCount(0)
+
+  await page.getByRole('tab', { name: 'Voz' }).click()
+  await expect(page.getByLabel('Voz activada')).toBeChecked()
+  await expect(page.getByLabel('Idioma')).toHaveCount(0)
+
+  await page.getByRole('tab', { name: 'Acerca de' }).click()
+  await expect(page.getByText(/no sustituye a un profesional de la salud/)).toBeVisible()
+})
+
+test('opens the settings on the coach when something there is what is needed', async () => {
+  const page = await launch()
+
+  await page.getByLabel('Tu mensaje').fill('Quiero mejorar mi sentadilla')
+  await page.getByLabel('Tu mensaje').press('Enter')
+  await page.getByRole('button', { name: 'Activar IA' }).click()
+
+  await expect(page.getByRole('tab', { name: 'Coach con IA' })).toHaveAttribute(
+    'aria-selected',
+    'true'
+  )
+  await expect(page.getByLabel('Activar el coach con IA')).toBeVisible()
+  await expect(
+    page.getByRole('progressbar', { name: 'Uso de hoy frente al límite diario' })
+  ).toBeVisible()
+})
+
 test('remembers the language after the app is closed and opened again', async () => {
   const first = await launch()
   await nav(first, 'Ajustes').click()
@@ -383,6 +417,7 @@ test('goes back to the skills of the app when all the data is deleted', async ()
   await expect(page.getByRole('button', { name: 'Yoga suave' })).toBeVisible()
 
   await nav(page, 'Ajustes').click()
+  await page.getByRole('tab', { name: 'Privacidad y datos' }).click()
   await page.getByRole('button', { name: 'Borrar todos los datos' }).click()
   await page.getByRole('button', { name: 'Sí, borrar todo' }).click()
   await expect(page.getByText('Datos borrados.')).toBeVisible()
@@ -466,6 +501,7 @@ test.describe('AI coach screen', () => {
 
   async function turnOnWithFakeProvider(page: Page): Promise<void> {
     await nav(page, 'Ajustes').click()
+    await page.getByRole('tab', { name: 'Coach con IA' }).click()
     await page.getByLabel('Proveedor').selectOption('ollama')
     await page.getByLabel('Dirección del servicio').fill(provider.url)
     await page.getByLabel('Dirección del servicio').blur()
@@ -476,6 +512,7 @@ test.describe('AI coach screen', () => {
   test('asks for consent the first time the AI is turned on, and only then turns it on', async () => {
     const page = await launch()
     await nav(page, 'Ajustes').click()
+    await page.getByRole('tab', { name: 'Coach con IA' }).click()
     await page.getByLabel('Proveedor').selectOption('ollama')
 
     await page.getByLabel('Activar el coach con IA').click()
@@ -1479,6 +1516,7 @@ test.describe('AI coach screen', () => {
     )
 
     await nav(page, 'Ajustes').click()
+    await page.getByRole('tab', { name: 'Mis habilidades generadas' }).click()
     await page.getByRole('button', { name: 'Eliminar Yoga suave' }).click()
     // Asking first: nothing is deleted yet, and cancelling leaves the skill.
     await page.getByRole('button', { name: 'Cancelar' }).click()
@@ -1486,6 +1524,7 @@ test.describe('AI coach screen', () => {
     await expect(page.getByRole('button', { name: 'Yoga suave' })).toBeVisible()
 
     await nav(page, 'Ajustes').click()
+    await page.getByRole('tab', { name: 'Mis habilidades generadas' }).click()
     await page.getByRole('button', { name: 'Eliminar Yoga suave' }).click()
     await page.getByRole('button', { name: 'Sí, eliminar' }).click()
     await expect(page.getByText('Habilidad eliminada.')).toBeVisible()
@@ -1563,6 +1602,7 @@ test.describe('API key', () => {
   test('is stored encrypted, survives a restart and never comes back to the page', async () => {
     const first = await launch()
     await nav(first, 'Ajustes').click()
+    await first.getByRole('tab', { name: 'Coach con IA' }).click()
     await first.getByLabel('Clave de API').fill(SECRET)
     await first.getByRole('button', { name: 'Guardar clave' }).click()
     await expect(first.getByText('Clave guardada en este equipo')).toBeVisible()
@@ -1574,7 +1614,7 @@ test.describe('API key', () => {
         .ai
       return { methods: Object.keys(ai).sort(), status: await ai.keyStatus() }
     })
-    expect(exposed.methods).toEqual(['clearKey', 'keyStatus', 'saveKey'])
+    expect(exposed.methods).toEqual(['clearKey', 'keyStatus', 'saveKey', 'usageToday'])
     expect(JSON.stringify(exposed.status)).not.toContain(SECRET)
 
     // On disk, only the encrypted bytes.
@@ -1583,6 +1623,7 @@ test.describe('API key', () => {
 
     const second = await launch()
     await nav(second, 'Ajustes').click()
+    await second.getByRole('tab', { name: 'Coach con IA' }).click()
     await expect(second.getByText('Clave guardada en este equipo')).toBeVisible()
 
     await second.getByRole('button', { name: 'Quitar clave' }).click()

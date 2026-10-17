@@ -617,5 +617,15 @@
   "how.trust.offline.title": "Funciona sin internet",
   "how.trust.offline.body": "La IA es opcional. Sin ella practicas cualquier habilidad desde la Biblioteca.",
   "how.trust.measure.title": "Mide lo que se puede medir",
-  "how.trust.measure.body": "Sí: postura, ángulos, posición de la guitarra, afinación, ritmo. No: la intención, la emoción o lo que la cámara no ve."
+  "how.trust.measure.body": "Sí: postura, ángulos, posición de la guitarra, afinación, ritmo. No: la intención, la emoción o lo que la cámara no ve.",
+  "settings.tab.general": "General",
+  "settings.tab.skills": "Mis habilidades generadas",
+  "settings.tab.privacy": "Privacidad y datos",
+  "settings.tab.about": "Acerca de",
+  "settings.appearance.note": "La calibración y el entrenamiento siempre se ven en oscuro para no deslumbrar frente a la cámara.",
+  "settings.about.what": "VYRO es un entrenador de habilidades que corre en tu equipo: te mira por la cámara y te escucha por el micrófono, y nada de eso sale de aquí.",
+  "settings.about.license": "Software libre con licencia MIT.",
+  "settings.about.safety": "VYRO te ayuda a mejorar tu técnica, pero no sustituye a un profesional de la salud o del entrenamiento. Si sientes dolor, mareo o molestias, detente. Practica en un espacio libre y seguro.",
+  "settings.ai.usage": "Uso de hoy frente al límite diario",
+  "settings.ai.usageValue": "{used} de {limit} tokens"
 }

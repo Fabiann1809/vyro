@@ -7,6 +7,9 @@ vi.mock('electron', () => ({ ipcMain: { handle: vi.fn() } }))
 
 const KEY = 'sk-test-1234567890'
 
+// What the usage counter says today, for the tests to change.
+let tokens = 0
+
 function setup(encryptionAvailable = true): {
   handlers: ReturnType<typeof createAiHandlers>
   store: ApiKeyStore
@@ -25,13 +28,14 @@ function setup(encryptionAvailable = true): {
     },
     file
   )
-  return { handlers: createAiHandlers(store), store }
+  return { handlers: createAiHandlers(store, { tokensToday: () => tokens }), store }
 }
 
 let handlers: ReturnType<typeof createAiHandlers>
 let store: ApiKeyStore
 
 beforeEach(() => {
+  tokens = 0
   ;({ handlers, store } = setup())
 })
 
@@ -80,5 +84,11 @@ describe('AI key handlers', () => {
     expect(unsupported.keyStatus().encryptionAvailable).toBe(false)
     expect(() => unsupported.saveKey(KEY)).toThrow()
     expect(unsupported.keyStatus().hasKey).toBe(false)
+  })
+
+  it('says how many tokens were used today, and nothing else', () => {
+    tokens = 12_345
+
+    expect(handlers.usageToday()).toEqual({ tokens: 12_345 })
   })
 })

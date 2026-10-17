@@ -7,7 +7,7 @@ import { CoachErrorNotice } from './CoachErrorNotice'
 import { Button } from './kit/Button'
 import { Card } from './kit/Card'
 import { CoachAvatar } from './kit/CoachAvatar'
-import { useNavigation } from './navigation'
+import { openSettings } from './settingsTabStore'
 import { plannerSkills } from './plannerSkills'
 import { useSettings } from './settingsStore'
 
@@ -70,7 +70,6 @@ export function PathReviewPanel({
   path: LearningPath
   onApplied: () => void
 }): React.JSX.Element {
-  const go = useNavigation((state) => state.go)
   const aiEnabled = useSettings((state) => state.aiEnabled)
   const language = useSettings((state) => state.language)
   const [state, setState] = useState<State>({ status: 'idle' })
@@ -139,7 +138,7 @@ export function PathReviewPanel({
       {!aiEnabled ? (
         <div className="flex flex-col items-start gap-3">
           <p className="text-sm text-t4">{t('path.review.off')}</p>
-          <Button variant="secondary" onClick={() => go('settings')}>
+          <Button variant="secondary" onClick={() => openSettings('ai')}>
             {t('coach.openSettings')}
           </Button>
         </div>

@@ -3,7 +3,7 @@ import type { CoachError } from '@shared/coach'
 import { coachErrorMessage, errorNeedsSettings } from './coachErrors'
 import { Button } from './kit/Button'
 import { Icon } from './kit/Icon'
-import { useNavigation } from './navigation'
+import { openSettings } from './settingsTabStore'
 
 // Says why the coach did not answer, with the one thing that can help: go to Settings when it is a
 // matter of setting up, or try again when it may pass by itself.
@@ -16,8 +16,6 @@ export function CoachErrorNotice({
   onRetry: () => void
   retryDisabled?: boolean
 }): React.JSX.Element {
-  const go = useNavigation((state) => state.go)
-
   return (
     <div
       role="alert"
@@ -26,7 +24,7 @@ export function CoachErrorNotice({
       <Icon name="warning" className="size-4.5 text-bad-text" strokeWidth={1.5} />
       <p className="flex-1 text-sm">{coachErrorMessage(error)}</p>
       {errorNeedsSettings(error) ? (
-        <Button variant="secondary" onClick={() => go('settings')}>
+        <Button variant="secondary" onClick={() => openSettings('ai')}>
           {t('coach.openSettings')}
         </Button>
       ) : (

@@ -19,6 +19,7 @@ import { CoachAvatar } from '../kit/CoachAvatar'
 import { focusComposer } from '../focusComposer'
 import { useNavigation } from '../navigation'
 import { usePathPlan } from '../pathPlanStore'
+import { openSettings } from '../settingsTabStore'
 import { plannerSkills } from '../plannerSkills'
 import { useSession } from '../sessionStore'
 import { useSettings } from '../settingsStore'
@@ -182,7 +183,7 @@ export function HomeScreen(): React.JSX.Element {
       startOver()
       focusComposer()
     },
-    onEnableAi: () => go('settings'),
+    onEnableAi: () => openSettings('ai'),
     onOpenLibrary: () => go('library')
   }
 
