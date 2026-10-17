@@ -1,6 +1,7 @@
 import { localize, t, type MessageKey } from '@renderer/i18n'
 import type { AnyJointName } from '@shared/skill/joints'
 import { cameraOf } from '@shared/skill/cameraOf'
+import type { ObjectName } from '@shared/skill/objects'
 import { skillChannels } from '@shared/skill/skillChannels'
 import type { Severity, SkillConfig, SkillMetric } from '@shared/skill/skillSchema'
 
@@ -73,6 +74,16 @@ function metricText(name: string, metric: SkillMetric): string {
       return t('skill.metric.interval', { name, semitones: metric.semitones })
     case 'tempo':
       return t('skill.metric.tempo', { name })
+    case 'objectOffset':
+      return t('skill.metric.objectOffset', {
+        name,
+        to: joint(metric.to),
+        axis: t(metric.axis === 'x' ? 'skill.axis.x' : 'skill.axis.y'),
+        scaleFrom: joint(metric.scale[0]),
+        scaleTo: joint(metric.scale[1])
+      })
+    case 'objectAspect':
+      return t('skill.metric.objectAspect', { name })
     case 'gap':
       return t('skill.metric.gap', {
         name,
@@ -84,15 +95,24 @@ function metricText(name: string, metric: SkillMetric): string {
   }
 }
 
+const OBJECT_TEXT: Record<ObjectName, MessageKey> = { guitar: 'skill.object.guitar' }
+
 function cameraText(skill: SkillConfig): string {
   const channels = skillChannels(skill)
   const { view, fullBody } = cameraOf(skill)
+  const object = skill.object
+    ? [t('skill.camera.object', { object: t(OBJECT_TEXT[skill.object]) })]
+    : []
   if (channels.includes('body')) {
-    return t(view === 'side' ? 'skill.camera.side' : 'skill.camera.front', {
-      body: t(fullBody ? 'skill.camera.fullBody' : 'skill.camera.upperBody')
-    })
+    return [
+      t(view === 'side' ? 'skill.camera.side' : 'skill.camera.front', {
+        body: t(fullBody ? 'skill.camera.fullBody' : 'skill.camera.upperBody')
+      }),
+      ...object
+    ].join('. ')
   }
-  return t(channels.includes('hands') ? 'skill.camera.hands' : 'skill.camera.none')
+  if (channels.includes('hands')) return [t('skill.camera.hands'), ...object].join('. ')
+  return object[0] ?? t('skill.camera.none')
 }
 
 export interface SkillPreview {

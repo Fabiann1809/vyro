@@ -20,6 +20,8 @@ export const DEFAULT_HYSTERESIS: Record<MetricType, number> = {
   tilt: 5,
   offset: 0.03,
   gap: 0.03,
+  objectOffset: 0.03,
+  objectAspect: 0.05,
   pitch: 3,
   level: 3,
   interval: 5,

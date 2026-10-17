@@ -2,6 +2,7 @@ import { angleAt, distance, tiltFromVertical, toPixels, type Point } from '@rend
 import { centsBetween, frequencyOfMidi, nearestNote, noteToMidi } from '@renderer/core/audio/pitch'
 import { handJoint } from '@renderer/core/handJoints'
 import type { Landmark } from '@renderer/core/landmarks'
+import type { ObjectBox } from '@renderer/core/objectFrame'
 import { joint, type Side } from '@renderer/core/side'
 import { isHandJoint, type AnyJointName } from '@shared/skill/joints'
 import { isAudioMetric } from '@shared/skill/skillChannels'
@@ -64,9 +65,21 @@ function measureAudio(
 
 function measure(
   metric: MetricDefinition,
-  at: (name: AnyJointName) => Point | null
+  at: (name: AnyJointName) => Point | null,
+  object: Point | null,
+  aspect: number | null
 ): number | null {
   switch (metric.type) {
+    case 'objectOffset': {
+      const to = at(metric.to)
+      const [scaleStart, scaleEnd] = metric.scale.map(at)
+      if (!object || !to || !scaleStart || !scaleEnd) return null
+
+      const scale = distance(scaleStart, scaleEnd)
+      return scale === 0 ? null : (object[metric.axis] - to[metric.axis]) / scale
+    }
+    case 'objectAspect':
+      return aspect
     case 'angle': {
       const [first, vertex, last] = metric.points.map(at)
       return first && vertex && last ? angleAt(first, vertex, last) : null
@@ -109,15 +122,28 @@ export function computeMetrics(
   hand: readonly Landmark[] | null = null,
   // The sound, and the pitch of the A above middle C, for the skills that listen.
   audio: AudioState | null = null,
-  a4 = 440
+  a4 = 440,
+  // The box of the object, for the skills that look at one; null when it is not in view.
+  object: ObjectBox | null = null
 ): MetricValues {
   const body = landmarks && side ? { landmarks, side } : null
   const at = (name: AnyJointName): Point | null => pointOf(body, hand, name, frame)
+  // The box is in 0..1 of the picture; like the joints, it is measured in pixels.
+  const center: Point | null = object
+    ? {
+        x: (object.x + object.width / 2) * frame.width,
+        y: (object.y + object.height / 2) * frame.height
+      }
+    : null
+  const aspect =
+    object && object.height > 0
+      ? (object.width * frame.width) / (object.height * frame.height)
+      : null
 
   return Object.fromEntries(
     Object.entries(metrics).map(([name, metric]) => [
       name,
-      isAudioMetric(metric) ? measureAudio(metric, audio, a4) : measure(metric, at)
+      isAudioMetric(metric) ? measureAudio(metric, audio, a4) : measure(metric, at, center, aspect)
     ])
   )
 }

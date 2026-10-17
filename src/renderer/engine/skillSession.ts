@@ -1,4 +1,5 @@
 import type { Landmark } from '@renderer/core/landmarks'
+import type { ObjectBox } from '@renderer/core/objectFrame'
 import { SideTracker, type Side } from '@renderer/core/side'
 import { LandmarkSmoother } from '@renderer/core/smoothing'
 import { FeedbackPrioritizer, type FeedbackMessage } from './feedback'
@@ -20,11 +21,14 @@ export interface FrameInput {
   // What the microphone heard in this frame (numbers only); null when it is not listening. Only
   // skills that listen read it.
   audio?: AudioFeatures | null
+  // The box around the object, smoothed; null when it is not in view. Only skills that look at an
+  // object read it.
+  object?: ObjectBox | null
 }
 
 export interface FrameOutput {
-  // False when what the skill needs to see (the body, a hand, or both) could not be followed in
-  // this frame.
+  // False when what the skill needs to see (the body, a hand, an object, or several) could not be
+  // followed in this frame.
   tracked: boolean
   // The side of the body being judged; null if the body is not used or could not be followed.
   side: Side | null
@@ -60,6 +64,7 @@ export class SkillSession {
   private readonly needsBody: boolean
   private readonly needsHand: boolean
   private readonly needsAudio: boolean
+  private readonly needsObject: boolean
   private readonly audioTracker = new AudioTracker()
   private readonly sideTracker = new SideTracker()
   private readonly counter: RepCounter
@@ -77,6 +82,7 @@ export class SkillSession {
     this.needsBody = channels.includes('body')
     this.needsHand = channels.includes('hands')
     this.needsAudio = channels.includes('audio')
+    this.needsObject = channels.includes('object')
     this.counter = new RepCounter(skill)
     this.evaluator = new RepEvaluator(skill)
   }
@@ -116,7 +122,9 @@ export class SkillSession {
     const bodyOk = !this.needsBody || (smoothed !== null && side !== null)
     const handOk = !this.needsHand || hand !== null
     const audioOk = !this.needsAudio || audio !== null
-    if (!bodyOk || !handOk || !audioOk) {
+    const object = this.needsObject ? (input.object ?? null) : null
+    const objectOk = !this.needsObject || object !== null
+    if (!bodyOk || !handOk || !audioOk || !objectOk) {
       this.onBodyLost(input.timestampMs)
       return NOTHING
     }
@@ -129,7 +137,8 @@ export class SkillSession {
       this.frame,
       hand,
       audio,
-      this.skill.audio?.a4
+      this.skill.audio?.a4,
+      object
     )
     const repEvent = this.counter.update(input.timestampMs, metrics)
 

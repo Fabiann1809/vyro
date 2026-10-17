@@ -189,6 +189,47 @@ describe('skillConfigSchema', () => {
     })
   })
 
+  describe('object metrics', () => {
+    const shape = {
+      metrics: { lying: { type: 'objectAspect' } },
+      phases: [
+        { id: 'upright', when: { lying: { lt: 0.7 } } },
+        { id: 'across', when: { lying: { gt: 1.5 } } }
+      ],
+      rep: { sequence: ['upright', 'across', 'upright'], minDurationMs: 100 },
+      rules: [{ ...rule, check: 'max(lying) >= 1.5' }]
+    }
+
+    it('accepts a skill that names the object it looks at', () => {
+      expect(problemsWith({ ...shape, object: 'guitar' })).toEqual([])
+    })
+
+    it('asks which object it is when a metric looks at one', () => {
+      expect(problemsWith(shape).join()).toContain('object: is needed')
+    })
+
+    it('rejects an object that has no detector', () => {
+      expect(problemsWith({ ...shape, object: 'dumbbell' }).length).toBeGreaterThan(0)
+    })
+
+    it('rejects a metric of an object that points at an unknown joint', () => {
+      const problems = problemsWith({
+        ...shape,
+        object: 'guitar',
+        metrics: {
+          lying: {
+            type: 'objectOffset',
+            to: 'neck',
+            axis: 'x',
+            scale: ['shoulder', 'hip']
+          }
+        }
+      })
+
+      expect(problems.length).toBeGreaterThan(0)
+    })
+  })
+
   describe('general shape', () => {
     it('rejects a misspelled key instead of ignoring it', () => {
       const problems = problemsWith({ rules: [{ ...rule, mesage: rule.message }] })

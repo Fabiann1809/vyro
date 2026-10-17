@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { ANY_JOINT_NAMES } from './joints'
-import { isAudioMetric } from './skillChannels'
+import { DETECTABLE_OBJECTS } from './objects'
+import { isAudioMetric, isObjectMetric } from './skillChannels'
 
 // Names the rule expressions already use (functions and per-repetition values). A metric called
 // like one of them would be ambiguous inside an expression.
@@ -79,6 +80,23 @@ const gapMetric = z
   })
   .strict()
 
+// Object metrics. They look at the box the detector draws around the object (a skill names the
+// object in its `object` field).
+// Where the centre of the box is compared with a point of the body or the hand, along one axis, in
+// units of `scale`: positive when the object is to the right of (x) or below (y) the point.
+const objectOffsetMetric = z
+  .object({
+    type: z.literal('objectOffset'),
+    to: joint,
+    axis: z.enum(['x', 'y']),
+    scale: z.tuple([joint, joint])
+  })
+  .strict()
+
+// Width over height of the box: above 1 the object lies across the picture, below 1 it stands up.
+// A box has no slant, so this is how far the object is from level or upright, not an angle.
+const objectAspectMetric = z.object({ type: z.literal('objectAspect') }).strict()
+
 // Audio metrics. They look at what the microphone hears, not at the body.
 // How far the pitch is from a note, in cents (positive when higher). "nearest" measures it from the
 // closest note, whichever it is, which is what tuning a string needs.
@@ -104,6 +122,8 @@ const metric = z.discriminatedUnion('type', [
   tiltMetric,
   offsetMetric,
   gapMetric,
+  objectOffsetMetric,
+  objectAspectMetric,
   pitchMetric,
   levelMetric,
   intervalMetric,
@@ -154,6 +174,8 @@ export const skillConfigSchema = z
       })
       .strict()
       .optional(),
+    // The object the skill looks at, for the metrics of an object.
+    object: z.enum(DETECTABLE_OBJECTS).optional(),
     // Only for skills that listen.
     audio: z
       .object({
@@ -186,6 +208,14 @@ export const skillConfigSchema = z
         code: 'custom',
         path: ['camera'],
         message: 'is needed when the skill looks at the body or the hands'
+      })
+    }
+
+    if (!skill.object && Object.values(skill.metrics).some(isObjectMetric)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['object'],
+        message: 'is needed when a metric looks at an object'
       })
     }
 
