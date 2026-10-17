@@ -3,12 +3,13 @@
 @import '@fontsource-variable/unbounded';
 
 /* The theme is a data attribute on the root element, set by useAppliedAppearance. */
-@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *, .force-dark, .force-dark *));
 
 /* Colours of the interface, from the design in docs/DESIGN_SYSTEM.md. Dark is the default, also before
    the theme attribute is set. Utilities such as bg-card or text-mut read these through @theme below. */
 :root,
-:root[data-theme='dark'] {
+:root[data-theme='dark'],
+.force-dark {
   --bg: #0d0f14;
   --side: #0a0c10;
   --card: #14171e;
@@ -251,7 +252,8 @@ body {
 :root {
   --focus: #0369a1;
 }
-:root[data-theme='dark'] {
+:root[data-theme='dark'],
+.force-dark {
   --focus: #38bdf8;
 }
 :focus-visible {

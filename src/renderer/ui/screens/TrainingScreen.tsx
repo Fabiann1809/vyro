@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { measureSound, type AudioFeatures } from '@renderer/core/audio/capture'
+import { nearestNote, type Note } from '@renderer/core/audio/pitch'
 import type { PoseFrame } from '@renderer/core/detectionLoop'
 import type { Landmark } from '@renderer/core/landmarks'
 import type { FeedbackMessage } from '@renderer/engine/feedback'
@@ -14,8 +15,15 @@ import { voice } from '@renderer/voice'
 import { VoicePolicy } from '@renderer/voice/voicePolicy'
 import { pickHand } from '@renderer/core/handJoints'
 import { cameraOf } from '@shared/skill/cameraOf'
-import { skillChannels } from '@shared/skill/skillChannels'
+import { isGeneratedSkillId } from '@shared/skill/generatedSafety'
+import { ruleChannel } from '@shared/skill/ruleChannels'
+import { skillChannels, type SkillChannel } from '@shared/skill/skillChannels'
 import { CameraStage } from '../CameraStage'
+import { CorrectionBand } from '../immersive/CorrectionBand'
+import { RepCounter } from '../immersive/RepCounter'
+import { TunerCard } from '../immersive/TunerCard'
+import { Button } from '../kit/Button'
+import { Icon } from '../kit/Icon'
 import { LevelMeter } from '../LevelMeter'
 import { useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
@@ -23,9 +31,11 @@ import { useSettings } from '../settingsStore'
 import { adjustSkillToPerson, type PersonalOutcome } from '../personalSkill'
 import { useSkills } from '../skillsStore'
 import { useMicrophoneFeatures } from '../useMicrophoneFeatures'
-import { isGeneratedSkillId } from '@shared/skill/generatedSafety'
 
 const MESSAGE_VISIBLE_MS = 4000
+
+// A pitch is only a note when the sound is clear enough to be sure of it.
+const MIN_PITCH_CLARITY = 0.5
 
 // The same clock as the frames of the camera.
 const now = (): number => performance.now()
@@ -73,12 +83,8 @@ interface Banner {
   id: number
   text: string
   praise: boolean
-}
-
-function bannerOf(message: FeedbackMessage, id: number): Banner {
-  return message.kind === 'praise'
-    ? { id, text: t(PRAISE[message.variant % PRAISE.length] ?? 'training.praise.0'), praise: true }
-    : { id, text: localize(message.message), praise: false }
+  // What a correction is about; null for a praise.
+  channel: SkillChannel | null
 }
 
 const clock = (ms: number): string => {
@@ -114,6 +120,22 @@ export function TrainingScreen(): React.JSX.Element {
   // What the microphone heard last, for the skills that look and listen at once.
   const audioRef = useRef<AudioFeatures | null>(null)
   const [levelDb, setLevelDb] = useState(-100)
+  const [note, setNote] = useState<Note | null>(null)
+
+  const bannerOf = (message: FeedbackMessage, id: number): Banner =>
+    message.kind === 'praise'
+      ? {
+          id,
+          text: t(PRAISE[message.variant % PRAISE.length] ?? 'training.praise.0'),
+          praise: true,
+          channel: null
+        }
+      : {
+          id,
+          text: localize(message.message),
+          praise: false,
+          channel: skill ? ruleChannel(skill, message.ruleId) : null
+        }
 
   // One step of the session, from the camera, the microphone or both.
   const advance = (input: FrameInput, size: FrameSize): void => {
@@ -177,6 +199,11 @@ export function TrainingScreen(): React.JSX.Element {
   const handleSound = (features: AudioFeatures): void => {
     audioRef.current = features
     setLevelDb(features.levelDb)
+    setNote(
+      features.pitchHz > 0 && features.pitchClarity >= MIN_PITCH_CLARITY
+        ? nearestNote(features.pitchHz)
+        : null
+    )
     if (!useCamera) {
       advance({ timestampMs: now(), landmarks: null, audio: features }, { width: 1, height: 1 })
     }
@@ -220,7 +247,7 @@ export function TrainingScreen(): React.JSX.Element {
   }, [skill, startedAt, elapsedMs, finishSession, setSaveStatus, go])
 
   useEffect(() => {
-    if (!skill) go('home')
+    if (!skill) go('library')
   }, [skill, go])
 
   // Whatever is being said is cut off when the user leaves the training.
@@ -253,37 +280,49 @@ export function TrainingScreen(): React.JSX.Element {
 
   const quality = snapshot.lastQuality ? QUALITY[snapshot.lastQuality] : undefined
   const phaseKey = snapshot.phase ? PHASE_LABEL[snapshot.phase] : undefined
+  const interrupted = paused || snapshot.tracking === 'lost'
+  // A skill that tunes a note shows the tuner; one that only listens for sound shows how loud it is.
+  const hasPitch = Object.values(skill.metrics).some((metric) => metric.type === 'pitch')
+
+  const interruption = interrupted && (
+    <div
+      role="alert"
+      className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-[1.875rem] bg-bg/75 text-center"
+    >
+      <p className="text-3xl font-bold">{paused ? t('training.paused') : t('training.lost')}</p>
+      {!paused && (
+        <Button size="lg" variant="light" onClick={() => go('calibration')}>
+          {t('training.recalibrate')}
+        </Button>
+      )}
+    </div>
+  )
+
+  const micProblem = useAudio && microphone.status === 'error' && (
+    <div role="alert" className="flex flex-col items-center gap-3 text-center">
+      <p>{t(microphone.errorMessage ?? 'microphone.error.unknown')}</p>
+      <Button variant="secondary" onClick={microphone.retry}>
+        {t('calibration.retry')}
+      </Button>
+    </div>
+  )
 
   return (
-    <section className="flex h-full w-full flex-col gap-3 p-4">
-      <header className="flex items-center gap-4 text-sm">
-        <span>{t(useAudio ? 'training.privacyAudio' : 'training.privacy')}</span>
-        <span className="ml-auto tabular-nums">{clock(elapsedMs)}</span>
-        {isGeneratedSkillId(skill.id) && (
-          <button
-            type="button"
-            onClick={adjusting ? () => setAdjusting(false) : startAdjusting}
-            className="rounded-md bg-slate-200 px-5 py-3 text-base dark:bg-slate-800"
-          >
-            {adjusting ? t('training.personal.cancel') : t('training.personal.start')}
-          </button>
-        )}
-        <button
-          type="button"
-          aria-keyshortcuts="P"
-          onClick={togglePause}
-          className="rounded-md bg-slate-200 px-5 py-3 text-base dark:bg-slate-800"
-        >
-          {paused ? t('training.resume') : t('training.pause')}
-        </button>
-        <button
-          type="button"
-          aria-keyshortcuts="F"
-          onClick={end}
-          className="ml-6 rounded-md bg-red-700 px-5 py-3 text-base text-white"
-        >
-          {t('training.end')}
-        </button>
+    <section className="force-dark anim-fade flex h-full w-full flex-col gap-4 bg-[#07080b] px-6.5 pt-5 pb-6 text-t1">
+      <header className="flex items-center justify-between gap-5">
+        <div className="flex items-center gap-3.5">
+          <h1 className="text-[0.9375rem] font-semibold">{localize(skill.name)}</h1>
+          <span className="rounded-full bg-line/6 px-2.5 py-1 text-xs text-t4">
+            {t('screen.training.title')}
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="flex h-9 items-center gap-2 rounded-full bg-line/5 px-3.5 text-[0.8125rem] text-t4">
+            <Icon name={useAudio ? 'mic' : 'lock'} className="size-3.5" strokeWidth={1.4} />
+            {t(useAudio ? 'training.privacyAudio' : 'training.privacy')}
+          </span>
+          <span className="text-lg tabular-nums">{clock(elapsedMs)}</span>
+        </div>
       </header>
 
       <p role="status" className="min-h-6 text-center text-lg">
@@ -294,104 +333,103 @@ export function TrainingScreen(): React.JSX.Element {
             : ''}
       </p>
 
-      <div className="flex flex-1 items-start justify-center gap-6">
-        <div className="relative">
+      <div className="flex min-h-0 flex-1 gap-5">
+        <div className="relative flex min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[1.875rem] bg-sunk">
           {useCamera ? (
             <CameraStage
               onFrame={handleFrame}
               withHands={channels.includes('hands')}
               withObjects={channels.includes('object')}
-              videoClassName="max-h-[70vh]"
+              videoClassName="max-h-[74vh] rounded-[1.875rem]"
             >
-              {(paused || snapshot.tracking === 'lost') && (
-                <div
-                  role="alert"
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-lg bg-black/70 text-center text-white"
-                >
-                  <p className="text-3xl font-bold">
-                    {paused ? t('training.paused') : t('training.lost')}
-                  </p>
-                  {!paused && (
-                    <button
-                      type="button"
-                      onClick={() => go('calibration')}
-                      className="rounded-md bg-white px-4 py-2 text-slate-900"
-                    >
-                      {t('training.recalibrate')}
-                    </button>
-                  )}
-                </div>
-              )}
+              <div className="absolute top-5 right-5 rounded-3xl bg-bg/85 px-6.5 py-4 text-center">
+                <RepCounter count={snapshot.repCount} />
+              </div>
+              <div role="status" aria-live="assertive">
+                {banner && (
+                  <CorrectionBand
+                    key={banner.id}
+                    text={banner.text}
+                    channel={banner.channel}
+                    praise={banner.praise}
+                  />
+                )}
+              </div>
+              {interruption}
             </CameraStage>
           ) : (
-            <div className="relative flex min-h-64 w-96 flex-col items-center justify-center gap-4 rounded-lg bg-slate-200 p-6 dark:bg-slate-800">
-              {microphone.status === 'listening' && <LevelMeter levelDb={levelDb} />}
-              {microphone.status === 'error' && (
-                <div role="alert" className="flex flex-col items-center gap-2">
-                  <p>{t(microphone.errorMessage ?? 'microphone.error.unknown')}</p>
-                  <button
-                    type="button"
-                    onClick={microphone.retry}
-                    className="rounded-md bg-white px-4 py-2 text-slate-900"
-                  >
-                    {t('calibration.retry')}
-                  </button>
-                </div>
-              )}
-              {(paused || snapshot.tracking === 'lost') && (
-                <div
-                  role="alert"
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-lg bg-black/70 text-center text-white"
-                >
-                  <p className="text-3xl font-bold">
-                    {paused ? t('training.paused') : t('training.lost')}
-                  </p>
-                  {!paused && (
-                    <button
-                      type="button"
-                      onClick={() => go('calibration')}
-                      className="rounded-md bg-white px-4 py-2 text-slate-900"
-                    >
-                      {t('training.recalibrate')}
-                    </button>
-                  )}
-                </div>
-              )}
+            <div className="relative flex w-full max-w-xl flex-col items-center gap-6 p-8">
+              <RepCounter count={snapshot.repCount} />
+              {micProblem}
+              <div role="status" aria-live="assertive" className="relative min-h-24 w-full">
+                {banner && (
+                  <CorrectionBand
+                    key={banner.id}
+                    text={banner.text}
+                    channel={banner.channel}
+                    praise={banner.praise}
+                  />
+                )}
+              </div>
+              {interruption}
             </div>
           )}
         </div>
 
-        <aside className="flex w-64 flex-col gap-4 text-center">
-          <p className="text-xl">{localize(skill.name)}</p>
-          <p className="text-9xl font-bold tabular-nums" aria-live="polite">
-            {snapshot.repCount}
-          </p>
-          <p>{t('training.reps')}</p>
-          <p className="text-2xl">{phaseKey ? t(phaseKey) : ' '}</p>
-          <p className="text-xl">
-            {t('training.last')}{' '}
-            {quality ? (
-              <>
-                <span aria-hidden="true">{quality.symbol}</span> {t(quality.label)}
-              </>
+        <aside className="flex w-95 shrink-0 flex-col gap-3.5">
+          <div className="rounded-3xl border border-line/6 bg-card p-5 text-center">
+            <p aria-live="polite" className="min-h-8 text-2xl font-semibold">
+              {phaseKey ? t(phaseKey) : ' '}
+            </p>
+            <p className="mt-2 text-lg text-t4">
+              {t('training.last')}{' '}
+              {quality ? (
+                <>
+                  <span aria-hidden="true">{quality.symbol}</span> {t(quality.label)}
+                </>
+              ) : (
+                '—'
+              )}
+            </p>
+          </div>
+          {useAudio &&
+            (hasPitch ? (
+              <TunerCard note={note} levelDb={levelDb} />
             ) : (
-              '—'
-            )}
-          </p>
-        </aside>
-      </div>
+              <div className="rounded-3xl border border-line/6 bg-card p-5">
+                <LevelMeter levelDb={levelDb} />
+              </div>
+            ))}
 
-      <div
-        role="status"
-        aria-live="assertive"
-        className="min-h-20 rounded-lg bg-slate-200 p-4 text-center text-3xl font-semibold transition-opacity motion-reduce:transition-none dark:bg-slate-800"
-        style={{ opacity: banner ? 1 : 0 }}
-      >
-        {banner && (
-          <>
-            <span aria-hidden="true">{banner.praise ? '★' : '⚠'}</span> {banner.text}
-          </>
-        )}
+          <div className="mt-auto flex flex-col gap-3">
+            {isGeneratedSkillId(skill.id) && (
+              <Button
+                variant="secondary"
+                onClick={adjusting ? () => setAdjusting(false) : startAdjusting}
+              >
+                {adjusting ? t('training.personal.cancel') : t('training.personal.start')}
+              </Button>
+            )}
+            <Button
+              variant="secondary"
+              size="lg"
+              aria-keyshortcuts="P"
+              onClick={togglePause}
+              className="h-14 text-base"
+            >
+              {paused ? t('training.resume') : t('training.pause')}
+            </Button>
+            <Button
+              variant="light"
+              size="lg"
+              aria-keyshortcuts="F"
+              onClick={end}
+              className="h-14 text-[1.0625rem]"
+            >
+              {t('training.end')}
+            </Button>
+          </div>
+        </aside>
       </div>
     </section>
   )

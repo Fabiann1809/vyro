@@ -7,7 +7,7 @@ export function LevelMeter({ levelDb }: { levelDb: number }): React.JSX.Element 
   const text = t('microphone.test.dbValue', { db: Math.round(levelDb) })
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex w-full items-center gap-3">
       <div
         role="meter"
         aria-label={t('microphone.test.level')}
@@ -15,11 +15,14 @@ export function LevelMeter({ levelDb }: { levelDb: number }): React.JSX.Element 
         aria-valuemax={100}
         aria-valuenow={percent}
         aria-valuetext={text}
-        className="h-3 w-64 overflow-hidden rounded bg-slate-300 dark:bg-slate-700"
+        className="h-3 w-full min-w-40 overflow-hidden rounded-full bg-line/10"
       >
-        <div className="h-full bg-emerald-600" style={{ width: `${percent}%` }} />
+        <div
+          className="h-full rounded-full bg-ch-audio transition-[width] duration-100"
+          style={{ width: `${percent}%` }}
+        />
       </div>
-      <span aria-hidden="true" className="font-mono text-sm">
+      <span aria-hidden="true" className="shrink-0 font-mono text-sm text-t4">
         {text}
       </span>
     </div>

@@ -594,5 +594,6 @@
   "calibration.get.ready": "Get ready",
   "training.tuner.title": "Sound",
   "training.tuner.cents": "{cents} cents",
-  "training.tuner.none": "No clear note"
+  "training.tuner.none": "No clear note",
+  "calibration.phase": "Calibration"
 }

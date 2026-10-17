@@ -27,8 +27,11 @@ import {
 import { sampleLuminance } from '@renderer/core/lighting'
 import { localize, t, type MessageKey } from '@renderer/i18n'
 import { cameraOf } from '@shared/skill/cameraOf'
-import { skillChannels } from '@shared/skill/skillChannels'
+import { skillChannels, type SkillChannel } from '@shared/skill/skillChannels'
 import { CameraStage } from '../CameraStage'
+import { ChecksPanel, type CheckItem } from '../immersive/ChecksPanel'
+import { Button } from '../kit/Button'
+import { Icon } from '../kit/Icon'
 import { LevelMeter } from '../LevelMeter'
 import { returnTarget, useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
@@ -62,23 +65,10 @@ const INSTRUCTION: Record<Instruction, MessageKey> = {
   tooLoud: 'calibration.instruction.tooLoud'
 }
 
-interface Check {
-  id: string
-  label: MessageKey
-  state: CheckState
-}
-
 // What the screen shows: the checks that apply to the skill and the one thing to fix first.
 interface Report {
-  checks: Check[]
+  checks: CheckItem[]
   instruction: Instruction | null
-}
-
-// Never colour alone: every state also has its own symbol and its own words.
-const STATE: Record<CheckState, { symbol: string; label: MessageKey }> = {
-  pending: { symbol: '…', label: 'calibration.state.pending' },
-  ok: { symbol: '✓', label: 'calibration.state.ok' },
-  fix: { symbol: '✗', label: 'calibration.state.fix' }
 }
 
 // The latest verdict of each source of the skill. A source the skill does not use stays null.
@@ -89,37 +79,44 @@ interface Sources {
   audio: AudioFramingReport | null
 }
 
-function bodyChecks(report: FramingReport): Check[] {
+const check = (
+  channel: SkillChannel,
+  id: string,
+  label: MessageKey,
+  state: CheckState
+): CheckItem => ({ id, label, state, channel })
+
+function bodyChecks(report: FramingReport): CheckItem[] {
   return [
-    { id: 'fullBody', label: 'calibration.check.fullBody', state: report.fullBody },
-    { id: 'profile', label: 'calibration.check.profile', state: report.profile },
-    { id: 'distance', label: 'calibration.check.distance', state: report.distance },
-    { id: 'lighting', label: 'calibration.check.lighting', state: report.lighting }
+    check('body', 'fullBody', 'calibration.check.fullBody', report.fullBody),
+    check('body', 'profile', 'calibration.check.profile', report.profile),
+    check('body', 'distance', 'calibration.check.distance', report.distance),
+    check('body', 'lighting', 'calibration.check.lighting', report.lighting)
   ]
 }
 
-function handChecks(report: HandFramingReport, withLighting: boolean): Check[] {
-  const checks: Check[] = [
-    { id: 'hands', label: 'calibration.check.hands', state: report.hands },
-    { id: 'handDistance', label: 'calibration.check.distance', state: report.distance }
+function handChecks(report: HandFramingReport, withLighting: boolean): CheckItem[] {
+  const checks = [
+    check('hands', 'hands', 'calibration.check.hands', report.hands),
+    check('hands', 'handDistance', 'calibration.check.distance', report.distance)
   ]
   if (withLighting) {
-    checks.push({ id: 'handLighting', label: 'calibration.check.lighting', state: report.lighting })
+    checks.push(check('hands', 'handLighting', 'calibration.check.lighting', report.lighting))
   }
   return checks
 }
 
-function objectChecks(report: ObjectFramingReport): Check[] {
+function objectChecks(report: ObjectFramingReport): CheckItem[] {
   return [
-    { id: 'object', label: 'calibration.check.object', state: report.object },
-    { id: 'objectDistance', label: 'calibration.check.distance', state: report.distance }
+    check('object', 'object', 'calibration.check.object', report.object),
+    check('object', 'objectDistance', 'calibration.check.distance', report.distance)
   ]
 }
 
-function audioChecks(report: AudioFramingReport): Check[] {
+function audioChecks(report: AudioFramingReport): CheckItem[] {
   return [
-    { id: 'noise', label: 'calibration.check.noise', state: report.noise },
-    { id: 'sound', label: 'calibration.check.sound', state: report.sound }
+    check('audio', 'noise', 'calibration.check.noise', report.noise),
+    check('audio', 'sound', 'calibration.check.sound', report.sound)
   ]
 }
 
@@ -176,7 +173,7 @@ function waitingSources(
 const sameReport = (a: Report, b: Report): boolean =>
   a.instruction === b.instruction &&
   a.checks.length === b.checks.length &&
-  a.checks.every((check, index) => check.state === b.checks[index]?.state)
+  a.checks.every((item, index) => item.state === b.checks[index]?.state)
 
 const sameCountdown = (a: CalibrationState, b: CalibrationState): boolean =>
   a.phase === b.phase &&
@@ -208,8 +205,8 @@ export function CalibrationScreen(): React.JSX.Element {
   const publish = useCallback((nowMs: number) => {
     const next = combine(sourcesRef.current)
     const state = flowRef.current.update(next.instruction === null, nowMs)
-    setReport((previous) => (sameReport(previous, next) ? previous : next))
-    setCountdown((previous) => (sameCountdown(previous, state) ? previous : state))
+    setReport((current) => (sameReport(current, next) ? current : next))
+    setCountdown((current) => (sameCountdown(current, state) ? current : state))
   }, [])
 
   const handleFrame = useCallback(
@@ -257,6 +254,8 @@ export function CalibrationScreen(): React.JSX.Element {
 
   const microphone = useMicrophoneFeatures(useAudio, handleSound)
 
+  const cancel = useCallback(() => go(returnTarget(previous)), [go, previous])
+
   // Without a chosen skill there is nothing to calibrate for.
   useEffect(() => {
     if (!skill) go('library')
@@ -266,70 +265,133 @@ export function CalibrationScreen(): React.JSX.Element {
     if (countdown.phase === 'done') go('training')
   }, [countdown, go])
 
+  // Escape leaves, for the person who is standing away from the mouse.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') cancel()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [cancel])
+
   if (!skill) return <></>
 
-  const instruction = countdown.phase === 'countdown' ? null : report.instruction
+  const counting = countdown.phase === 'countdown'
+  const instruction = counting ? null : report.instruction
+  const spoken = counting
+    ? String(countdown.remaining)
+    : instruction
+      ? t(INSTRUCTION[instruction])
+      : t('calibration.holdStill')
+
+  // What is said to the person, once, in one place: it is read out as it changes.
+  const status = (
+    <p
+      role="status"
+      aria-live="polite"
+      className={
+        counting ? 'sr-only' : 'text-center text-4xl leading-tight font-semibold text-balance'
+      }
+    >
+      {spoken}
+    </p>
+  )
+
+  const problem = useAudio && microphone.status === 'error' && (
+    <div
+      role="alert"
+      className="flex flex-col items-center gap-3 rounded-3xl border border-bad/40 bg-bad/8 p-5 text-center"
+    >
+      <p>{t(microphone.errorMessage ?? 'microphone.error.unknown')}</p>
+      <Button variant="secondary" onClick={microphone.retry}>
+        {t('calibration.retry')}
+      </Button>
+    </div>
+  )
 
   return (
-    <section className="flex w-full flex-col items-center gap-4 p-4">
-      <h1 className="text-xl font-semibold">
-        {t('screen.calibration.title')} · {localize(skill.name)}
-      </h1>
-
-      {useCamera && (
-        <CameraStage
-          onFrame={handleFrame}
-          showDevicePicker
-          withHands={useHands}
-          withObjects={useObject}
-        >
-          {useBody && (
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-y-[6%] left-1/2 w-[28%] -translate-x-1/2 rounded-3xl border-2 border-dashed border-white/60"
-            />
-          )}
-        </CameraStage>
-      )}
-
-      {useAudio && microphone.status === 'listening' && <LevelMeter levelDb={levelDb} />}
-      {useAudio && microphone.status === 'error' && (
-        <div role="alert" className="flex flex-col items-center gap-2">
-          <p>{t(microphone.errorMessage ?? 'microphone.error.unknown')}</p>
-          <button
-            type="button"
-            onClick={microphone.retry}
-            className="rounded-md bg-slate-200 px-4 py-2 dark:bg-slate-800"
-          >
-            {t('calibration.retry')}
-          </button>
+    <section className="force-dark anim-fade flex h-full w-full flex-col gap-4 bg-[#07080b] px-6.5 pt-5 pb-6 text-t1">
+      <header className="flex items-center justify-between gap-5">
+        <div className="flex items-center gap-3.5">
+          <h1 className="text-[0.9375rem] text-t4">
+            {t('screen.calibration.title')} ·{' '}
+            <span className="font-semibold text-t1">{localize(skill.name)}</span>
+          </h1>
+          <span className="rounded-full bg-line/6 px-2.5 py-1 text-xs text-t4">
+            {t('calibration.phase')}
+          </span>
         </div>
-      )}
+        <div className="flex items-center gap-3">
+          {useAudio && (
+            <span className="flex h-9 items-center gap-2 rounded-full bg-line/5 px-3.5 text-[0.8125rem] text-t4">
+              <Icon name="mic" className="size-3.5" strokeWidth={1.4} />
+              {t('training.privacyAudio')}
+            </span>
+          )}
+          <Button variant="secondary" aria-keyshortcuts="Escape" onClick={cancel}>
+            {t('calibration.cancel')} · Esc
+          </Button>
+        </div>
+      </header>
 
-      <p role="status" aria-live="polite" className="text-center text-4xl font-bold">
-        {countdown.phase === 'countdown'
-          ? countdown.remaining
-          : instruction
-            ? t(INSTRUCTION[instruction])
-            : t('calibration.holdStill')}
-      </p>
+      <div className="flex min-h-0 flex-1 gap-5">
+        <div className="relative flex min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[1.875rem] bg-sunk">
+          {useCamera ? (
+            <CameraStage
+              onFrame={handleFrame}
+              showDevicePicker
+              withHands={useHands}
+              withObjects={useObject}
+              videoClassName="max-h-[74vh] rounded-[1.875rem]"
+            >
+              {useBody && (
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-y-[6%] left-1/2 w-[28%] -translate-x-1/2 rounded-3xl border-2 border-dashed border-white/60"
+                />
+              )}
+              {counting && (
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 rounded-[1.875rem] bg-bg/55"
+                >
+                  <p
+                    key={countdown.remaining}
+                    className="anim-beat font-display text-[13.75rem] leading-none font-bold"
+                  >
+                    {countdown.remaining}
+                  </p>
+                  <p className="text-2xl text-t4">{t('calibration.get.ready')}</p>
+                </div>
+              )}
+              {!counting && (
+                <div className="absolute right-6 bottom-6 left-6 rounded-3xl bg-bg/85 px-7.5 py-4.5">
+                  {status}
+                </div>
+              )}
+              {counting && status}
+            </CameraStage>
+          ) : (
+            <div className="flex w-full max-w-xl flex-col items-center gap-6 p-8">
+              {microphone.status === 'listening' && <LevelMeter levelDb={levelDb} />}
+              {problem}
+              {status}
+            </div>
+          )}
+        </div>
 
-      <ul className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-lg">
-        {report.checks.map(({ id, label, state }) => (
-          <li key={id}>
-            <span aria-hidden="true">{STATE[state].symbol}</span> {t(label)}
-            <span className="sr-only">: {t(STATE[state].label)}</span>
-          </li>
-        ))}
-      </ul>
-
-      <button
-        type="button"
-        onClick={() => go(returnTarget(previous))}
-        className="rounded-md bg-slate-200 px-4 py-2 dark:bg-slate-800"
-      >
-        {t('calibration.cancel')}
-      </button>
+        <div className="flex w-95 shrink-0 flex-col gap-3.5 overflow-y-auto">
+          <ChecksPanel checks={report.checks} />
+          {useCamera &&
+            useAudio &&
+            (microphone.status === 'listening' || microphone.status === 'error') && (
+              <div className="rounded-3xl border border-line/6 bg-card p-5">
+                {microphone.status === 'listening' && <LevelMeter levelDb={levelDb} />}
+                {problem}
+              </div>
+            )}
+        </div>
+      </div>
     </section>
   )
 }

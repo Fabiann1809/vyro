@@ -215,6 +215,29 @@ test('a skill with the guitar is calibrated with the body, the hand, the guitar 
   }
 })
 
+test('groups the checks of the calibration by what is watched, and leaves with Escape', async () => {
+  const page = await launch()
+  await nav(page, 'Biblioteca').click()
+  await page.getByRole('button', { name: 'Empezar Postura con guitarra' }).click()
+
+  const groups = page.getByRole('group')
+  await expect(
+    groups.filter({ hasText: 'Cuerpo completo' }).getByText('Cuerpo', { exact: true })
+  ).toBeVisible()
+  await expect(
+    groups.filter({ hasText: 'Mano completa' }).getByText('Manos', { exact: true })
+  ).toBeVisible()
+  await expect(
+    groups.filter({ hasText: 'Objeto completo' }).getByText('Objeto', { exact: true })
+  ).toBeVisible()
+  await expect(
+    groups.filter({ hasText: 'Ruido de la sala' }).getByText('Audio', { exact: true })
+  ).toBeVisible()
+
+  await page.keyboard.press('Escape')
+  await expect(nav(page, 'Biblioteca')).toHaveAttribute('aria-current', 'page')
+})
+
 test('keeps the page isolated from Node and exposes only the typed bridge', async () => {
   const page = await launch()
 

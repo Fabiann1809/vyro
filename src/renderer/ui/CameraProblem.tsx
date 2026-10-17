@@ -28,22 +28,20 @@ export function CameraProblem({
 
   return (
     <div role="alert" className="flex max-w-md flex-col items-center gap-4 text-center">
-      <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
-        {t(message.title)}
-      </h2>
-      <p className="text-slate-700 dark:text-slate-300">{t(message.body)}</p>
+      <h2 className="text-2xl font-semibold">{t(message.title)}</h2>
+      <p className="text-t4">{t(message.body)}</p>
       <div className="flex gap-3">
         {kind === 'permission-denied' && canOpenSettings && (
           <button
             onClick={onOpenSettings}
-            className="rounded bg-slate-200 px-4 py-2 text-slate-900 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600"
+            className="rounded-full border border-line/14 px-5 py-2.5 hover:bg-line/5"
           >
             {t('camera.openSettings')}
           </button>
         )}
         <button
           onClick={onRetry}
-          className="rounded bg-emerald-700 px-4 py-2 font-medium text-white hover:bg-emerald-800"
+          className="rounded-full bg-brand px-5 py-2.5 font-semibold text-on-brand"
         >
           {t('camera.retry')}
         </button>

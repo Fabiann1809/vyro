@@ -32,7 +32,7 @@ export function CameraStage({
   showDevicePicker,
   withHands = false,
   withObjects = false,
-  videoClassName = 'max-h-[65vh]'
+  videoClassName = 'max-h-[65vh] rounded-lg'
 }: Props): React.JSX.Element {
   const { status, stream, devices, activeDeviceId, errorKind, selectDevice, retry } = useCamera()
   const pose = usePoseLandmarker()
@@ -97,7 +97,7 @@ export function CameraStage({
           autoPlay
           playsInline
           muted
-          className={`block rounded-lg bg-black ${videoClassName}`}
+          className={`block bg-black ${videoClassName}`}
         />
         <canvas
           ref={canvasRef}
@@ -106,7 +106,7 @@ export function CameraStage({
         />
         {children}
       </div>
-      <p role="status" className="text-sm text-slate-500 dark:text-slate-400">
+      <p role="status" className="text-sm text-mut">
         {status === 'starting' && t('camera.starting')}
         {status === 'ready' &&
           (pose.status === 'loading' ||
@@ -122,7 +122,7 @@ export function CameraStage({
           <select
             value={activeDeviceId ?? ''}
             onChange={(event) => selectDevice(event.target.value)}
-            className="rounded bg-slate-200 px-3 py-2 dark:bg-slate-800"
+            className="rounded-xl border border-line/12 bg-card px-3 py-2"
           >
             {devices.map((device, index) => (
               <option key={device.deviceId} value={device.deviceId}>
