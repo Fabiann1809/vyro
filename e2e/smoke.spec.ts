@@ -88,6 +88,24 @@ test('goes from the library to the calibration and back', async () => {
   await expect(nav(page, 'Biblioteca')).toHaveAttribute('aria-current', 'page')
 })
 
+test('narrows the library down by channel and by category', async () => {
+  const page = await launch()
+  await nav(page, 'Biblioteca').click()
+  const channels = page.getByRole('group', { name: 'Filtrar por canal' })
+  const categories = page.getByRole('group', { name: 'Filtrar por categoría' })
+
+  await channels.getByRole('button', { name: 'Audio' }).click()
+  await expect(page.getByRole('button', { name: 'Afinar una cuerda' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sentadilla' })).toHaveCount(0)
+
+  // The two choices add up: nothing that listens is an exercise.
+  await categories.getByRole('button', { name: 'Fitness' }).click()
+  await expect(page.getByText('Ninguna habilidad con ese filtro todavía.')).toBeVisible()
+
+  await channels.getByRole('button', { name: 'Todos los canales' }).click()
+  await expect(page.getByRole('button', { name: 'Sentadilla' })).toBeVisible()
+})
+
 test('a skill of the hands is calibrated with the hands, not the body', async () => {
   const page = await launch()
 
