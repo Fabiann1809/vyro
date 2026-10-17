@@ -71,3 +71,34 @@ Format: **context → decision → consequences**.
 - **Context:** the first plan used `better-sqlite3`, a native module. It has to be rebuilt for Electron, and the unit tests run on plain Node, which needs a different binary: that complicates the three-system CI and the installers.
 - **Decision:** use the `node:sqlite` module that ships with Node 24 and Electron 44. Migrations use SQLite's own `user_version`.
 - **Consequences:** nothing native to compile or package, and the repository tests run against in-memory SQLite exactly as the app does. The module is still flagged experimental (a warning in the console), so the Electron version stays pinned and all access lives in `src/main/db/`, which makes a later switch cheap.
+
+## D12 — Optional AI coach, with the user's own key
+
+- **Context:** the product should be able to turn "I want to learn X" into a learning path, but it must stay private and free to run by default.
+- **Decision:** the AI features are off by default and use a key the user provides. A single `LlmClient` interface has two adapters: Claude, and an OpenAI-compatible one (Groq, Gemini, Ollama). Calls leave from the main process and the key is stored with Electron's `safeStorage`.
+- **Consequences:** without a key the app is fully local, as before. Only chat text and numbers are ever sent (never video, images, landmarks or audio), built by one function with an allow-list of fields. The renderer's CSP does not change. Free tiers let the feature be tested at no cost, at the price of a weaker structured-output guarantee, which the repair loop covers.
+
+## D13 — Generated skills are experimental and personally calibrated
+
+- **Context:** the model that writes a skill invents its thresholds, and a wrong correction can hurt someone.
+- **Decision:** a generated skill goes through the same schema and expression checks as a bundled one, is marked experimental, is shown in plain language before use, and has its thresholds adjusted from one good repetition performed by the user.
+- **Consequences:** quality will be lower than for the hand-tuned exercises, and the interface says so.
+
+## D14 — Scope is "a signal that can be measured"
+
+- **Context:** a coach that cannot tell whether the user is doing something right should not pretend to.
+- **Decision:** VYRO coaches a skill only if its success leaves a signal that the camera or microphone can measure. Channels: body, hands, audio, object. Skills with no such signal are declined, with an explanation and the measurable part suggested; there is no manual-tracking substitute (only auxiliary steps inside a measurable path).
+- **Consequences:** the chat needs a feasibility check by channel (T10.2), and a channel is only offered once its phase has shipped.
+
+## D15 — Audio is analysed locally and never recorded
+
+- **Context:** guitar and piano cannot be judged from the picture alone, but the microphone is sensitive.
+- **Decision:** audio is processed in memory in the renderer; only numbers (pitch, timing, level) are kept. The microphone permission is granted only to the app's own origin and only while a skill that needs it is open.
+- **Consequences:** no recording feature, no upload; the permission handler that today denies the microphone is relaxed in exactly one place.
+
+## D16 — A custom object detector, only for detecting objects
+
+- **Context:** the generic detectors do not know dumbbells or guitars.
+- **Decision:** train a small detector with MediaPipe Model Maker for a short list of objects. Training images are never committed; their source and license are documented.
+- **Consequences:** this reopens "own models" only for object detection. Models that judge technique remain out of scope; rules do that.
+

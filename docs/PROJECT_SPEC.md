@@ -12,13 +12,10 @@ El MVP cubre tres ejercicios con el propio peso del cuerpo (sentadilla, flexión
 **Propuesta de valor:** un entrenador que te mira, te corrige al instante y recuerda cómo mejoras, con total privacidad.
 
 ### Funciones de la visión completa
-- Más habilidades (yoga, postura al teclado, guitarra, piano, dibujo).
-- Coach con LLM: resumen en lenguaje natural y plan semanal.
-- Detección de fatiga (la técnica empeora al final de la serie).
-- Detección de objetos (mancuernas) con un modelo adicional.
-- Modelos propios entrenados con ejemplos buenos y malos.
-- Grabación opcional de clips de errores para revisión.
-- Módulos de habilidad creados por la comunidad.
+- Coach con IA opcional (con clave propia): chat donde dices "quiero aprender X", ruta de aprendizaje, seguimiento y plan semanal (fases 9 a 12).
+- Habilidades generadas por la IA, validadas por el mismo motor y ajustadas con una calibración personal (fase 11).
+- Más canales de medición, además del cuerpo: manos (fase 13), audio (fase 14) y objetos (fase 15), para habilidades como piano, guitarra o ejercicios con mancuerna.
+- Después: vista frontal, detección de fatiga, clips de errores y módulos de la comunidad (ver "Aplazado" en la sección 9).
 
 ## 2. Decisiones tomadas
 
@@ -32,7 +29,7 @@ El MVP cubre tres ejercicios con el propio peso del cuerpo (sentadilla, flexión
 | Voz | Sí, en el MVP |
 | Cámara | La del portátil; el celular sirve como webcam virtual (DroidCam, Iriun, Camo) |
 | Vista de cámara | De perfil en los tres ejercicios del MVP |
-| Privacidad | Sin nube, sin cuentas; solo se guardan métricas, nunca video ni imágenes |
+| Privacidad | Sin nube, sin cuentas; solo se guardan métricas, nunca video, imágenes ni audio. La IA es opcional y, si se activa, solo recibe texto y números (D12) |
 | Objetivo | Portafolio (README, demo y releases descargables) |
 | Flujo Git | Directo a `main` con hooks locales, CI en 3 sistemas y CD por tag |
 | Licencia | MIT |
@@ -45,6 +42,8 @@ El MVP cubre tres ejercicios con el propio peso del cuerpo (sentadilla, flexión
 | Interfaz | React + TypeScript (strict) + Tailwind |
 | Estado | Zustand |
 | Detección de pose | MediaPipe Tasks Vision `PoseLandmarker`, modelo empaquetado (offline) |
+| Manos y objetos (fases 13 y 15) | MediaPipe `HandLandmarker` y `ObjectDetector` (detector propio), modelos empaquetados |
+| IA opcional (fases 9 a 12) | `@anthropic-ai/sdk` (Claude) y un adaptador compatible con OpenAI (Groq, Gemini, Ollama); clave en `safeStorage` de Electron |
 | Validación de configuraciones | zod |
 | Datos | SQLite con `node:sqlite` integrado (proceso principal; ver D11 en `docs/DECISIONS.md`) |
 | Voz | `speechSynthesis` con audios pregrabados de respaldo |
@@ -99,7 +98,15 @@ reps(id, session_id, index, duration_ms, is_good, min_angle, max_angle)
 rep_errors(id, rep_id, rule_id, severity)
 settings(key, value)        -- idioma, voz, volumen, cámara
 ```
-No se guarda video ni imágenes, solo métricas.
+No se guarda video, imágenes ni audio, solo métricas.
+
+Después del MVP (fases 10 y 11):
+```
+learning_paths(id, goal, created_at, status)
+path_steps(id, path_id, position, title, kind, skill_id, criterion_sessions, criterion_score, done_at)
+                            -- kind: 'skill' (medible) o 'auxiliary' (descanso, teoría breve)
+custom_skills(id, config_json, status, created_at)   -- habilidades generadas por la IA
+```
 
 ## 6. Alcance
 
@@ -120,6 +127,28 @@ No se guarda video ni imágenes, solo métricas.
 - Diagnóstico médico, rehabilitación o planes de nutrición.
 - Soldadura, cocina y otras actividades con objetos o riesgo físico.
 - Firma de código y auto-actualización.
+
+### Alcance del producto completo (después del MVP)
+
+**Regla:** VYRO coachea una habilidad solo si su éxito deja una señal que la cámara o el micrófono puedan medir. La visión es el canal principal y el audio la complementa. Lo que no se pueda medir, VYRO no finge evaluarlo.
+
+| Canal | Qué mide | Ejemplos | Fase |
+|---|---|---|---|
+| Cuerpo | Postura y movimiento | ejercicio, yoga, estiramientos, postura al teclado | MVP |
+| Manos | Forma y movimiento de los dedos | postura de la mano al piano, mano de trasteo de la guitarra | 13 |
+| Audio | Tono, ritmo y volumen (en local, nunca se graba) | afinación y ritmo de guitarra y piano | 14 |
+| Objeto | Posición e inclinación de un objeto concreto | mancuerna, guitarra | 15 |
+
+Una habilidad puede usar varios canales (la guitarra: manos, audio y objeto). Los objetos admitidos son solo los que tienen un detector entrenado.
+
+**Queda fuera por completo.** El chat lo rechaza con una explicación y sugiere la parte medible (de "aprender dibujo", por ejemplo, ofrece postura y agarre):
+- Éxito invisible: meditación, ajedrez, matemáticas, idiomas (más allá de la pronunciación).
+- Detalle demasiado fino para una cámara web: caligrafía, bordado, calidad del trazo.
+- Fuera de cuadro o de campo: correr al aire libre, natación, deportes de equipo.
+- Requieren tacto: masaje, cocina, soldadura.
+- Riesgo físico o clínico: diagnóstico, rehabilitación, nutrición.
+
+No hay seguimiento manual como sustituto. Dentro de la ruta de una habilidad medible solo se permiten pasos auxiliares (descanso, teoría breve).
 
 ## 7. Reglas de trabajo para Claude Code
 
@@ -209,19 +238,75 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [ ] **T8.5 README bilingüe.** Con GIFs de demo, instalación y aviso sobre la falta de firma de código. *Hecho cuando:* un visitante puede instalar y entender la app.
 - [ ] **T8.6 Versión 0.1.0.** *Hecho cuando:* existe el tag `v0.1.0` con sus instaladores.
 
-## 9. Después del MVP
+## 9. Tareas posteriores al MVP
 
-Cada punto se convertirá en fases con tareas propias cuando llegue el momento.
+Mismas reglas que la sección 8: una tarea por vez, un commit por tarea. Las tareas de IA son
+opcionales para el usuario: sin clave de API la app funciona como en el MVP. Las fases 13 a 15
+están menos detalladas que las anteriores y se afinarán al llegar a ellas.
 
-- **Más habilidades:** yoga y postura al teclado primero; luego guitarra, piano y dibujo (requieren detección de manos).
-- **Vista frontal:** reglas de alineación de rodillas y simetría.
-- **Coach con LLM:** resumen en lenguaje natural y plan semanal (opcional, local o con clave propia).
-- **Detección de fatiga** dentro de una serie.
-- **Mancuernas:** modelo de detección de objetos para el curl con peso.
-- **Clips de errores** opcionales para revisión.
-- **Modelos propios** entrenados con ejemplos buenos y malos.
-- **Firma de código y auto-actualización.**
-- **Módulos de comunidad:** carga de configuraciones externas.
+### Fase 9 — Coach con IA (chat de texto, sin visión)
+- [ ] **T9.1 Decisiones de IA y de alcance.** D12 a D16 en `docs/DECISIONS.md` y sección 6 del spec con los cuatro canales y la lista de lo que queda fuera. *Hecho cuando:* recogen proveedores, privacidad (solo texto y números; audio nunca grabado), llamadas desde el proceso principal y la regla de la señal medible.
+- [ ] **T9.2 Clave de API segura.** `safeStorage`, IPC para guardar, borrar y saber si hay clave (nunca devuelve la clave); grupo "Coach con IA" en Ajustes con interruptor apagado por defecto y texto de qué se envía. *Hecho cuando:* la clave sobrevive al reinicio, el renderer no puede leerla y las pruebas con un `safeStorage` falso pasan.
+- [ ] **T9.3 Cliente LLM y proveedor Claude.** Interfaz `LlmClient` y su implementación de Claude en `src/main/ai/`; salida estructurada validada con zod, tiempos de espera, errores tipados (sin clave, sin red, límite, respuesta inválida) sin filtrar la clave. *Hecho cuando:* las pruebas con un transporte falso cubren éxito y cada error.
+- [ ] **T9.4 Proveedor compatible con OpenAI.** Segundo adaptador para Groq, Gemini y Ollama, con presets de URL y modelo en Ajustes. Pide JSON, lo valida con zod y reutiliza el bucle de reparación; el error 429 se traduce a un mensaje claro. *Hecho cuando:* las pruebas con un transporte HTTP falso cubren éxito, JSON inválido reparado, 429 y clave inválida, y una prueba manual con un nivel gratuito responde.
+- [ ] **T9.5 Constructor de datos permitidos.** Una sola función arma lo que sale a la API, con lista blanca de campos. *Hecho cuando:* una prueba demuestra que ni landmarks, ni imágenes, ni audio, ni campos no listados pueden salir, con cualquiera de los proveedores.
+- [ ] **T9.6 Puente IPC del coach.** API tipada y validada en el preload. *Hecho cuando:* el renderer pide una respuesta al coach sin acceso a Node ni a la clave.
+- [ ] **T9.7 Pantalla de chat.** Mensajes, entrada, estados (sin clave, sin red, cargando, error), teclado y lector de pantalla, es/en. *Hecho cuando:* con un cliente falso se conversa de punta a punta y cada estado se ve bien.
+- [ ] **T9.8 Resumen de sesión con IA.** Botón en el resumen que pide un texto natural a partir de las métricas numéricas. *Hecho cuando:* con clave muestra el resumen y la prueba confirma que solo se envían números.
+
+### Fase 10 — Rutas de aprendizaje
+- [ ] **T10.1 Modelo de ruta.** Migración v2 (`learning_paths`, `path_steps`), tipos compartidos y repositorios. *Hecho cuando:* las pruebas con SQLite en memoria pasan y "borrar datos" también las vacía.
+- [ ] **T10.2 Viabilidad por canales.** Función pura que, dado lo que exige una habilidad, dice por canal (cuerpo, manos, objeto, audio) si está soportado, planificado para una fase o fuera de alcance, con un registro de canales soportados que crece con cada fase. *Hecho cuando:* las pruebas cubren los tres veredictos y una habilidad multicanal.
+- [ ] **T10.3 Generador de ruta.** Conversación con hasta tres preguntas aclaratorias y ruta en JSON validado, con reintento si la salida no cumple el esquema. Si la habilidad no tiene señal medible, el chat la rechaza, explica por qué y sugiere la parte medible. *Hecho cuando:* con un LLM falso se obtiene una ruta válida, una salida inválida se repara o falla con mensaje claro, y una habilidad fuera de alcance se rechaza.
+- [ ] **T10.4 Pantalla de ruta.** Pasos con habilidad medible (llevan a la calibración) y pasos auxiliares (descanso, teoría breve) marcados como tales. *Hecho cuando:* se recorre una ruta de ejemplo con ambos tipos de paso.
+- [ ] **T10.5 Avance por criterio.** Función pura que decide si un paso está cumplido a partir de las sesiones guardadas (por ejemplo, 3 sesiones con 80 o más). *Hecho cuando:* las pruebas cubren cumplido, incompleto y sin datos, y el siguiente paso se desbloquea.
+- [ ] **T10.6 Plan semanal adaptativo.** Revisión semanal con el historial numérico y propuesta de ajustes que el usuario acepta o rechaza. *Hecho cuando:* una propuesta aceptada cambia la ruta y una rechazada no la toca.
+
+### Fase 11 — Habilidades generadas (canal cuerpo)
+- [ ] **T11.1 Habilidades en tiempo de ejecución.** Migración v3 (`custom_skills`), IPC para listarlas y el cargador junta las incluidas con las guardadas. *Hecho cuando:* una habilidad guardada aparece en Inicio tras reiniciar sin recompilar.
+- [ ] **T11.2 Generador de habilidad.** El LLM produce el JSON de la habilidad; se valida con `parseSkillConfig` y se repara con el error devuelto (máximo dos intentos). Solo canales soportados; mensajes en es y en. *Hecho cuando:* con un LLM falso, una salida inválida se repara y una irreparable se rechaza con mensaje claro.
+- [ ] **T11.3 Límites de seguridad.** Rechazar habilidades con umbrales fuera de rangos plausibles o sin ninguna regla de seguridad; ids con prefijo `custom_`; marca de experimental. *Hecho cuando:* las pruebas cubren cada rechazo.
+- [ ] **T11.4 Vista previa y aprobación.** Pantalla que explica en lenguaje claro qué medirá y qué corregirá, con aviso de que es experimental, y botones para probar o descartar. Avisa si el sistema no tiene voz en el idioma. *Hecho cuando:* una habilidad no aprobada nunca llega a Inicio.
+- [ ] **T11.5 Calibración personal.** El usuario hace una repetición buena en vivo y una función pura ajusta los umbrales con tolerancia. *Hecho cuando:* con una repetición sintética de sentadilla los umbrales calculados aceptan esa repetición y rechazan una claramente peor.
+- [ ] **T11.6 Eliminar habilidades generadas.** Desde Ajustes, con confirmación. *Hecho cuando:* desaparece de Inicio y de la ruta, y las sesiones ya guardadas se conservan.
+
+### Fase 12 — Calidad, seguridad y costes de la IA
+- [ ] **T12.1 Consentimiento y aviso.** Pantalla de consentimiento la primera vez que se activa la IA, con el aviso de que las rutas no son consejo médico y de que algunos proveedores gratuitos pueden usar lo enviado para mejorar sus productos (solo texto y números). *Hecho cuando:* sin aceptar no se puede enviar nada.
+- [ ] **T12.2 Límites de gasto.** Tope de tokens por petición, límite diario configurable y mensaje claro al alcanzarlo. *Hecho cuando:* las pruebas confirman que al llegar al límite no se llama a la API.
+- [ ] **T12.3 Prueba de privacidad de extremo a extremo.** Intercepta lo que sale de la app durante un flujo completo del coach. *Hecho cuando:* solo hay texto y números permitidos y ninguna petición al exterior sin la IA activada.
+- [ ] **T12.4 Prueba e2e del coach.** Playwright con un cliente falso. *Hecho cuando:* chat, ruta y habilidad generada se recorren en CI sin red.
+- [ ] **T12.5 Documentación.** README y guía de IA (obtener una clave o usar un nivel gratuito, qué se envía, cuánto cuesta aproximadamente, cómo borrarlo). *Hecho cuando:* un usuario nuevo puede activar la IA y entender sus límites.
+
+### Fase 13 — Canal manos
+- [ ] **T13.1 Modelo de manos.** `HandLandmarker` de MediaPipe empaquetado y cargado sin red. *Hecho cuando:* carga con internet desactivado.
+- [ ] **T13.2 Detección de manos en el bucle.** Junto a la de pose, con presupuesto de tiempo por fotograma. *Hecho cuando:* se obtienen los landmarks de ambas manos por fotograma y el panel de depuración muestra FPS aceptables.
+- [ ] **T13.3 Esquema y métricas de manos.** Nuevos nombres de articulación (dedos, muñeca) y métricas (ángulo de dedo, separación, ángulo de muñeca) sin que el motor conozca ninguna habilidad. *Hecho cuando:* las pruebas con landmarks conocidos dan los valores esperados.
+- [ ] **T13.4 Calibración para manos.** Comprueba que las manos se ven, la distancia y la luz. *Hecho cuando:* no deja empezar sin manos visibles.
+- [ ] **T13.5 Primera habilidad de manos.** Postura de la mano al piano (arqueo de dedos, muñeca neutra) con fixtures. *Hecho cuando:* ≥ 90 % de acierto en conteo y ≥ 80 % en errores sobre los fixtures.
+- [ ] **T13.6 Manos en el chat y en el generador.** El canal pasa a "soportado" en T10.2 y el generador produce habilidades de manos. *Hecho cuando:* con un LLM falso se genera y valida una habilidad de manos.
+
+### Fase 14 — Canal audio
+- [ ] **T14.1 Permiso de micrófono.** Hoy se deniega a propósito: permitirlo solo para el origen de la app y solo al abrir una habilidad con audio; `NSMicrophoneUsageDescription` en macOS; selector de entrada en Ajustes. *Hecho cuando:* las pruebas de seguridad confirman que en cualquier otro caso sigue denegado.
+- [ ] **T14.2 Captura local.** Procesa el audio en memoria; nunca se graba, guarda ni envía. *Hecho cuando:* se ve el nivel de entrada en vivo y una prueba confirma que ninguna API expone los buffers de audio.
+- [ ] **T14.3 Características de audio.** Funciones puras para tono (en cents), inicios de nota y tempo, y volumen. *Hecho cuando:* con señales sintéticas detectan un La 440 Hz con ±10 cents y un tempo con ±3 bpm.
+- [ ] **T14.4 Esquema y motor para audio.** Métricas de audio (error de tono, error de intervalo, nivel) con notas objetivo en la configuración. *Hecho cuando:* las pruebas con señales conocidas dan los valores esperados.
+- [ ] **T14.5 Calibración de audio.** Mide ruido ambiente y nivel. *Hecho cuando:* no deja empezar con demasiado ruido o silencio.
+- [ ] **T14.6 Primera habilidad de audio.** Afinación de cuerda al aire y ritmo con metrónomo, con señales sintéticas como fixtures. *Hecho cuando:* cuenta y detecta errores en los fixtures.
+- [ ] **T14.7 Habilidad multicanal.** Una habilidad (guitarra o piano básico) que combina manos y audio en el mismo conjunto de reglas. *Hecho cuando:* una regla falla por audio y otra por manos en la misma repetición.
+- [ ] **T14.8 Audio en el chat y en el generador.** El canal pasa a "soportado" en T10.2. *Hecho cuando:* con un LLM falso se genera y valida una habilidad con audio.
+
+### Fase 15 — Canal objetos
+- [ ] **T15.1 Objetos y datos de entrenamiento.** Elegir la lista corta inicial (mancuerna y guitarra), el origen y la licencia de las imágenes (por ejemplo, Open Images, a verificar), y un script reproducible; ninguna imagen entra al repositorio. *Hecho cuando:* un documento recoge fuente y licencia de cada conjunto.
+- [ ] **T15.2 Entrenamiento del detector.** Script en `tools/` con MediaPipe Model Maker y evaluación con un conjunto aparte. *Hecho cuando:* existe un modelo con sus métricas registradas y un umbral mínimo acordado.
+- [ ] **T15.3 Detector empaquetado.** Modelo `ObjectDetector` cargado sin red. *Hecho cuando:* carga con internet desactivado.
+- [ ] **T15.4 Detección en el bucle.** Con suavizado de la caja y presupuesto de tiempo por fotograma. *Hecho cuando:* la caja sigue al objeto en vivo con FPS aceptables.
+- [ ] **T15.5 Esquema y métricas de objeto.** Posición del objeto respecto a la muñeca y al cuerpo, e inclinación de su eje. *Hecho cuando:* las pruebas con cajas conocidas dan los valores esperados.
+- [ ] **T15.6 Curl de bíceps con mancuerna.** Habilidad con objeto y fixtures. *Hecho cuando:* ≥ 90 % de acierto en conteo y ≥ 80 % en errores sobre los fixtures.
+- [ ] **T15.7 Postura con guitarra.** Inclinación del mástil y altura de la guitarra combinadas con cuerpo, manos y audio. *Hecho cuando:* una habilidad usa los cuatro canales.
+- [ ] **T15.8 Objetos en el chat y en el generador.** Solo los objetos entrenados; cualquier otro se rechaza con un mensaje claro. *Hecho cuando:* con un LLM falso un objeto no soportado se rechaza y uno soportado se acepta.
+
+### Aplazado
+Vista frontal, detección de fatiga, clips de errores, modelos propios que juzguen técnica, firma de código y auto-actualización, módulos de comunidad.
 
 ## 10. Riesgos técnicos (en orden)
 
@@ -235,6 +320,13 @@ Cada punto se convertirá en fases con tareas propias cuando llegue el momento.
 | Rendimiento en equipos modestos | Modelo lite y reducción de resolución |
 | macOS y Linux no se pueden probar en local | CI de 3 sistemas y revisión manual de los instaladores |
 | El alcance crece | Cerrar el MVP en tres ejercicios |
+| La IA inventa umbrales y aconseja mal | Habilidades generadas marcadas como experimentales, vista previa, límites plausibles y calibración personal (fase 11) |
+| Se filtra la clave de API | `safeStorage`, llamadas desde el proceso principal, nunca en código, logs ni errores (T9.2) |
+| Coste o caída de la API | Tope de tokens, límite diario, proveedores intercambiables y nivel gratuito para probar (T9.4, T12.2) |
+| El LLM devuelve una salida inválida | Validación con zod y bucle de reparación acotado (T9.3, T10.3, T11.2) |
+| El detector de objetos falla con luz o fondos distintos | Lista corta de objetos, conjunto de evaluación aparte y umbral mínimo (fase 15) |
+| Ruido ambiente y latencia estropean el audio | Calibración de audio y procesamiento local en tiempo real (fase 14) |
+| Privacidad del micrófono | Permiso solo cuando una habilidad lo necesita; el audio nunca se graba, guarda ni envía (D15) |
 
 ## 11. Pendientes por decidir
 
@@ -243,6 +335,9 @@ Cada punto se convertirá en fases con tareas propias cuando llegue el momento.
 - Modelo de pose: `lite` o `full`, según el rendimiento medido en la fase 2.
 - Estructura final de pantallas según el diseño de Claude Design.
 - Logo e icono de VYRO.
+- Texto del aviso de consentimiento de la IA (T12.1).
+- Límite de gasto diario por defecto (T12.2).
+- Imágenes de entrenamiento de los objetos: fuente y licencia (T15.1).
 
 ## 12. Convenciones del repositorio
 
