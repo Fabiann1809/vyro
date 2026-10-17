@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { replayRecording } from '@renderer/engine/replay'
-import { parseSkillConfig } from '@renderer/engine/skillLoader'
-import type { SkillConfig } from '@renderer/engine/skillSchema'
+import { parseSkillConfig } from '@shared/skill/skillLoader'
+import type { SkillConfig } from '@shared/skill/skillSchema'
 import { recordKneeAngles, squatAngles, standingAngles } from '@renderer/engine/syntheticPose'
 import squatConfig from './squat.json'
 

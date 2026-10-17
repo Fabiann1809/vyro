@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { LandmarkRecording } from '@renderer/core/recording'
 import { replayRecording } from '@renderer/engine/replay'
-import { parseSkillConfig } from '@renderer/engine/skillLoader'
-import type { SkillConfig } from '@renderer/engine/skillSchema'
+import { parseSkillConfig } from '@shared/skill/skillLoader'
+import type { SkillConfig } from '@shared/skill/skillSchema'
 import {
   recordCurlAngles,
   recordKneeAngles,

@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { POSE_LANDMARK_COUNT, type Landmark } from '@renderer/core/landmarks'
 import { JOINT_INDEX, type JointName, type Side } from '@renderer/core/side'
 import { computeMetrics, type FrameSize } from './metrics'
-import { parseSkillConfig } from './skillLoader'
-import { validSkillInput } from './skillFixtures'
-import type { SkillConfig } from './skillSchema'
+import { parseSkillConfig } from '@shared/skill/skillLoader'
+import { validSkillInput } from '@shared/skill/skillFixtures'
+import type { SkillConfig } from '@shared/skill/skillSchema'
 
 const FRAME: FrameSize = { width: 1280, height: 720 }
 

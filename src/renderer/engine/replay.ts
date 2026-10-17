@@ -2,7 +2,7 @@ import { landmarksOf, type LandmarkRecording } from '@renderer/core/recording'
 import type { FeedbackMessage } from './feedback'
 import type { RepResult } from './repEvaluator'
 import { SkillSession } from './skillSession'
-import type { SkillConfig } from './skillSchema'
+import type { SkillConfig } from '@shared/skill/skillSchema'
 
 export interface ReplaySummary {
   frames: number

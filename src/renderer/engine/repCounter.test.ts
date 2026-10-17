@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { RepCounter, type CompletedRep, type RepEvent } from './repCounter'
-import { parseSkillConfig } from './skillLoader'
-import { validSkillInput } from './skillFixtures'
-import type { SkillConfig } from './skillSchema'
+import { parseSkillConfig } from '@shared/skill/skillLoader'
+import { validSkillInput } from '@shared/skill/skillFixtures'
+import type { SkillConfig } from '@shared/skill/skillSchema'
 
 const FRAME_MS = 1000 / 30
 

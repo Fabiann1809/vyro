@@ -1,7 +1,7 @@
 import { angleAt, distance, tiltFromVertical, toPixels, type Point } from '@renderer/core/geometry'
 import type { Landmark } from '@renderer/core/landmarks'
 import { joint, type JointName, type Side } from '@renderer/core/side'
-import type { SkillConfig } from './skillSchema'
+import type { SkillConfig } from '@shared/skill/skillSchema'
 
 export interface FrameSize {
   width: number

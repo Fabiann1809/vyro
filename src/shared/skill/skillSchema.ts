@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { JOINT_NAMES } from '@renderer/core/side'
+import { JOINT_NAMES } from './joints'
 
 // Names the rule expressions already use (functions and per-repetition values). A metric called
 // like one of them would be ambiguous inside an expression.

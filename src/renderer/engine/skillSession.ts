@@ -5,7 +5,7 @@ import { FeedbackPrioritizer, type FeedbackMessage } from './feedback'
 import { computeMetrics, type FrameSize, type MetricValues } from './metrics'
 import { RepCounter, type RepEvent } from './repCounter'
 import { RepEvaluator, type RepResult } from './repEvaluator'
-import type { SkillConfig } from './skillSchema'
+import type { SkillConfig } from '@shared/skill/skillSchema'
 
 export interface FrameInput {
   timestampMs: number

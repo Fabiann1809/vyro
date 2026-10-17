@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { FeedbackPrioritizer, type FeedbackMessage, type LiveAlert } from './feedback'
 import type { RepQuality, RepResult, RuleOutcome } from './repEvaluator'
-import type { Severity } from './skillSchema'
+import type { Severity } from '@shared/skill/skillSchema'
 
 function failure(ruleId: string, severity: Severity): RuleOutcome {
   return {

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import type { CompletedRep } from './repCounter'
 import { buildContext, RepEvaluator } from './repEvaluator'
-import { parseSkillConfig } from './skillLoader'
-import { validSkillInput } from './skillFixtures'
-import type { SkillConfig } from './skillSchema'
+import { parseSkillConfig } from '@shared/skill/skillLoader'
+import { validSkillInput } from '@shared/skill/skillFixtures'
+import type { SkillConfig } from '@shared/skill/skillSchema'
 
 function skillWithRules(rules: Array<Record<string, unknown>>): SkillConfig {
   const parsed = parseSkillConfig({ ...validSkillInput, rules })

@@ -1,6 +1,6 @@
 import type { MetricValues } from './metrics'
 import { PhaseDetector } from './phaseDetector'
-import type { SkillConfig } from './skillSchema'
+import type { SkillConfig } from '@shared/skill/skillSchema'
 
 export interface RepSample {
   timestampMs: number

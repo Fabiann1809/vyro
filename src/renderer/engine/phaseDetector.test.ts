@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { PhaseDetector } from './phaseDetector'
-import { parseSkillConfig } from './skillLoader'
-import { validSkillInput } from './skillFixtures'
-import type { SkillConfig } from './skillSchema'
+import { parseSkillConfig } from '@shared/skill/skillLoader'
+import { validSkillInput } from '@shared/skill/skillFixtures'
+import type { SkillConfig } from '@shared/skill/skillSchema'
 
 function skillFrom(input: Record<string, unknown>): SkillConfig {
   const parsed = parseSkillConfig(input)

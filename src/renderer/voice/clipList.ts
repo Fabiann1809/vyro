@@ -1,5 +1,5 @@
 import type { Language } from '@renderer/i18n'
-import type { SkillConfig } from '@renderer/engine/skillSchema'
+import type { SkillConfig } from '@shared/skill/skillSchema'
 
 export interface Clip {
   // Also the file name: assets/voice/<language>/<id>.wav

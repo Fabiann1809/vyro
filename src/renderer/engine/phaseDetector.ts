@@ -1,5 +1,5 @@
 import type { MetricValues } from './metrics'
-import type { SkillConfig } from './skillSchema'
+import type { SkillConfig } from '@shared/skill/skillSchema'
 
 type Phase = SkillConfig['phases'][number]
 type Conditions = Phase['when']

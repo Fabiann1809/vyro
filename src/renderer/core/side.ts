@@ -1,22 +1,11 @@
 import { POSE_LANDMARK as P, type Landmark } from './landmarks'
+import { JOINT_NAMES, type JointName } from '@shared/skill/joints'
 import { isVisible, MIN_VISIBILITY } from './visibility'
 
 // In a side view the camera sees one side of the body well and the other one hidden behind it.
 export type Side = 'left' | 'right'
 
-// Side-independent names: skill configs say "knee" and the engine resolves it to the visible side.
-export const JOINT_NAMES = [
-  'shoulder',
-  'elbow',
-  'wrist',
-  'hip',
-  'knee',
-  'ankle',
-  'heel',
-  'footIndex'
-] as const
-
-export type JointName = (typeof JOINT_NAMES)[number]
+export { JOINT_NAMES, type JointName }
 
 export const JOINT_INDEX: Record<Side, Record<JointName, number>> = {
   left: {

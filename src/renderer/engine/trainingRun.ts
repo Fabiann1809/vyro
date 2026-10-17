@@ -2,7 +2,7 @@ import type { FeedbackMessage } from './feedback'
 import type { FrameSize } from './metrics'
 import type { RepQuality, RepResult } from './repEvaluator'
 import { SkillSession, type FrameInput } from './skillSession'
-import type { SkillConfig } from './skillSchema'
+import type { SkillConfig } from '@shared/skill/skillSchema'
 
 export interface TrainingSnapshot {
   repCount: number

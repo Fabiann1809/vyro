@@ -1,7 +1,11 @@
-import { compileExpression, type CompiledExpression, type EvalContext } from './expression'
+import {
+  compileExpression,
+  type CompiledExpression,
+  type EvalContext
+} from '@shared/skill/expression'
 import type { RepQuality } from '@shared/sessions'
 import type { CompletedRep } from './repCounter'
-import type { Severity, SkillConfig } from './skillSchema'
+import type { Severity, SkillConfig } from '@shared/skill/skillSchema'
 
 export type RuleStatus = 'passed' | 'failed' | 'unknown'
 

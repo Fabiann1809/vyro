@@ -1,5 +1,5 @@
 import type { RepResult, RuleOutcome } from './repEvaluator'
-import type { Severity } from './skillSchema'
+import type { Severity } from '@shared/skill/skillSchema'
 
 export type FeedbackMessage =
   | {

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { replayRecording } from './replay'
-import { parseSkillConfig } from './skillLoader'
-import { validSkillInput } from './skillFixtures'
-import type { SkillConfig } from './skillSchema'
+import { parseSkillConfig } from '@shared/skill/skillLoader'
+import { validSkillInput } from '@shared/skill/skillFixtures'
+import type { SkillConfig } from '@shared/skill/skillSchema'
 import { recordKneeAngles, squatAngles, standingAngles, FRAME_MS } from './syntheticPose'
 
 // The squat of the fixtures: up above 160°, down below 110°, and the rule "knee reaches 100° or less".
