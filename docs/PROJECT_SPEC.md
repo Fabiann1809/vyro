@@ -290,7 +290,7 @@ están menos detalladas que las anteriores y se afinarán al llegar a ellas.
 - [x] **T14.2 Captura local.** Procesa el audio en memoria; nunca se graba, guarda ni envía. *Hecho cuando:* se ve el nivel de entrada en vivo y una prueba confirma que ninguna API expone los buffers de audio.
 - [x] **T14.3 Características de audio.** Funciones puras para tono (en cents), inicios de nota y tempo, y volumen. *Hecho cuando:* con señales sintéticas detectan un La 440 Hz con ±10 cents y un tempo con ±3 bpm.
 - [x] **T14.4 Esquema y motor para audio.** Métricas de audio (error de tono, error de intervalo, nivel) con notas objetivo en la configuración. *Hecho cuando:* las pruebas con señales conocidas dan los valores esperados.
-- [ ] **T14.5 Calibración de audio.** Mide ruido ambiente y nivel. *Hecho cuando:* no deja empezar con demasiado ruido o silencio.
+- [x] **T14.5 Calibración de audio.** Mide ruido ambiente y nivel. *Hecho cuando:* no deja empezar con demasiado ruido o silencio.
 - [ ] **T14.6 Primera habilidad de audio.** Afinación de cuerda al aire y ritmo con metrónomo, con señales sintéticas como fixtures. *Hecho cuando:* cuenta y detecta errores en los fixtures.
 - [ ] **T14.7 Habilidad multicanal.** Una habilidad (guitarra o piano básico) que combina manos y audio en el mismo conjunto de reglas. *Hecho cuando:* una regla falla por audio y otra por manos en la misma repetición.
 - [ ] **T14.8 Audio en el chat y en el generador.** El canal pasa a "soportado" en T10.2. *Hecho cuando:* con un LLM falso se genera y valida una habilidad con audio.
