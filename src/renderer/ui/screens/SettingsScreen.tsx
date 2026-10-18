@@ -206,14 +206,30 @@ function About(): React.JSX.Element {
   )
 }
 
+function Camera(): React.JSX.Element {
+  const handControl = useSettings((state) => state.handControl)
+  const setHandControl = useSettings((state) => state.setHandControl)
+
+  return (
+    <>
+      <SettingsCard title={t('settings.camera')}>
+        <CameraStage showDevicePicker videoClassName="max-h-60 rounded-2xl" />
+      </SettingsCard>
+      <SettingsCard title={t('settings.handControl')} description={t('settings.handControl.note')}>
+        <Switch
+          label={t('settings.handControl.label')}
+          checked={handControl}
+          onChange={setHandControl}
+        />
+      </SettingsCard>
+    </>
+  )
+}
+
 const PANEL: Record<SettingsTab, () => React.JSX.Element> = {
   general: General,
   voice: Voice,
-  camera: () => (
-    <SettingsCard title={t('settings.camera')}>
-      <CameraStage showDevicePicker videoClassName="max-h-60 rounded-2xl" />
-    </SettingsCard>
-  ),
+  camera: Camera,
   microphone: () => (
     <SettingsCard title={t('settings.microphone')}>
       <AudioInputPicker />

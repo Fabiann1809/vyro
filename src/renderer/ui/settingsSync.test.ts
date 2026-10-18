@@ -62,6 +62,19 @@ describe('startSettingsSync', () => {
     expect(api.settings.set).toHaveBeenCalledWith({ voiceEnabled: false })
   })
 
+  it('saves the hand control when it is turned off, and applies it when it is loaded', async () => {
+    const api = fakeApi()
+    await startSettingsSync(api)
+    const { useSettings } = await import('./settingsStore')
+
+    useSettings.getState().setHandControl(false)
+
+    expect(api.settings.set).toHaveBeenCalledWith({ handControl: false })
+
+    await startSettingsSync(fakeApi({ ...DEFAULT_SETTINGS, handControl: true }))
+    expect(useSettings.getState().handControl).toBe(true)
+  })
+
   it('saves a theme change too', async () => {
     const api = fakeApi()
     await startSettingsSync(api)

@@ -17,6 +17,8 @@ export interface AppSettings {
   theme: ThemePreference
   textSize: TextSize
   reduceMotion: boolean
+  // Pause or finish a training by pointing a finger at a zone of the picture; it needs the hand model.
+  handControl: boolean
   // The AI coach is off until the user turns it on (and has saved a key).
   aiEnabled: boolean
   // The person read what is sent and to whom, and accepted. Without it nothing is sent.
@@ -45,6 +47,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'dark',
   textSize: 'normal',
   reduceMotion: false,
+  handControl: true,
   aiEnabled: false,
   aiConsent: false,
   aiDailyTokenLimit: DEFAULT_DAILY_TOKEN_LIMIT,
@@ -63,6 +66,7 @@ export const settingSchemas = {
   theme: z.enum(['dark', 'light', 'system']),
   textSize: z.enum(['normal', 'large', 'extra-large']),
   reduceMotion: z.boolean(),
+  handControl: z.boolean(),
   aiEnabled: z.boolean(),
   aiConsent: z.boolean(),
   aiDailyTokenLimit: z.number().int().min(MIN_DAILY_TOKEN_LIMIT).max(MAX_DAILY_TOKEN_LIMIT),

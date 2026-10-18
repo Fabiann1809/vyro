@@ -368,6 +368,21 @@ test('remembers the language after the app is closed and opened again', async ()
   await expect(nav(second, 'Home')).toHaveAttribute('aria-current', 'page')
 })
 
+test('turns the hand control off in the settings and remembers it after a restart', async () => {
+  const first = await launch()
+  await nav(first, 'Ajustes').click()
+  await first.getByRole('tab', { name: 'Cámara' }).click()
+  const control = first.getByLabel('Pausar y terminar señalando con el dedo')
+  await expect(control).toBeChecked()
+  await control.uncheck()
+  await app?.close()
+
+  const second = await launch()
+  await nav(second, 'Ajustes').click()
+  await second.getByRole('tab', { name: 'Cámara' }).click()
+  await expect(second.getByLabel('Pausar y terminar señalando con el dedo')).not.toBeChecked()
+})
+
 test('the coach answers a question with data, and only the typed bridge reaches it', async () => {
   const page = await launch()
 

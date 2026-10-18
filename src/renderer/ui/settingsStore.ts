@@ -13,6 +13,7 @@ interface SettingsState {
   audioDeviceId: string | null
   textSize: TextSize
   reduceMotion: boolean
+  handControl: boolean
   aiEnabled: boolean
   aiConsent: boolean
   aiDailyTokenLimit: number
@@ -26,6 +27,7 @@ interface SettingsState {
   setAudioDeviceId: (audioDeviceId: string | null) => void
   setTextSize: (textSize: TextSize) => void
   setReduceMotion: (reduceMotion: boolean) => void
+  setHandControl: (handControl: boolean) => void
   setAiEnabled: (aiEnabled: boolean) => void
   setAiConsent: (aiConsent: boolean) => void
   setAiDailyTokenLimit: (aiDailyTokenLimit: number) => void
@@ -44,6 +46,7 @@ export const useSettings = create<SettingsState>((set) => ({
   audioDeviceId: DEFAULT_SETTINGS.audioDeviceId,
   textSize: DEFAULT_SETTINGS.textSize,
   reduceMotion: DEFAULT_SETTINGS.reduceMotion,
+  handControl: DEFAULT_SETTINGS.handControl,
   aiEnabled: DEFAULT_SETTINGS.aiEnabled,
   aiConsent: DEFAULT_SETTINGS.aiConsent,
   aiDailyTokenLimit: DEFAULT_SETTINGS.aiDailyTokenLimit,
@@ -61,6 +64,7 @@ export const useSettings = create<SettingsState>((set) => ({
   setAudioDeviceId: (audioDeviceId) => set({ audioDeviceId }),
   setTextSize: (textSize) => set({ textSize }),
   setReduceMotion: (reduceMotion) => set({ reduceMotion }),
+  setHandControl: (handControl) => set({ handControl }),
   setAiEnabled: (aiEnabled) => set({ aiEnabled }),
   setAiConsent: (aiConsent) => set({ aiConsent }),
   setAiDailyTokenLimit: (aiDailyTokenLimit) => set({ aiDailyTokenLimit }),

@@ -44,6 +44,14 @@ describe('SettingsRepository', () => {
     expect(repository.getAll()).toMatchObject({ voiceEnabled: false, volume: 0 })
   })
 
+  it('has the hand control on until the person turns it off, and keeps it off', () => {
+    expect(repository.getAll().handControl).toBe(true)
+
+    repository.set({ handControl: false })
+
+    expect(repository.getAll().handControl).toBe(false)
+  })
+
   it('falls back to the default for a stored value that makes no sense', () => {
     db.exec("INSERT INTO settings (key, value) VALUES ('language', '\"fr\"')")
     db.exec("INSERT INTO settings (key, value) VALUES ('volume', 'not json')")

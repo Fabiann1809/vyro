@@ -336,7 +336,7 @@ Sigue el prototipo de Claude Design (resumido en `docs/DESIGN_SYSTEM.md`; el bri
 ### Fase 18 — Control con la mano
 
 - [x] **T18.1 Señalar y mantener.** Funciones puras: detectar que una mano señala (solo el índice estirado, los otros tres dedos doblados, sin depender de la distancia a la cámara) y medir cuánto tiempo se mantiene el dedo sobre una zona, con margen si el detector pierde la mano un instante, una sola pulsación por gesto y sin pulsar nunca desde fuera de la zona. *Hecho cuando:* las pruebas cubren mano abierta, puño, dos dedos, mano lejana, pérdida breve y larga del puntero y el enfriamiento tras pulsar.
-- [ ] **T18.2 Ajuste "Control con la mano".** Un interruptor en Ajustes > Cámara, activado por defecto, que se guarda y se sincroniza como el resto de ajustes. *Hecho cuando:* el ajuste sobrevive a cerrar la app y las pruebas de ajustes lo cubren.
+- [x] **T18.2 Ajuste "Control con la mano".** Un interruptor en Ajustes > Cámara, activado por defecto, que se guarda y se sincroniza como el resto de ajustes. *Hecho cuando:* el ajuste sobrevive a cerrar la app y las pruebas de ajustes lo cubren.
 - [ ] **T18.3 Zonas en el entrenamiento.** Con cámara y el ajuste activo, el entrenamiento carga el modelo de manos y muestra dos zonas grandes en los lados de la imagen (pausar a un lado, terminar al otro) que se pulsan señalándolas y manteniendo el dedo, con una barra que se llena y el punto del dedo a la vista. La imagen del entrenamiento se muestra en espejo para que la mano se mueva hacia donde se ve. Siguen funcionando el ratón y las teclas P y F. *Hecho cuando:* una prueba e2e con una mano falsa pausa y termina una sesión, y sin el ajuste no se carga el modelo de manos en habilidades de cuerpo.
 
 ### Aplazado

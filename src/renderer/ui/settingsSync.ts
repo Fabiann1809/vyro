@@ -24,6 +24,7 @@ export function currentSettings(): AppSettings {
     theme: useTheme.getState().preference,
     textSize: store.textSize,
     reduceMotion: store.reduceMotion,
+    handControl: store.handControl,
     aiEnabled: store.aiEnabled,
     aiConsent: store.aiConsent,
     aiDailyTokenLimit: store.aiDailyTokenLimit,
@@ -56,6 +57,7 @@ export function applySettings(settings: AppSettings): void {
     store.setAudioDeviceId(settings.audioDeviceId)
     store.setTextSize(settings.textSize)
     store.setReduceMotion(settings.reduceMotion)
+    store.setHandControl(settings.handControl)
     store.setAiEnabled(settings.aiEnabled)
     store.setAiConsent(settings.aiConsent)
     store.setAiDailyTokenLimit(settings.aiDailyTokenLimit)
