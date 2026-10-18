@@ -1082,7 +1082,10 @@ test.describe('AI coach screen', () => {
             guide: {
               tips: ['Hazlo despacio y sin dolor.', 'Respira con calma.'],
               minutes: 5,
-              diagrams: [{ kind: 'chord', name: 'G' }]
+              diagrams: [
+                { kind: 'chord', name: 'G' },
+                { kind: 'keys', notes: ['C', 'E', 'G'] }
+              ]
             }
           },
           {
@@ -1162,6 +1165,11 @@ test.describe('AI coach screen', () => {
     // The step that cannot be measured says how to do it: open when it is next, with the notice.
     await expect(card('Descansar un día').getByText('Hazlo despacio y sin dolor.')).toBeVisible()
     await expect(card('Descansar un día')).toContainText('unos 5 min')
+    await expect(
+      card('Descansar un día').getByRole('img', {
+        name: 'Teclado con las notas iluminadas: Do, Mi, Sol'
+      })
+    ).toBeVisible()
     await expect(
       card('Descansar un día').getByRole('img', { name: /Acorde G\..*cuerda 6: traste 3, dedo 2/ })
     ).toBeVisible()

@@ -95,6 +95,21 @@ describe('the guide of a step', () => {
     ).toBe(false)
   })
 
+  it('lights piano keys by note name, each once, with sharps and not flats', () => {
+    const keys = (notes: unknown): boolean =>
+      pathStepToSaveSchema.safeParse({
+        ...auxiliary,
+        guide: { ...guide, diagrams: [{ kind: 'keys', notes }] }
+      }).success
+
+    expect(keys(['C', 'E', 'G'])).toBe(true)
+    expect(keys(['A#'])).toBe(true)
+    expect(keys([])).toBe(false)
+    expect(keys(['Bb'])).toBe(false)
+    expect(keys(['C', 'C'])).toBe(false)
+    expect(keys(['H'])).toBe(false)
+  })
+
   it('accepts no fixed time', () => {
     expect(
       pathStepToSaveSchema.safeParse({ ...auxiliary, guide: { tips: ['x'], minutes: null } })
