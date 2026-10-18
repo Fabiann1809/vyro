@@ -7,6 +7,7 @@ import { startOver } from '../homeChatStore'
 import { Button } from '../kit/Button'
 import { CoachAvatar } from '../kit/CoachAvatar'
 import { useNavigation } from '../navigation'
+import { SavedPaths } from '../route/SavedPaths'
 
 // Back to the chat, empty and with the cursor in the box, to ask the coach for a path.
 function useAskForPath(): () => void {
@@ -55,6 +56,9 @@ export function PathScreen(): React.JSX.Element {
         <Button size="lg" onClick={askForPath}>
           {t('route.empty.cta')}
         </Button>
+        <div className="w-full max-w-md text-left">
+          <SavedPaths version={version} onChanged={() => setVersion((value) => value + 1)} />
+        </div>
       </section>
     )
   }
@@ -62,6 +66,7 @@ export function PathScreen(): React.JSX.Element {
   return (
     <ActivePath
       current={current}
+      version={version}
       onChanged={() => setVersion((value) => value + 1)}
       onNewPath={askForPath}
     />

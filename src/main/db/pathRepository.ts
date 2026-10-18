@@ -124,13 +124,17 @@ export class PathRepository {
          ORDER BY p.created_at DESC, p.id DESC`
       )
       .all() as unknown as Array<PathDbRow & { step_count: number; done_count: number }>
+    const skillRows = this.db
+      .prepare('SELECT DISTINCT path_id, skill_id FROM path_steps WHERE skill_id IS NOT NULL')
+      .all() as unknown as Array<{ path_id: number; skill_id: string }>
     return rows.map((row) => ({
       id: row.id,
       goal: row.goal,
       createdAt: row.created_at,
       status: row.status,
       stepCount: row.step_count,
-      doneCount: row.done_count
+      doneCount: row.done_count,
+      skillIds: skillRows.filter((item) => item.path_id === row.id).map((item) => item.skill_id)
     }))
   }
 
@@ -227,6 +231,22 @@ export class PathRepository {
     this.db.exec(
       "UPDATE learning_paths SET status = 'archived' WHERE status IN ('active', 'completed')"
     )
+  }
+
+  // Makes an archived path the one on show, closing the one that was; false if there is no such
+  // path. Whether it is completed is worked out again when it is read.
+  resume(pathId: number): boolean {
+    if (!this.get(pathId)) return false
+    this.db.exec('BEGIN')
+    try {
+      this.archiveCurrent()
+      this.setStatus(pathId, 'active')
+      this.db.exec('COMMIT')
+      return true
+    } catch (error) {
+      this.db.exec('ROLLBACK')
+      throw error
+    }
   }
 
   // Closes the path on show if it has a step that practises this skill, which cannot be done any

@@ -74,6 +74,37 @@ describe('path handlers', () => {
     expect(repository.get(first)?.status).toBe('archived')
   })
 
+  it('lists every path, and resumes an archived one with its progress', () => {
+    const first = handlers.save(path('Primera'))
+    const rest = handlers.getCurrent()?.path.steps[0]?.id ?? 0
+    handlers.setStepDone(rest, true)
+    const second = handlers.save(path('Segunda'))
+
+    expect(handlers.list().map((item) => [item.id, item.status, item.doneCount])).toEqual([
+      [second, 'active', 0],
+      [first, 'archived', 1]
+    ])
+
+    expect(handlers.resume(first)).toBe(true)
+
+    expect(handlers.getCurrent()?.path.id).toBe(first)
+    expect(handlers.getCurrent()?.progress.steps.map((step) => step.state)).toEqual([
+      'done',
+      'current'
+    ])
+    expect(repository.get(second)?.status).toBe('archived')
+  })
+
+  it('deletes a saved path with its steps', () => {
+    const first = handlers.save(path('Primera'))
+    handlers.save(path('Segunda'))
+
+    expect(handlers.remove(first)).toBe(true)
+
+    expect(handlers.list().map((item) => item.goal)).toEqual(['Segunda'])
+    expect(handlers.remove(first)).toBe(false)
+  })
+
   it.each([
     ['something that is not a path', 'hola'],
     ['a path without steps', { goal: 'x', steps: [] }],
@@ -111,6 +142,7 @@ describe('path handlers', () => {
   it('says so when the step does not exist', () => {
     expect(handlers.setStepDone(404, true)).toBe(false)
     expect(handlers.archive(404)).toBe(false)
+    expect(handlers.resume(404)).toBe(false)
   })
 
   it('archives a path, which is then no longer the current one', () => {

@@ -37,6 +37,9 @@ const api: VyroApi = {
   },
   paths: {
     getCurrent: () => ipcRenderer.invoke(IPC.pathsGetCurrent),
+    list: () => ipcRenderer.invoke(IPC.pathsList),
+    resume: (pathId) => ipcRenderer.invoke(IPC.pathsResume, pathId),
+    delete: (pathId) => ipcRenderer.invoke(IPC.pathsDelete, pathId),
     save: (path) => ipcRenderer.invoke(IPC.pathsSave, path),
     setStepDone: (stepId, done) => ipcRenderer.invoke(IPC.pathsSetStepDone, stepId, done),
     archive: (pathId) => ipcRenderer.invoke(IPC.pathsArchive, pathId),

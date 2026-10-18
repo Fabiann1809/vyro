@@ -1610,6 +1610,53 @@ test.describe('AI coach screen', () => {
     await expect(page.getByLabel('Tu mensaje')).toBeFocused()
   })
 
+  test('lists every saved path, resumes an archived one and deletes another', async () => {
+    const page = await launch()
+    const save = (goal: string): Promise<unknown> =>
+      page.evaluate(
+        (name) =>
+          (
+            window as unknown as { api: { paths: { save: (path: unknown) => Promise<number> } } }
+          ).api.paths.save({
+            goal: name,
+            steps: [
+              {
+                title: 'Descansar',
+                description: '',
+                kind: 'auxiliary',
+                skillId: null,
+                criterionSessions: null,
+                criterionScore: null
+              }
+            ]
+          }),
+        goal
+      )
+    await save('Primera ruta')
+    await save('Segunda ruta')
+    await save('Tercera ruta')
+
+    await nav(page, 'Mi ruta').click()
+
+    const list = page.getByRole('list').filter({ hasText: 'Primera ruta' })
+    await expect(page.getByRole('heading', { level: 2, name: 'Mis rutas' })).toBeVisible()
+    await expect(list.getByRole('listitem')).toHaveCount(3)
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Tercera ruta')
+
+    await list
+      .getByRole('listitem')
+      .filter({ hasText: 'Primera ruta' })
+      .getByRole('button', { name: 'Retomar' })
+      .click()
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Primera ruta')
+
+    const second = list.getByRole('listitem').filter({ hasText: 'Segunda ruta' })
+    await second.getByRole('button', { name: 'Eliminar' }).click()
+    await second.getByRole('button', { name: 'Sí, eliminar' }).click()
+    await expect(list.getByRole('listitem')).toHaveCount(2)
+    await expect(list).not.toContainText('Segunda ruta')
+  })
+
   test('writes a new line with Shift + Enter instead of sending', async () => {
     const page = await launch()
     await turnOnWithFakeProvider(page)

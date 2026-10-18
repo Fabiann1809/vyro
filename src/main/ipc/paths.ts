@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron'
 import { z } from 'zod'
 import { IPC } from '@shared/ipc'
-import { pathToSaveSchema } from '@shared/paths'
+import { pathToSaveSchema, type PathSummary } from '@shared/paths'
 import type { CurrentPath } from '@shared/pathProgress'
 import { adjustmentProblems, applyAdjustmentsInputSchema } from '@shared/pathReview'
 import type { PathProgressService } from '../db/pathProgressService'
@@ -16,6 +16,9 @@ export function createPathHandlers(
   progress: PathProgressService
 ): {
   getCurrent: () => CurrentPath | null
+  list: () => PathSummary[]
+  resume: (pathId: unknown) => boolean
+  remove: (pathId: unknown) => boolean
   save: (path: unknown) => number
   setStepDone: (stepId: unknown, done: unknown) => boolean
   archive: (pathId: unknown) => boolean
@@ -23,6 +26,17 @@ export function createPathHandlers(
 } {
   return {
     getCurrent: () => progress.current(),
+    list: () => {
+      progress.current()
+      return repository.list()
+    },
+    // The path comes back as the one followed, with its progress brought up to date.
+    resume: (pathId) => {
+      const resumed = repository.resume(idSchema.parse(pathId))
+      if (resumed) progress.current()
+      return resumed
+    },
+    remove: (pathId) => repository.delete(idSchema.parse(pathId)),
     // One path at a time is followed: a new one takes the place of the one on show.
     save: (path) => {
       const parsed = pathToSaveSchema.parse(path)
@@ -51,6 +65,9 @@ export function registerPathsIpc(repository: PathRepository, progress: PathProgr
   const handlers = createPathHandlers(repository, progress)
 
   ipcMain.handle(IPC.pathsGetCurrent, () => handlers.getCurrent())
+  ipcMain.handle(IPC.pathsList, () => handlers.list())
+  ipcMain.handle(IPC.pathsResume, (_event, pathId: unknown) => handlers.resume(pathId))
+  ipcMain.handle(IPC.pathsDelete, (_event, pathId: unknown) => handlers.remove(pathId))
   ipcMain.handle(IPC.pathsSave, (_event, path: unknown) => handlers.save(path))
   ipcMain.handle(IPC.pathsSetStepDone, (_event, stepId: unknown, done: unknown) =>
     handlers.setStepDone(stepId, done)

@@ -75,4 +75,6 @@ export interface PathSummary {
   status: PathStatus
   stepCount: number
   doneCount: number
+  // The skills its steps practise, so that a path whose skill is gone is not offered to resume.
+  skillIds: string[]
 }

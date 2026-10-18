@@ -324,6 +324,10 @@ Sigue el prototipo de Claude Design (resumido en `docs/DESIGN_SYSTEM.md`; el bri
 - [x] **T16.14 Transiciones.** La tarjeta se expande hasta la calibración, entrada suave entre pantallas, gráficas que se dibujan, anillo que se llena, destello al cumplir un paso y cambio de tema con fundido; todo con alternativa sin movimiento. *Hecho cuando:* con "reducir movimiento" no queda ninguna animación y las pruebas lo comprueban.
 - [x] **T16.15 Limpieza y cierre.** Quitar los componentes y textos del diseño anterior, la dependencia de gráficas que ya no se use, y dejar `UX_BRIEF.md` apuntando al rediseño. *Hecho cuando:* no hay código sin usar, las pruebas e2e pasan y la documentación describe las pantallas nuevas.
 
+### Fase 17 — Mis rutas
+
+- [x] **T17.1 Lista de rutas guardadas.** En "Mi ruta", una lista con todas las rutas (activa, completada y archivadas) y su progreso, con "Retomar" para volver a seguir una archivada y "Eliminar". Solo se sigue una a la vez: retomar archiva la que se sigue. No se puede retomar una ruta cuya habilidad ya no existe. *Hecho cuando:* tras guardar dos rutas se ven las dos, la archivada se retoma con su progreso, eliminar la quita de la lista y las pruebas de repositorio, manejadores e interfaz pasan.
+
 ### Aplazado
 Vista frontal, detección de fatiga, clips de errores, modelos propios que juzguen técnica, firma de código y auto-actualización, módulos de comunidad.
 

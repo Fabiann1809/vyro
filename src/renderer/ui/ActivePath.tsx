@@ -9,6 +9,7 @@ import { Card } from './kit/Card'
 import { sortChannels } from './kit/channels'
 import { useNavigation } from './navigation'
 import { PathReviewPanel } from './PathReviewPanel'
+import { SavedPaths } from './route/SavedPaths'
 import { StepRow } from './route/StepRow'
 import { useSession } from './sessionStore'
 import { findSkill } from './skillsStore'
@@ -34,10 +35,12 @@ const channelsOf = (step: PathStep): ReturnType<typeof sortChannels> => {
 // locked and how to do each step, with the weekly review of the coach at the side.
 export function ActivePath({
   current,
+  version,
   onChanged,
   onNewPath
 }: {
   current: CurrentPath
+  version: number
   onChanged: () => void
   onNewPath: () => void
 }): React.JSX.Element {
@@ -199,6 +202,7 @@ export function ActivePath({
             <p className="text-[0.8125rem] text-mut">{t('route.how.title')}</p>
             <p className="text-sm leading-normal text-t4">{t('route.how.body')}</p>
           </Card>
+          <SavedPaths version={version} onChanged={onChanged} />
         </div>
       </div>
     </section>

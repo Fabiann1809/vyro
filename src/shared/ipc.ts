@@ -1,7 +1,7 @@
 import type { AiKeyStatus } from './ai'
 import type { CustomSkillSource } from './customSkills'
 import type { GenerateSkillInput, GenerateSkillResult } from './skillGeneration'
-import type { PathToSave } from './paths'
+import type { PathSummary, PathToSave } from './paths'
 import type { CurrentPath } from './pathProgress'
 import type { PlanPathInput, PlanPathResult } from './pathPlan'
 import type { ApplyAdjustmentsInput, PathReview, ReviewPathInput } from './pathReview'
@@ -38,6 +38,9 @@ export const IPC = {
   coachReviewPath: 'coach:review-path',
   coachGenerateSkill: 'coach:generate-skill',
   pathsGetCurrent: 'paths:get-current',
+  pathsList: 'paths:list',
+  pathsResume: 'paths:resume',
+  pathsDelete: 'paths:delete',
   pathsSave: 'paths:save',
   pathsSetStepDone: 'paths:set-step-done',
   pathsArchive: 'paths:archive',
@@ -97,6 +100,12 @@ export interface VyroApi {
     // The path being followed, with how far it has got, or null. Asking also brings the progress
     // up to date with the sessions saved so far.
     getCurrent: () => Promise<CurrentPath | null>
+    // Every saved path, newest first, with how far each one is.
+    list: () => Promise<PathSummary[]>
+    // Makes a saved path the one being followed, archiving the one that was; false if it is gone.
+    resume: (pathId: number) => Promise<boolean>
+    // Deletes a saved path with its steps; false if it is gone.
+    delete: (pathId: number) => Promise<boolean>
     // Saves a path and makes it the active one; returns its id.
     save: (path: PathToSave) => Promise<number>
     // Only auxiliary steps are marked by hand; whether anything changed.

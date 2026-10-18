@@ -90,6 +90,41 @@ describe('PathRepository', () => {
     ])
   })
 
+  it('lists the skills each path practises, without repeats', () => {
+    repository.create(
+      {
+        goal: 'Doble',
+        steps: [skillStep('squat'), skillStep('squat'), auxiliaryStep('Descansar')]
+      },
+      1_000
+    )
+
+    expect(repository.list()[0]?.skillIds).toEqual(['squat'])
+  })
+
+  it('resumes an archived path and archives the one on show', () => {
+    const first = repository.create(path('Primera'), 1_000)
+    const second = repository.create(path('Segunda'), 2_000)
+    repository.archiveCurrent()
+    repository.setStatus(second, 'active')
+    repository.setStatus(first, 'archived')
+
+    expect(repository.resume(first)).toBe(true)
+
+    expect(repository.get(first)?.status).toBe('active')
+    expect(repository.get(second)?.status).toBe('archived')
+    // The older one is the one on show now, although the other is newer.
+    expect(repository.getCurrent()?.id).toBe(first)
+  })
+
+  it('cannot resume a path that does not exist, and changes nothing', () => {
+    const only = repository.create(path(), 1_000)
+
+    expect(repository.resume(404)).toBe(false)
+
+    expect(repository.get(only)?.status).toBe('active')
+  })
+
   it('knows the path on show: the newest one that is active or completed', () => {
     expect(repository.getCurrent()).toBeNull()
 
