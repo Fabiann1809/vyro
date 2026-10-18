@@ -1,3 +1,4 @@
+import { guideSchema, type Guide } from '@shared/guide'
 import type { Adjustment } from '@shared/pathReview'
 import type {
   LearningPath,
@@ -26,7 +27,22 @@ interface StepDbRow {
   criterion_sessions: number | null
   criterion_score: number | null
   done_at: number | null
+  guide_json: string | null
 }
+
+// A damaged row costs its guide and nothing else.
+const readGuide = (json: string | null): Guide | null => {
+  if (json === null) return null
+  try {
+    const parsed = guideSchema.safeParse(JSON.parse(json))
+    return parsed.success ? parsed.data : null
+  } catch {
+    return null
+  }
+}
+
+const guideJson = (guide: Guide | null | undefined): string | null =>
+  guide ? JSON.stringify(guide) : null
 
 const toStep = (row: StepDbRow): PathStep => {
   const shared = {
@@ -34,7 +50,8 @@ const toStep = (row: StepDbRow): PathStep => {
     position: row.position,
     title: row.title,
     description: row.description,
-    doneAt: row.done_at
+    doneAt: row.done_at,
+    guide: readGuide(row.guide_json)
   }
   // The table refuses a skill step without its measure, so these are never null for a skill.
   return row.kind === 'skill'
@@ -62,8 +79,8 @@ export class PathRepository {
 
       const insertStep = this.db.prepare(
         `INSERT INTO path_steps
-           (path_id, position, title, description, kind, skill_id, criterion_sessions, criterion_score)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+           (path_id, position, title, description, kind, skill_id, criterion_sessions, criterion_score, guide_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       path.steps.forEach((step, index) => {
         insertStep.run(
@@ -74,7 +91,8 @@ export class PathRepository {
           step.kind,
           step.skillId,
           step.criterionSessions,
-          step.criterionScore
+          step.criterionScore,
+          guideJson(step.guide)
         )
       })
 
@@ -185,8 +203,8 @@ export class PathRepository {
 
       const insert = this.db.prepare(
         `INSERT INTO path_steps
-           (path_id, position, title, description, kind, skill_id, criterion_sessions, criterion_score)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+           (path_id, position, title, description, kind, skill_id, criterion_sessions, criterion_score, guide_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       // Steps added after the same one keep the order in which they were given.
       const lastAddedAfter = new Map<number, number>()
@@ -203,7 +221,8 @@ export class PathRepository {
             step.kind,
             step.skillId,
             step.criterionSessions,
-            step.criterionScore
+            step.criterionScore,
+            guideJson(step.guide)
           ).lastInsertRowid
         )
         const anchor = lastAddedAfter.get(adjustment.afterStepId) ?? adjustment.afterStepId
@@ -275,7 +294,7 @@ export class PathRepository {
     const steps = this.db
       .prepare(
         `SELECT id, position, title, description, kind, skill_id, criterion_sessions,
-                criterion_score, done_at
+                criterion_score, done_at, guide_json
          FROM path_steps WHERE path_id = ? ORDER BY position`
       )
       .all(row.id) as unknown as StepDbRow[]

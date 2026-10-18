@@ -5,6 +5,7 @@ import type { SkillChannel } from '@shared/skill/skillChannels'
 import { ChannelChips } from '../kit/ChannelChip'
 import { Icon } from '../kit/Icon'
 import { skillDisplayName } from '../skillName'
+import { StepGuide } from './StepGuide'
 
 const formatDay = (timestamp: number): string =>
   new Intl.DateTimeFormat(currentLanguage(), { dateStyle: 'medium' }).format(timestamp)
@@ -99,6 +100,8 @@ export function StepRow({
         </div>
 
         {step.description !== '' && <p className="text-sm text-t4">{step.description}</p>}
+
+        {step.guide && !done && <StepGuide guide={step.guide} open={current} />}
 
         {step.kind === 'skill' && (
           <p className="text-[0.8125rem] text-mut">

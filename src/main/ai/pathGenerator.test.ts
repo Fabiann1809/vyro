@@ -36,7 +36,8 @@ const restStep = {
   kind: 'auxiliary',
   skillId: null,
   criterionSessions: null,
-  criterionScore: null
+  criterionScore: null,
+  guide: { tips: ['Camina diez minutos a paso suave.'], minutes: 10 }
 }
 
 const bodyOnly = { channels: ['body'] }
@@ -116,6 +117,22 @@ describe('a path for a skill that can be coached', () => {
     expect(model.requests).toHaveLength(2)
     const repairTurn = model.requests[1]?.messages.at(-1)
     expect(repairTurn?.content).toContain('Unknown skill "yoga_flow". Use one of: squat, pushup.')
+  })
+
+  it('asks for a guide in every auxiliary step, and keeps it when it is there', async () => {
+    const bare = { ...restStep, guide: undefined }
+    const model = scriptedModel(
+      proposal([skillStep('squat'), bare]),
+      proposal([skillStep('squat'), restStep])
+    )
+
+    const result = await generatePathTurn(model, input([user('Quiero mejorar')]))
+
+    expect(model.requests[1]?.messages.at(-1)?.content).toContain('An auxiliary step needs a guide')
+    expect(result).toMatchObject({
+      kind: 'path',
+      path: { steps: [{ guide: null }, { guide: { minutes: 10 } }] }
+    })
   })
 
   it('asks for at least one skill step, since a path of rests measures nothing', async () => {

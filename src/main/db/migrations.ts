@@ -90,5 +90,12 @@ export const MIGRATIONS: readonly Migration[] = [
         tokens INTEGER NOT NULL
       );
     `
+  },
+  {
+    version: 5,
+    // The guide of a step (tips and time) as JSON; the steps made before it have none.
+    sql: `
+      ALTER TABLE path_steps ADD COLUMN guide_json TEXT;
+    `
   }
 ]

@@ -32,6 +32,19 @@ export async function generateReview(
     for (const message of adjustmentProblems(input.path, value.adjustments, skillIds)) {
       context.addIssue({ code: 'custom', path: ['adjustments'], message })
     }
+    value.adjustments.forEach((adjustment, index) => {
+      if (
+        adjustment.type === 'add-step' &&
+        adjustment.step.kind === 'auxiliary' &&
+        !adjustment.step.guide
+      ) {
+        context.addIssue({
+          code: 'custom',
+          path: ['adjustments', index, 'step', 'guide'],
+          message: 'An auxiliary step needs a guide with its tips.'
+        })
+      }
+    })
   })
 
   const result = await generateWithRepair(llm, {

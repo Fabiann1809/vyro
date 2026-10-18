@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { guideSchema } from './guide'
 
 // A learning path: the steps that lead to a goal, each one either a skill that VYRO can measure or
 // a small auxiliary task (a rest day, a short bit of theory). Only text and numbers.
@@ -13,7 +14,9 @@ const identifier = z.string().min(1).max(64)
 const stepBase = {
   title: z.string().trim().min(1).max(120),
   // Why this step and how to do it, in a sentence or two.
-  description: z.string().trim().max(600)
+  description: z.string().trim().max(600),
+  // How to do it, in a few tips; steps made before this existed have none.
+  guide: guideSchema.nullable().default(null)
 }
 
 // A skill step is done after some sessions with at least some score; an auxiliary one has no
@@ -49,8 +52,9 @@ export const pathToSaveSchema = z
   })
   .strict()
 
-export type PathStepToSave = z.infer<typeof pathStepToSaveSchema>
-export type PathToSave = z.infer<typeof pathToSaveSchema>
+// The input types: a step may be given without a guide, and it is read back with `guide: null`.
+export type PathStepToSave = z.input<typeof pathStepToSaveSchema>
+export type PathToSave = z.input<typeof pathToSaveSchema>
 
 export type PathStep = PathStepToSave & {
   id: number

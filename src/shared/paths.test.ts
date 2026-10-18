@@ -46,6 +46,34 @@ describe('pathToSaveSchema', () => {
   })
 })
 
+describe('the guide of a step', () => {
+  const guide = { tips: ['Círculos de cadera.', 'Sin dolor.'], minutes: 5 }
+
+  it('is optional, and a step without it reads back with null', () => {
+    expect(pathStepToSaveSchema.parse(auxiliary).guide).toBeNull()
+    expect(pathStepToSaveSchema.parse({ ...auxiliary, guide }).guide).toEqual(guide)
+  })
+
+  it.each([
+    ['no tips', { tips: [], minutes: 5 }],
+    ['too many tips', { tips: Array(6).fill('x'), minutes: 5 }],
+    ['an empty tip', { tips: [' '], minutes: 5 }],
+    ['a tip that is too long', { tips: ['x'.repeat(161)], minutes: 5 }],
+    ['zero minutes', { tips: ['x'], minutes: 0 }],
+    ['more than two hours', { tips: ['x'], minutes: 121 }],
+    ['a field that is not listed', { tips: ['x'], minutes: 5, video: 'x' }]
+  ])('rejects %s', (_name, bad) => {
+    expect(pathStepToSaveSchema.safeParse({ ...auxiliary, guide: bad }).success).toBe(false)
+  })
+
+  it('accepts no fixed time', () => {
+    expect(
+      pathStepToSaveSchema.safeParse({ ...auxiliary, guide: { tips: ['x'], minutes: null } })
+        .success
+    ).toBe(true)
+  })
+})
+
 describe('pathStepToSaveSchema', () => {
   it.each([
     ['a skill step without its skill', { ...skill, skillId: null }],

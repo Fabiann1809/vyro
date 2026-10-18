@@ -186,7 +186,8 @@ describe('the weekly review', () => {
         kind: 'auxiliary',
         skillId: null,
         criterionSessions: null,
-        criterionScore: null
+        criterionScore: null,
+        guide: { tips: ['Descansa y bebe agua.'], minutes: null }
       },
       reason: 'x'
     }
@@ -194,6 +195,30 @@ describe('the weekly review', () => {
     const model = scriptedModel({ summary: 'x', adjustments: [early] })
 
     await expect(generateReview(model, input())).resolves.toMatchObject({ pathId: 7 })
+  })
+
+  it('asks for the guide of a rest that is added', async () => {
+    const rest = (guide: unknown): unknown => ({
+      type: 'add-step',
+      afterStepId: 1,
+      step: {
+        title: 'Descanso',
+        description: '',
+        kind: 'auxiliary',
+        skillId: null,
+        criterionSessions: null,
+        criterionScore: null,
+        guide
+      },
+      reason: 'x'
+    })
+    const model = scriptedModel(
+      { summary: 'x', adjustments: [rest(null)] },
+      { summary: 'x', adjustments: [rest({ tips: ['Descansa.'], minutes: null })] }
+    )
+
+    await expect(generateReview(model, input())).resolves.toMatchObject({ pathId: 7 })
+    expect(model.requests).toHaveLength(2)
   })
 
   it('fails with a clear error when the model keeps proposing what cannot be applied', async () => {

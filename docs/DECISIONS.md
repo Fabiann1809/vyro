@@ -108,3 +108,8 @@ Format: **context → decision → consequences**.
 - **Decision:** the chat with the coach becomes the home screen, a dashboard replaces the progress screen, and the rest follows the prototype in `docs/DESIGN_SYSTEM.md`. Charts are drawn by hand in SVG from pure functions, so the chart library is dropped at the end. Fonts are bundled, never loaded from the network. The planner and the free chat share one conversation on the home screen.
 - **Consequences:** the dashboard shows what is stored today (scores, repetition quality, failed rules and their channel). Charts of raw angles or cents need numeric metrics per session, which are not stored yet; that would be a later data change, not part of this phase.
 
+## D18 — Diagrams come from a verified library, never from the AI
+
+- **Context:** steps that VYRO cannot measure (a warm-up, a chord) still need to help the person learn. A diagram of where the fingers go is the most useful help, and also the easiest to get wrong: a model can invent a plausible but false fingering.
+- **Decision:** the AI writes the tips of a step and may only name a diagram (a chord, some notes, a pose). The drawing comes from a library checked by hand and rendered by the app; a name that is not in the library is rejected, and the model is asked to correct it.
+- **Consequences:** the library has to be written and kept by hand, so it starts small (open chords, a keyboard, three poses). The tips themselves are still AI text, so every guide carries a notice that it is general orientation.

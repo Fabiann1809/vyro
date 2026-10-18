@@ -34,7 +34,7 @@ export const adjustmentSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('remove-step'), stepId: z.number().int().min(1), reason }).strict()
 ])
 
-export type Adjustment = z.infer<typeof adjustmentSchema>
+export type Adjustment = z.input<typeof adjustmentSchema>
 
 export const reviewResultSchema = z
   .object({

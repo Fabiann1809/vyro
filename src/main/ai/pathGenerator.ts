@@ -47,6 +47,15 @@ export function planTurnSchema(skillIds: readonly string[], canAsk: boolean): z.
         })
       }
     })
+    value.path.steps.forEach((step, index) => {
+      if (step.kind === 'auxiliary' && !step.guide) {
+        context.addIssue({
+          code: 'custom',
+          path: ['path', 'steps', index, 'guide'],
+          message: 'An auxiliary step needs a guide with 1 to 5 short tips and its minutes.'
+        })
+      }
+    })
     if (!value.path.steps.some((step) => step.kind === 'skill')) {
       context.addIssue({
         code: 'custom',

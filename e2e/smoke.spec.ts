@@ -659,7 +659,8 @@ test.describe('AI coach screen', () => {
           kind: 'auxiliary',
           skillId: null,
           criterionSessions: null,
-          criterionScore: null
+          criterionScore: null,
+          guide: { tips: ['Hazlo despacio y sin dolor.', 'Respira con calma.'], minutes: 5 }
         }
       ]
     }
@@ -1077,7 +1078,8 @@ test.describe('AI coach screen', () => {
             kind: 'auxiliary',
             skillId: null,
             criterionSessions: null,
-            criterionScore: null
+            criterionScore: null,
+            guide: { tips: ['Hazlo despacio y sin dolor.', 'Respira con calma.'], minutes: 5 }
           },
           {
             title: 'Flexiones controladas',
@@ -1153,6 +1155,10 @@ test.describe('AI coach screen', () => {
     await reopen()
     await expect(page.getByText('Pasos hechos: 1 de 3')).toBeVisible()
     await expect(card('Descansar un día')).toHaveAttribute('aria-current', 'step')
+    // The step that cannot be measured says how to do it: open when it is next, with the notice.
+    await expect(card('Descansar un día').getByText('Hazlo despacio y sin dolor.')).toBeVisible()
+    await expect(card('Descansar un día')).toContainText('unos 5 min')
+    await expect(card('Descansar un día')).toContainText('no sustituye a un profesional')
     await expect(
       card('Descansar un día').getByRole('button', { name: 'Marcar como hecho' })
     ).toBeVisible()
@@ -1242,7 +1248,8 @@ test.describe('AI coach screen', () => {
             kind: 'auxiliary',
             skillId: null,
             criterionSessions: null,
-            criterionScore: null
+            criterionScore: null,
+            guide: { tips: ['Hazlo despacio y sin dolor.', 'Respira con calma.'], minutes: 5 }
           },
           {
             title: 'Flexiones controladas',
@@ -1280,7 +1287,8 @@ test.describe('AI coach screen', () => {
             kind: 'auxiliary',
             skillId: null,
             criterionSessions: null,
-            criterionScore: null
+            criterionScore: null,
+            guide: { tips: ['Hazlo despacio y sin dolor.', 'Respira con calma.'], minutes: 5 }
           },
           reason: 'Recuperarse mejor.'
         },

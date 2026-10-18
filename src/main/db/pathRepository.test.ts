@@ -56,7 +56,8 @@ describe('PathRepository', () => {
           skillId: 'squat',
           criterionSessions: 3,
           criterionScore: 80,
-          doneAt: null
+          doneAt: null,
+          guide: null
         },
         {
           id: expect.any(Number),
@@ -67,11 +68,27 @@ describe('PathRepository', () => {
           skillId: null,
           criterionSessions: null,
           criterionScore: null,
-          doneAt: null
+          doneAt: null,
+          guide: null
         },
         expect.objectContaining({ position: 3, skillId: 'pushup' })
       ]
     })
+  })
+
+  it('keeps the guide of a step, and reads a damaged one as no guide', () => {
+    const guide = { tips: ['Círculos de cadera, diez por lado.'], minutes: 5 }
+    const id = repository.create(
+      { goal: 'Con pautas', steps: [skillStep('squat'), { ...auxiliaryStep('Calentar'), guide }] },
+      1_000
+    )
+
+    expect(repository.get(id)?.steps.map((step) => step.guide)).toEqual([null, guide])
+
+    db.prepare("UPDATE path_steps SET guide_json = '{no es json' WHERE position = 2").run()
+    expect(repository.get(id)?.steps[1]?.guide).toBeNull()
+    db.prepare('UPDATE path_steps SET guide_json = \'{"tips":[]}\' WHERE position = 2').run()
+    expect(repository.get(id)?.steps[1]?.guide).toBeNull()
   })
 
   it('returns null for a path that does not exist', () => {
