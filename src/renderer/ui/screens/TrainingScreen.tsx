@@ -119,10 +119,8 @@ export function TrainingScreen(): React.JSX.Element {
   const useCamera =
     channels.includes('body') || channels.includes('hands') || channels.includes('object')
   const useAudio = channels.includes('audio')
-  // Pointing a finger at the finish button ends the training without touching the computer. A skill
-  // that is played with the hands is left out: its own pointing finger would press the button.
-  const handControl =
-    useSettings((state) => state.handControl) && useCamera && !channels.includes('hands')
+  // Pointing a finger at the finish button ends the training without touching the computer.
+  const handControl = useSettings((state) => state.handControl) && useCamera
   const handControlRef = useRef<HandControl | null>(null)
   // What the microphone heard last, for the skills that look and listen at once.
   const audioRef = useRef<AudioFeatures | null>(null)
