@@ -13,6 +13,7 @@ import { TrainingRun, type TrainingSnapshot } from '@renderer/engine/trainingRun
 import { localize, t, type MessageKey } from '@renderer/i18n'
 import { voice } from '@renderer/voice'
 import { VoicePolicy } from '@renderer/voice/voicePolicy'
+import { HandControl } from '@renderer/core/handControl'
 import { pickHand } from '@renderer/core/handJoints'
 import { cameraOf } from '@shared/skill/cameraOf'
 import { isGeneratedSkillId } from '@shared/skill/generatedSafety'
@@ -23,6 +24,8 @@ import { CorrectionBand } from '../immersive/CorrectionBand'
 import { RepCounter } from '../immersive/RepCounter'
 import { TunerCard } from '../immersive/TunerCard'
 import { Button } from '../kit/Button'
+import { HandZones } from '../immersive/HandZones'
+import { useHandPointer } from '../handPointerStore'
 import { Icon } from '../kit/Icon'
 import { LevelMeter } from '../LevelMeter'
 import { useNavigation } from '../navigation'
@@ -117,6 +120,9 @@ export function TrainingScreen(): React.JSX.Element {
   const useCamera =
     channels.includes('body') || channels.includes('hands') || channels.includes('object')
   const useAudio = channels.includes('audio')
+  // Pointing a finger at the sides of the picture pauses or finishes without touching the computer.
+  const handControl = useSettings((state) => state.handControl) && useCamera
+  const handControlRef = useRef<HandControl | null>(null)
   // What the microphone heard last, for the skills that look and listen at once.
   const audioRef = useRef<AudioFeatures | null>(null)
   const [levelDb, setLevelDb] = useState(-100)
@@ -182,6 +188,16 @@ export function TrainingScreen(): React.JSX.Element {
     video: HTMLVideoElement
   ): void => {
     if (!skill) return
+    if (handControl) {
+      handControlRef.current ??= new HandControl()
+      const control = handControlRef.current.update(
+        frame.hands?.observations ?? [],
+        frame.timestampMs
+      )
+      useHandPointer.getState().show(control.pointer, control.progress)
+      if (control.fired === 'pause') togglePause()
+      if (control.fired === 'finish') end()
+    }
     const hand = pickHand(frame.hands?.observations ?? [], cameraOf(skill).hand)
     advance(
       {
@@ -252,6 +268,7 @@ export function TrainingScreen(): React.JSX.Element {
 
   // Whatever is being said is cut off when the user leaves the training.
   useEffect(() => () => voice.stop(), [])
+  useEffect(() => () => useHandPointer.getState().clear(), [])
 
   // The stopwatch only runs while the session does.
   useEffect(() => {
@@ -338,10 +355,13 @@ export function TrainingScreen(): React.JSX.Element {
           {useCamera ? (
             <CameraStage
               onFrame={handleFrame}
-              withHands={channels.includes('hands')}
+              withHands={channels.includes('hands') || handControl}
               withObjects={channels.includes('object')}
+              mirrored={handControl}
               videoClassName="max-h-[74vh] rounded-[1.875rem]"
-            ></CameraStage>
+            >
+              {handControl && <HandZones paused={paused} onPause={togglePause} onFinish={end} />}
+            </CameraStage>
           ) : (
             <div className="relative flex w-full max-w-xl flex-col items-center gap-6 p-8">
               <RepCounter count={snapshot.repCount} />

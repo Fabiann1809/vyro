@@ -22,8 +22,12 @@ interface Props {
   withHands?: boolean
   // Look for the object too, which loads the object model.
   withObjects?: boolean
+  // Show the picture as in a mirror, so that a hand moves towards the side where it is seen.
+  mirrored?: boolean
   videoClassName?: string
 }
+
+const MIRROR = { transform: 'scaleX(-1)' } as const
 
 // The camera picture with the skeleton over it, for the screens where the user is tracked.
 export function CameraStage({
@@ -32,6 +36,7 @@ export function CameraStage({
   showDevicePicker,
   withHands = false,
   withObjects = false,
+  mirrored = false,
   videoClassName = 'max-h-[65vh] rounded-lg'
 }: Props): React.JSX.Element {
   const { status, stream, devices, activeDeviceId, errorKind, selectDevice, retry } = useCamera()
@@ -98,11 +103,13 @@ export function CameraStage({
           playsInline
           muted
           className={`block bg-black ${videoClassName}`}
+          style={mirrored ? MIRROR : undefined}
         />
         <canvas
           ref={canvasRef}
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 h-full w-full"
+          style={mirrored ? MIRROR : undefined}
         />
         {children}
       </div>

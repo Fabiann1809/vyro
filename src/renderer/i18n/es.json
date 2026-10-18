@@ -197,6 +197,7 @@
   "calibration.state.fix": "por corregir",
   "calibration.cancel": "Cancelar",
   "training.privacy": "Privado · tu video no se guarda",
+  "training.hand.hold": "Señala con el índice y mantén {seconds} s",
   "training.pause": "Pausa",
   "training.resume": "Continuar",
   "training.end": "Terminar",

@@ -197,6 +197,7 @@
   "calibration.state.fix": "needs fixing",
   "calibration.cancel": "Cancel",
   "training.privacy": "Private · your video is not saved",
+  "training.hand.hold": "Point with your index finger and hold {seconds} s",
   "training.pause": "Pause",
   "training.resume": "Resume",
   "training.end": "Finish",
