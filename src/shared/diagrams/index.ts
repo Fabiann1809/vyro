@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { CHORD_NAMES } from './chords'
 import { NOTE_NAMES } from './keys'
+import { POSE_NAMES } from './poses'
 
 // A diagram that a step may show. It is only a name: the drawing comes from a library checked by
 // hand (D18), so a model cannot make a fingering up, and a name that is not there is rejected.
@@ -19,10 +20,12 @@ export const diagramRefSchema = z.discriminatedUnion('kind', [
         .max(NOTE_NAMES.length)
         .refine((notes) => new Set(notes).size === notes.length, 'Each note only once.')
     })
-    .strict()
+    .strict(),
+  z.object({ kind: z.literal('pose'), name: z.enum(POSE_NAMES) }).strict()
 ])
 
 export type DiagramRef = z.infer<typeof diagramRefSchema>
 
 export { CHORD_NAMES, CHORDS, type ChordName, type ChordShape } from './chords'
 export { isBlackKey, NOTE_NAMES, type NoteName } from './keys'
+export { poseJoints, POSE_NAMES, type PoseJoints, type PoseName } from './poses'

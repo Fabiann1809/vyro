@@ -1,4 +1,4 @@
-import { CHORD_NAMES, MAX_DIAGRAMS, NOTE_NAMES } from '@shared/diagrams'
+import { CHORD_NAMES, MAX_DIAGRAMS, NOTE_NAMES, POSE_NAMES } from '@shared/diagrams'
 import { MAX_TIP_LENGTH, MAX_TIPS } from '@shared/guide'
 import { MAX_PATH_STEPS } from '@shared/paths'
 import { MAX_QUESTIONS, type PlanPathInput } from '@shared/pathPlan'
@@ -51,7 +51,7 @@ export function pathPlannerPrompt(input: PlanPathInput, canAsk: boolean): Outbou
 function guidePrompt(): string[] {
   return [
     `- Every step has a "guide": a few "tips" (1 to ${MAX_TIPS}, each at most ${MAX_TIP_LENGTH} characters, one concrete action each, such as what to do, how many times or what to look for) and "minutes" (about how long the step takes, or null). A guide is REQUIRED in an auxiliary step, because it is the only help the person gets there: say what to do, in simple terms. In a skill step it is optional (set "guide" to null): use it for what the camera or microphone cannot check.`,
-    `- A guide also has "diagrams" (at most ${MAX_DIAGRAMS}, usually an empty list). When a step is about learning guitar chords, add one { "kind": "chord", "name": ... } per chord to learn, using ONLY these names: ${CHORD_NAMES.join(', ')}. The app draws where each finger goes: never describe fingerings in the tips yourself, and never invent a diagram name. When a step is about which piano keys to press (a scale, a chord, a few notes), add one { "kind": "keys", "notes": [...] } with the notes to light, each once, using ONLY these names (sharps, never flats): ${NOTE_NAMES.join(', ')}.`,
+    `- A guide also has "diagrams" (at most ${MAX_DIAGRAMS}, usually an empty list). When a step is about learning guitar chords, add one { "kind": "chord", "name": ... } per chord to learn, using ONLY these names: ${CHORD_NAMES.join(', ')}. The app draws where each finger goes: never describe fingerings in the tips yourself, and never invent a diagram name. When a step is about which piano keys to press (a scale, a chord, a few notes), add one { "kind": "keys", "notes": [...] } with the notes to light, each once, using ONLY these names (sharps, never flats): ${NOTE_NAMES.join(', ')}. For a squat, a push-up or a bicep curl, add { "kind": "pose", "name": ... } with the start and the end of the movement, using ONLY: ${POSE_NAMES.join(', ')}.`,
     '- Tips are general orientation, never a diagnosis or medical advice. Keep them short and safe: gentle ranges of movement, no pain, rest when tired.'
   ]
 }

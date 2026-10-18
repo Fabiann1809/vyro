@@ -46,6 +46,16 @@
     }
   ],
   "guide": {
+    "diagrams": [
+      {
+        "kind": "pose",
+        "name": "curl_down"
+      },
+      {
+        "kind": "pose",
+        "name": "curl_up"
+      }
+    ],
     "tips": [
       {
         "es": "Codos pegados a los costados y las palmas hacia delante.",

@@ -2,6 +2,7 @@ import { t } from '@renderer/i18n'
 import type { DiagramRef } from '@shared/diagrams'
 import { ChordDiagram } from './ChordDiagram'
 import { KeyboardDiagram } from './KeyboardDiagram'
+import { PoseDiagram } from './PoseDiagram'
 
 function Diagram({ diagram }: { diagram: DiagramRef }): React.JSX.Element {
   switch (diagram.kind) {
@@ -9,6 +10,8 @@ function Diagram({ diagram }: { diagram: DiagramRef }): React.JSX.Element {
       return <ChordDiagram name={diagram.name} />
     case 'keys':
       return <KeyboardDiagram notes={diagram.notes} />
+    case 'pose':
+      return <PoseDiagram name={diagram.name} />
   }
 }
 

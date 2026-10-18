@@ -33,6 +33,16 @@
     }
   ],
   "guide": {
+    "diagrams": [
+      {
+        "kind": "pose",
+        "name": "pushup_top"
+      },
+      {
+        "kind": "pose",
+        "name": "pushup_bottom"
+      }
+    ],
     "tips": [
       {
         "es": "Manos bajo los hombros y el cuerpo en una línea desde la cabeza hasta los talones.",

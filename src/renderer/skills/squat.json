@@ -33,6 +33,16 @@
     }
   ],
   "guide": {
+    "diagrams": [
+      {
+        "kind": "pose",
+        "name": "squat_start"
+      },
+      {
+        "kind": "pose",
+        "name": "squat_bottom"
+      }
+    ],
     "tips": [
       {
         "es": "Pies a la anchura de los hombros, con las puntas ligeramente hacia fuera.",

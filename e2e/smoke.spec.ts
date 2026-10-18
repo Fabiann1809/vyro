@@ -1147,6 +1147,9 @@ test.describe('AI coach screen', () => {
     // The skill brings its own guide, with what the app does not check.
     await expect(card('Sentadilla lenta')).toContainText('Pies a la anchura de los hombros')
     await expect(card('Sentadilla lenta')).toContainText('Lo que la app no mide')
+    await expect(
+      card('Sentadilla lenta').getByRole('img', { name: /Abajo: rodillas a unos 90°/ })
+    ).toBeVisible()
     await expect(card('Sentadilla lenta')).toContainText('Aún no has practicado esta habilidad')
     await expect(card('Descansar un día')).toContainText(
       'Se desbloquea al completar el paso anterior'
