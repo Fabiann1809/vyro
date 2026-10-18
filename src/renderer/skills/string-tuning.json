@@ -39,5 +39,35 @@
         "en": "Let the string ring for longer"
       }
     }
-  ]
+  ],
+  "guide": {
+    "tips": [
+      {
+        "es": "Pulsa una sola cuerda y deja que suene hasta el final.",
+        "en": "Pluck one string only and let it ring until it dies away."
+      },
+      {
+        "es": "Lleva la cuerda a la nota subiendo la tensión poco a poco; si te pasas, bájala un poco y vuelve a subir.",
+        "en": "Bring the string up to the note by raising the tension a little at a time; if you overshoot, loosen it and come up again."
+      },
+      {
+        "es": "Cuerdas al aire, de la 6ª a la 1ª: Mi, La, Re, Sol, Si, Mi.",
+        "en": "Open strings, from the 6th to the 1st: E, A, D, G, B, E."
+      },
+      {
+        "es": "Busca un lugar silencioso y acerca el micrófono a la guitarra.",
+        "en": "Find a quiet place and bring the microphone close to the guitar."
+      }
+    ],
+    "notMeasured": [
+      {
+        "es": "Qué cuerda estás tocando: la app oye la nota, no sabe cuál es tu cuerda.",
+        "en": "Which string you are playing: the app hears the note, it does not know which string it is."
+      },
+      {
+        "es": "Si la cuerda es nueva y aún se estira, se volverá a desafinar.",
+        "en": "If the string is new and still stretching, it will go out of tune again."
+      }
+    ]
+  }
 }

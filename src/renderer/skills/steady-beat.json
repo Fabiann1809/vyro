@@ -30,5 +30,35 @@
         "en": "You are dragging: speed up a little"
       }
     }
-  ]
+  ],
+  "guide": {
+    "tips": [
+      {
+        "es": "Marca el pulso con un golpe seco y claro: una palmada, una nota o un golpe en la mesa.",
+        "en": "Mark the beat with a short, clear sound: a clap, a note or a tap on the table."
+      },
+      {
+        "es": "Cuenta en voz baja 1, 2, 3, 4 para mantener el compás.",
+        "en": "Count quietly 1, 2, 3, 4 to keep the bar."
+      },
+      {
+        "es": "Si te aceleras, respira y vuelve al tempo en el siguiente golpe.",
+        "en": "If you rush, breathe and come back to the tempo on the next beat."
+      },
+      {
+        "es": "Busca un lugar silencioso para que el micrófono oiga solo tus golpes.",
+        "en": "Find a quiet place so the microphone hears only your beats."
+      }
+    ],
+    "notMeasured": [
+      {
+        "es": "Si cada golpe cae justo en su tiempo: la app mide el ritmo medio, no cada golpe.",
+        "en": "Whether each beat lands exactly on time: the app measures the average pace, not each beat."
+      },
+      {
+        "es": "Si los acentos (golpes más fuertes) están donde deben.",
+        "en": "Whether the accents (stronger beats) are where they should be."
+      }
+    ]
+  }
 }

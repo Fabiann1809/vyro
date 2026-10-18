@@ -5,6 +5,8 @@ import type { SkillChannel } from '@shared/skill/skillChannels'
 import { ChannelChips } from '../kit/ChannelChip'
 import { Icon } from '../kit/Icon'
 import { skillDisplayName } from '../skillName'
+import { findSkill } from '../skillsStore'
+import { SkillGuide } from './SkillGuide'
 import { StepGuide } from './StepGuide'
 
 const formatDay = (timestamp: number): string =>
@@ -35,6 +37,7 @@ export function StepRow({
   last: boolean
 }): React.JSX.Element {
   const auxiliary = step.kind === 'auxiliary'
+  const skillGuide = step.kind === 'skill' ? findSkill(step.skillId)?.guide : undefined
   const done = state === 'done'
   const current = state === 'current'
   const locked = state === 'locked'
@@ -102,6 +105,9 @@ export function StepRow({
         {step.description !== '' && <p className="text-sm text-t4">{step.description}</p>}
 
         {step.guide && !done && <StepGuide guide={step.guide} open={current} />}
+        {step.kind === 'skill' && !done && skillGuide && (
+          <SkillGuide guide={skillGuide} open={current} />
+        )}
 
         {step.kind === 'skill' && (
           <p className="text-[0.8125rem] text-mut">

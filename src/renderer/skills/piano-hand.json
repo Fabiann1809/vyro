@@ -47,5 +47,39 @@
         "en": "Do not close your finger so much"
       }
     }
-  ]
+  ],
+  "guide": {
+    "tips": [
+      {
+        "es": "Imagina que sostienes una pelota pequeña: dedos curvados, sin aplanarlos.",
+        "en": "Imagine holding a small ball: fingers curved, not flat."
+      },
+      {
+        "es": "Muñeca a la altura de los nudillos, ni caída ni levantada.",
+        "en": "Wrist level with your knuckles, neither dropped nor raised."
+      },
+      {
+        "es": "Pulsa con la yema del dedo, sin clavar la uña.",
+        "en": "Press with the pad of your finger, not the nail."
+      },
+      {
+        "es": "Colócate de perfil a la cámara, con la mano sobre el teclado a la vista.",
+        "en": "Sit side-on to the camera with your hand on the keyboard in view."
+      }
+    ],
+    "notMeasured": [
+      {
+        "es": "Qué dedo usas en cada tecla.",
+        "en": "Which finger you use on each key."
+      },
+      {
+        "es": "Que el pulgar quede relajado a un lado de la mano.",
+        "en": "That your thumb stays relaxed at the side of your hand."
+      },
+      {
+        "es": "Que no haya tensión en el antebrazo ni en el hombro.",
+        "en": "That there is no tension in your forearm or shoulder."
+      }
+    ]
+  }
 }

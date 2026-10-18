@@ -44,5 +44,39 @@
       "check": "ascentMs >= 600",
       "message": { "es": "Baja más despacio", "en": "Lower the weight more slowly" }
     }
-  ]
+  ],
+  "guide": {
+    "tips": [
+      {
+        "es": "Codos pegados a los costados y las palmas hacia delante.",
+        "en": "Elbows at your sides and palms facing forward."
+      },
+      {
+        "es": "Sube la pesa sin balancear el cuerpo y bájala despacio, sin soltarla de golpe.",
+        "en": "Lift the weight without swinging your body and lower it slowly, never dropping it."
+      },
+      {
+        "es": "Elige un peso con el que puedas hacer todas las repeticiones con control.",
+        "en": "Choose a weight you can lift for every repetition with control."
+      },
+      {
+        "es": "Colócate de perfil a la cámara, con el brazo que trabaja a la vista.",
+        "en": "Stand side-on to the camera with the working arm in view."
+      }
+    ],
+    "notMeasured": [
+      {
+        "es": "Que las muñecas no se doblen hacia atrás.",
+        "en": "That your wrists do not bend backward."
+      },
+      {
+        "es": "Que los hombros no se encojan ni se adelanten.",
+        "en": "That your shoulders do not shrug or roll forward."
+      },
+      {
+        "es": "Que respires de forma continua, sin aguantar el aire.",
+        "en": "That you keep breathing and do not hold your breath."
+      }
+    ]
+  }
 }

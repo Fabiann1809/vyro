@@ -31,5 +31,39 @@
       "check": "descentMs >= 500",
       "message": { "es": "Baja más despacio", "en": "Lower yourself more slowly" }
     }
-  ]
+  ],
+  "guide": {
+    "tips": [
+      {
+        "es": "Pies a la anchura de los hombros, con las puntas ligeramente hacia fuera.",
+        "en": "Feet shoulder-width apart, toes turned slightly out."
+      },
+      {
+        "es": "Baja como si te sentaras hacia atrás, con el pecho alto y la mirada al frente.",
+        "en": "Lower as if sitting back, chest up and eyes forward."
+      },
+      {
+        "es": "Sube empujando el suelo con toda la planta del pie.",
+        "en": "Stand up by pushing the floor away with your whole foot."
+      },
+      {
+        "es": "Colócate de perfil a la cámara, con el cuerpo entero a la vista.",
+        "en": "Stand side-on to the camera with your whole body in view."
+      }
+    ],
+    "notMeasured": [
+      {
+        "es": "Que las rodillas sigan la dirección de los pies y no se vayan hacia dentro.",
+        "en": "That your knees follow the line of your feet and do not collapse inward."
+      },
+      {
+        "es": "Que los talones no se levanten del suelo.",
+        "en": "That your heels stay on the floor."
+      },
+      {
+        "es": "Que la zona lumbar no se redondee al bajar.",
+        "en": "That your lower back does not round as you go down."
+      }
+    ]
+  }
 }

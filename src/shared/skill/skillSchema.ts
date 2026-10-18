@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import { diagramRefSchema, MAX_DIAGRAMS } from '../diagrams'
+import { MAX_TIP_LENGTH, MAX_TIPS } from '../guide'
 import { ANY_JOINT_NAMES } from './joints'
 import { DETECTABLE_OBJECTS } from './objects'
 import { isAudioMetric, isObjectMetric } from './skillChannels'
@@ -46,6 +48,25 @@ const localizedText = z
   .object({
     es: z.string().trim().min(1, 'the Spanish text is required'),
     en: z.string().trim().min(1, 'the English text is required')
+  })
+  .strict()
+
+// A short line of advice, in both languages.
+const localizedTip = z
+  .object({
+    es: z.string().trim().min(1, 'the Spanish text is required').max(MAX_TIP_LENGTH),
+    en: z.string().trim().min(1, 'the English text is required').max(MAX_TIP_LENGTH)
+  })
+  .strict()
+
+// What helps to learn the skill, written by hand for the skills that come with the app: how to
+// do it, what the app does NOT check (so the person knows what is left to them) and the drawings
+// that go with it, by name (D18).
+const skillGuide = z
+  .object({
+    tips: z.array(localizedTip).min(1).max(MAX_TIPS),
+    notMeasured: z.array(localizedTip).max(4).default([]),
+    diagrams: z.array(diagramRefSchema).max(MAX_DIAGRAMS).default([])
   })
   .strict()
 
@@ -197,7 +218,8 @@ export const skillConfigSchema = z
         minDurationMs: z.number().int().positive()
       })
       .strict(),
-    rules: z.array(rule).min(1, 'needs at least one rule')
+    rules: z.array(rule).min(1, 'needs at least one rule'),
+    guide: skillGuide.optional()
   })
   .strict()
   .superRefine((skill, ctx) => {

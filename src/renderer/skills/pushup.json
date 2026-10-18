@@ -31,5 +31,39 @@
       "check": "descentMs >= 400",
       "message": { "es": "Baja más despacio", "en": "Lower yourself more slowly" }
     }
-  ]
+  ],
+  "guide": {
+    "tips": [
+      {
+        "es": "Manos bajo los hombros y el cuerpo en una línea desde la cabeza hasta los talones.",
+        "en": "Hands under your shoulders and your body in one line from head to heels."
+      },
+      {
+        "es": "Baja el pecho hasta quedar a unos centímetros del suelo, con los codos a unos 45° del cuerpo.",
+        "en": "Lower your chest to a few centimetres from the floor, with your elbows about 45° from your body."
+      },
+      {
+        "es": "Si es muy duro, apoya las rodillas o las manos en un banco o en la pared.",
+        "en": "If it is too hard, rest your knees or put your hands on a bench or a wall."
+      },
+      {
+        "es": "Colócate de perfil a la cámara, con el cuerpo entero a la vista.",
+        "en": "Stand side-on to the camera with your whole body in view."
+      }
+    ],
+    "notMeasured": [
+      {
+        "es": "Que los codos no se abran demasiado hacia los lados.",
+        "en": "That your elbows do not flare out too far."
+      },
+      {
+        "es": "Que el cuello quede neutro y no mires hacia delante.",
+        "en": "That your neck stays neutral and you do not look up ahead."
+      },
+      {
+        "es": "Que los hombros no se encojan hacia las orejas.",
+        "en": "That your shoulders do not shrug up toward your ears."
+      }
+    ]
+  }
 }

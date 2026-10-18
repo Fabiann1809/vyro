@@ -58,5 +58,41 @@
         "en": "Press the key more firmly"
       }
     }
-  ]
+  ],
+  "guide": {
+    "tips": [
+      {
+        "es": "Busca el Do central, la tecla blanca justo a la izquierda de las dos teclas negras juntas, cerca del centro del teclado.",
+        "en": "Find middle C, the white key just left of the pair of black keys, near the middle of the keyboard."
+      },
+      {
+        "es": "Curva los dedos como si sostuvieras una pelota pequeña.",
+        "en": "Curve your fingers as if holding a small ball."
+      },
+      {
+        "es": "Pulsa con la yema del dedo y con la muñeca a la altura de los nudillos.",
+        "en": "Press with the pad of your finger and keep your wrist level with your knuckles."
+      },
+      {
+        "es": "Colócate de perfil a la cámara, con la mano sobre el teclado a la vista.",
+        "en": "Sit side-on to the camera with your hand on the keyboard in view."
+      }
+    ],
+    "notMeasured": [
+      {
+        "es": "Qué dedo usas para pulsar la tecla.",
+        "en": "Which finger you use to press the key."
+      },
+      {
+        "es": "Que el hombro y el antebrazo estén relajados.",
+        "en": "That your shoulder and forearm are relaxed."
+      }
+    ],
+    "diagrams": [
+      {
+        "kind": "keys",
+        "notes": ["C"]
+      }
+    ]
+  }
 }

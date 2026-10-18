@@ -10,6 +10,32 @@ function problemsWith(overrides: Record<string, unknown>): string[] {
     : result.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`)
 }
 
+describe('the guide of a skill', () => {
+  const tip = { es: 'Baja despacio.', en: 'Go down slowly.' }
+
+  it('is optional, and its lists have no entries when left out', () => {
+    expect(skillConfigSchema.parse(validSkill).guide).toBeUndefined()
+
+    const guide = skillConfigSchema.parse({ ...validSkill, guide: { tips: [tip] } }).guide
+    expect(guide).toEqual({ tips: [tip], notMeasured: [], diagrams: [] })
+  })
+
+  it.each([
+    ['no tips', { tips: [] }],
+    ['more than five tips', { tips: Array(6).fill(tip) }],
+    ['a tip without its English text', { tips: [{ es: 'Baja despacio.' }] }],
+    ['a tip that is too long', { tips: [{ es: 'x'.repeat(161), en: 'x' }] }],
+    ['more than four things not measured', { tips: [tip], notMeasured: Array(5).fill(tip) }],
+    [
+      'a diagram that is not in the library',
+      { tips: [tip], diagrams: [{ kind: 'chord', name: 'Zz' }] }
+    ],
+    ['a field that is not listed', { tips: [tip], video: 'x' }]
+  ])('rejects %s', (_name, guide) => {
+    expect(problemsWith({ guide }).length).toBeGreaterThan(0)
+  })
+})
+
 describe('skillConfigSchema', () => {
   it('accepts a valid skill', () => {
     expect(skillConfigSchema.safeParse(validSkill).success).toBe(true)

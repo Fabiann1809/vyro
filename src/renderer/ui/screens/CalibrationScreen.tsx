@@ -34,6 +34,7 @@ import { Button } from '../kit/Button'
 import { Icon } from '../kit/Icon'
 import { LevelMeter } from '../LevelMeter'
 import { returnTarget, useNavigation } from '../navigation'
+import { SkillGuide } from '../route/SkillGuide'
 import { useSession } from '../sessionStore'
 import { useSkills } from '../skillsStore'
 import { useMicrophoneFeatures } from '../useMicrophoneFeatures'
@@ -389,6 +390,7 @@ export function CalibrationScreen(): React.JSX.Element {
 
         <div className="flex w-95 shrink-0 flex-col gap-3.5 overflow-y-auto">
           <ChecksPanel checks={report.checks} />
+          {skill.guide && <SkillGuide guide={skill.guide} open={false} />}
           {useCamera &&
             useAudio &&
             (microphone.status === 'listening' || microphone.status === 'error') && (

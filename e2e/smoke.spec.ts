@@ -289,6 +289,10 @@ test('groups the checks of the calibration by what is watched, and leaves with E
     groups.filter({ hasText: 'Ruido de la sala' }).getByText('Audio', { exact: true })
   ).toBeVisible()
 
+  // The guide of the skill is there, folded, and opens to what the app does not check.
+  await page.getByText('Antes de empezar', { exact: true }).click()
+  await expect(page.getByText('Que los hombros, el cuello y la mano que rasguea')).toBeVisible()
+
   await page.keyboard.press('Escape')
   await expect(nav(page, 'Biblioteca')).toHaveAttribute('aria-current', 'page')
 })
@@ -1140,6 +1144,9 @@ test.describe('AI coach screen', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Mi ruta' })).toBeVisible()
     await expect(page.getByText('Pasos hechos: 0 de 3')).toBeVisible()
     await expect(card('Sentadilla lenta')).toHaveAttribute('aria-current', 'step')
+    // The skill brings its own guide, with what the app does not check.
+    await expect(card('Sentadilla lenta')).toContainText('Pies a la anchura de los hombros')
+    await expect(card('Sentadilla lenta')).toContainText('Lo que la app no mide')
     await expect(card('Sentadilla lenta')).toContainText('Aún no has practicado esta habilidad')
     await expect(card('Descansar un día')).toContainText(
       'Se desbloquea al completar el paso anterior'

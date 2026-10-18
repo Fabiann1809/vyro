@@ -15,4 +15,15 @@ describe('bundled skills', () => {
       'string_tuning'
     ])
   })
+
+  it('gives every exercise a guide, with what the app does not check, in both languages', () => {
+    for (const skill of bundledSkills.skills) {
+      expect(skill.guide, skill.id).toBeDefined()
+      expect(skill.guide?.tips.length, skill.id).toBeGreaterThanOrEqual(3)
+      expect(skill.guide?.notMeasured.length, skill.id).toBeGreaterThanOrEqual(2)
+      for (const line of [...(skill.guide?.tips ?? []), ...(skill.guide?.notMeasured ?? [])]) {
+        expect(line.es, skill.id).not.toBe(line.en)
+      }
+    }
+  })
 })

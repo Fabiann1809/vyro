@@ -68,5 +68,43 @@
         "en": "The note sounds out of tune: adjust the string"
       }
     }
-  ]
+  ],
+  "guide": {
+    "tips": [
+      {
+        "es": "Siéntate al borde de la silla, con la espalda recta y los pies apoyados en el suelo.",
+        "en": "Sit at the edge of the chair with a straight back and your feet flat on the floor."
+      },
+      {
+        "es": "Apoya el cuerpo de la guitarra sobre la pierna y deja el mástil casi horizontal.",
+        "en": "Rest the body of the guitar on your leg and keep the neck almost level."
+      },
+      {
+        "es": "Mantén recta la muñeca de la mano del mástil, sin doblarla.",
+        "en": "Keep the wrist of the hand on the neck straight, without bending it."
+      },
+      {
+        "es": "Pon la cámara de frente, con tu torso, tu mano y la guitarra a la vista.",
+        "en": "Put the camera in front of you with your torso, your hand and the guitar in view."
+      },
+      {
+        "es": "Afina antes de empezar. Cuerdas al aire, de la 6ª a la 1ª: Mi, La, Re, Sol, Si, Mi.",
+        "en": "Tune before you start. Open strings, from the 6th to the 1st: E, A, D, G, B, E."
+      }
+    ],
+    "notMeasured": [
+      {
+        "es": "Que el pulgar quede detrás del mástil y no lo rodee por delante.",
+        "en": "That your thumb stays behind the neck and does not wrap around the front."
+      },
+      {
+        "es": "Que los dedos pisen con la yema y cerca del traste.",
+        "en": "That your fingers press with the tips and close to the fret."
+      },
+      {
+        "es": "Que los hombros, el cuello y la mano que rasguea estén relajados.",
+        "en": "That your shoulders, neck and strumming hand are relaxed."
+      }
+    ]
+  }
 }
