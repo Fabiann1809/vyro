@@ -1079,7 +1079,11 @@ test.describe('AI coach screen', () => {
             skillId: null,
             criterionSessions: null,
             criterionScore: null,
-            guide: { tips: ['Hazlo despacio y sin dolor.', 'Respira con calma.'], minutes: 5 }
+            guide: {
+              tips: ['Hazlo despacio y sin dolor.', 'Respira con calma.'],
+              minutes: 5,
+              diagrams: [{ kind: 'chord', name: 'G' }]
+            }
           },
           {
             title: 'Flexiones controladas',
@@ -1158,6 +1162,9 @@ test.describe('AI coach screen', () => {
     // The step that cannot be measured says how to do it: open when it is next, with the notice.
     await expect(card('Descansar un día').getByText('Hazlo despacio y sin dolor.')).toBeVisible()
     await expect(card('Descansar un día')).toContainText('unos 5 min')
+    await expect(
+      card('Descansar un día').getByRole('img', { name: /Acorde G\..*cuerda 6: traste 3, dedo 2/ })
+    ).toBeVisible()
     await expect(card('Descansar un día')).toContainText('no sustituye a un profesional')
     await expect(
       card('Descansar un día').getByRole('button', { name: 'Marcar como hecho' })

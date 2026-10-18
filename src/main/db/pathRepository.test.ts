@@ -77,7 +77,11 @@ describe('PathRepository', () => {
   })
 
   it('keeps the guide of a step, and reads a damaged one as no guide', () => {
-    const guide = { tips: ['Círculos de cadera, diez por lado.'], minutes: 5 }
+    const guide = {
+      tips: ['Círculos de cadera, diez por lado.'],
+      minutes: 5,
+      diagrams: [{ kind: 'chord' as const, name: 'Am' as const }]
+    }
     const id = repository.create(
       { goal: 'Con pautas', steps: [skillStep('squat'), { ...auxiliaryStep('Calentar'), guide }] },
       1_000

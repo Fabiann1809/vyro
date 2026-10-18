@@ -1,4 +1,4 @@
-import { guideSchema, type Guide } from '@shared/guide'
+import { guideSchema, type Guide, type GuideInput } from '@shared/guide'
 import type { Adjustment } from '@shared/pathReview'
 import type {
   LearningPath,
@@ -41,7 +41,7 @@ const readGuide = (json: string | null): Guide | null => {
   }
 }
 
-const guideJson = (guide: Guide | null | undefined): string | null =>
+const guideJson = (guide: GuideInput | null | undefined): string | null =>
   guide ? JSON.stringify(guide) : null
 
 const toStep = (row: StepDbRow): PathStep => {

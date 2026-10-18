@@ -135,6 +135,26 @@ describe('a path for a skill that can be coached', () => {
     })
   })
 
+  it('asks again when a diagram is not in the library, and tells the model the names', async () => {
+    const withDiagram = (name: string): unknown => ({
+      ...restStep,
+      guide: { ...restStep.guide, diagrams: [{ kind: 'chord', name }] }
+    })
+    const model = scriptedModel(
+      proposal([skillStep('squat'), withDiagram('Zm9')]),
+      proposal([skillStep('squat'), withDiagram('Am')])
+    )
+
+    const result = await generatePathTurn(model, input([user('Quiero mejorar')]))
+
+    expect(model.requests[1]?.messages.at(-1)?.content).toContain('diagrams')
+    expect(result).toMatchObject({
+      kind: 'path',
+      path: { steps: [{}, { guide: { diagrams: [{ kind: 'chord', name: 'Am' }] } }] }
+    })
+    expect(String(model.requests[0]?.system)).toContain('Asus2, B7, Bm')
+  })
+
   it('asks for at least one skill step, since a path of rests measures nothing', async () => {
     const model = scriptedModel(proposal([restStep, restStep]), proposal([skillStep('squat')]))
 

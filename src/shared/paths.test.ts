@@ -51,7 +51,10 @@ describe('the guide of a step', () => {
 
   it('is optional, and a step without it reads back with null', () => {
     expect(pathStepToSaveSchema.parse(auxiliary).guide).toBeNull()
-    expect(pathStepToSaveSchema.parse({ ...auxiliary, guide }).guide).toEqual(guide)
+    expect(pathStepToSaveSchema.parse({ ...auxiliary, guide }).guide).toEqual({
+      ...guide,
+      diagrams: []
+    })
   })
 
   it.each([
@@ -64,6 +67,32 @@ describe('the guide of a step', () => {
     ['a field that is not listed', { tips: ['x'], minutes: 5, video: 'x' }]
   ])('rejects %s', (_name, bad) => {
     expect(pathStepToSaveSchema.safeParse({ ...auxiliary, guide: bad }).success).toBe(false)
+  })
+
+  it('keeps the diagrams that are named, and refuses a name that is not in the library', () => {
+    const chord = { kind: 'chord', name: 'G' }
+
+    expect(
+      pathStepToSaveSchema.parse({ ...auxiliary, guide: { ...guide, diagrams: [chord] } }).guide
+        ?.diagrams
+    ).toEqual([chord])
+    for (const bad of [
+      { kind: 'chord', name: 'H' },
+      { kind: 'chord', name: 'g' },
+      { kind: 'chord', frets: [0, 0, 0, 0, 0, 0] },
+      { kind: 'photo', name: 'G' }
+    ]) {
+      expect(
+        pathStepToSaveSchema.safeParse({ ...auxiliary, guide: { ...guide, diagrams: [bad] } })
+          .success
+      ).toBe(false)
+    }
+    expect(
+      pathStepToSaveSchema.safeParse({
+        ...auxiliary,
+        guide: { ...guide, diagrams: Array(5).fill(chord) }
+      }).success
+    ).toBe(false)
   })
 
   it('accepts no fixed time', () => {
