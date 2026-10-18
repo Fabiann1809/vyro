@@ -77,6 +77,14 @@ describe('evaluateHandFraming', () => {
     expect(evaluate({ hands: [], luminance: 20 }).instruction).toBe('moreLight')
   })
 
+  it('asks for less light when the picture is washed out', () => {
+    expect(evaluate({ luminance: 230 })).toMatchObject({
+      lighting: 'fix',
+      instruction: 'lessLight'
+    })
+    expect(evaluate({ hands: [], luminance: 230 }).instruction).toBe('lessLight')
+  })
+
   it('waits for the light to be measured', () => {
     expect(evaluate({ luminance: null })).toMatchObject({ lighting: 'pending', instruction: null })
   })

@@ -4,7 +4,13 @@ import { joint, pickVisibleSide, type JointName, type Side } from './side'
 export type CheckState = 'pending' | 'ok' | 'fix'
 
 export type FramingInstruction =
-  'stepIntoView' | 'showFullBody' | 'moveBack' | 'moveCloser' | 'turnSideways' | 'moreLight'
+  | 'stepIntoView'
+  | 'showFullBody'
+  | 'moveBack'
+  | 'moveCloser'
+  | 'turnSideways'
+  | 'moreLight'
+  | 'lessLight'
 
 export interface FramingReport {
   fullBody: CheckState
@@ -30,7 +36,25 @@ const UPPER_BODY_SPAN = { min: 0.2, max: 0.6 }
 // A joint closer than this to the edge is probably cut off by the frame.
 const EDGE_MARGIN = 0.02
 
-export const MIN_LUMINANCE = 60
+const MIN_LUMINANCE = 60
+// A picture this bright is washed out: the camera loses the edges of the hand and the body.
+const MAX_LUMINANCE = 200
+
+type LightProblem = 'dark' | 'bright'
+
+function lightProblem(luminance: number | null): LightProblem | null {
+  if (luminance === null) return null
+  if (luminance < MIN_LUMINANCE) return 'dark'
+  return luminance > MAX_LUMINANCE ? 'bright' : null
+}
+
+export const lightState = (luminance: number | null): CheckState =>
+  luminance === null ? 'pending' : lightProblem(luminance) ? 'fix' : 'ok'
+
+export const lightInstruction = (luminance: number | null): 'moreLight' | 'lessLight' | null => {
+  const problem = lightProblem(luminance)
+  return problem === null ? null : problem === 'dark' ? 'moreLight' : 'lessLight'
+}
 
 // In profile the shoulders overlap: their gap is small next to the length of the torso.
 const MAX_PROFILE_SHOULDER_RATIO = 0.35
@@ -88,9 +112,10 @@ function profileState(
 
 function firstInstruction(
   report: Omit<FramingReport, 'instruction'>,
+  light: FramingInstruction | null,
   close: boolean
 ): FramingInstruction | null {
-  if (report.lighting === 'fix') return 'moreLight'
+  if (light) return light
   if (report.fullBody === 'pending') return 'stepIntoView'
   if (report.fullBody === 'fix') return 'showFullBody'
   if (report.distance === 'fix') return close ? 'moveBack' : 'moveCloser'
@@ -101,8 +126,8 @@ function firstInstruction(
 // Says whether the person is well placed in front of the camera, and what to fix first.
 export function evaluateFraming(input: FramingInput): FramingReport {
   const { landmarks, luminance, frameSize, camera } = input
-  const lighting: CheckState =
-    luminance === null ? 'pending' : luminance < MIN_LUMINANCE ? 'fix' : 'ok'
+  const lighting = lightState(luminance)
+  const light = lightInstruction(luminance)
   const side = pickVisibleSide(landmarks)
 
   if (!landmarks || !side) {
@@ -112,7 +137,7 @@ export function evaluateFraming(input: FramingInput): FramingReport {
       distance: 'pending',
       lighting
     } as const
-    return { ...report, instruction: firstInstruction(report, false) }
+    return { ...report, instruction: firstInstruction(report, light, false) }
   }
 
   const names = camera.fullBody ? FULL_BODY_JOINTS : UPPER_BODY_JOINTS
@@ -130,5 +155,5 @@ export function evaluateFraming(input: FramingInput): FramingReport {
   } as const
 
   const close = complete && tooClose(body, span)
-  return { ...report, instruction: firstInstruction(report, close) }
+  return { ...report, instruction: firstInstruction(report, light, close) }
 }

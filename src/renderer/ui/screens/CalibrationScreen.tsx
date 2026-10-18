@@ -50,6 +50,7 @@ const INSTRUCTION: Record<Instruction, MessageKey> = {
   moveCloser: 'calibration.instruction.moveCloser',
   turnSideways: 'calibration.instruction.turnSideways',
   moreLight: 'calibration.instruction.moreLight',
+  lessLight: 'calibration.instruction.lessLight',
   showHands: 'calibration.instruction.showHands',
   showWholeHand: 'calibration.instruction.showWholeHand',
   handsCloser: 'calibration.instruction.handsCloser',

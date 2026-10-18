@@ -123,6 +123,12 @@ describe('evaluateFraming', () => {
     expect(report).toMatchObject({ lighting: 'fix', instruction: 'moreLight' })
   })
 
+  it('asks for less light when the picture is washed out', () => {
+    const report = framing({ luminance: 230, landmarks: person({ shoulderGapPx: 150 }) })
+
+    expect(report).toMatchObject({ lighting: 'fix', instruction: 'lessLight' })
+  })
+
   it('does not judge the light until it has been measured', () => {
     expect(framing({ luminance: null }).lighting).toBe('pending')
   })

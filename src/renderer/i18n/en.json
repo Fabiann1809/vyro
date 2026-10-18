@@ -168,6 +168,7 @@
   "calibration.instruction.moveCloser": "Come a little closer",
   "calibration.instruction.turnSideways": "Turn sideways",
   "calibration.instruction.moreLight": "I need more light",
+  "calibration.instruction.lessLight": "There is too much light: dim it or turn the camera away from the window",
   "calibration.instruction.showHands": "Show your hand to the camera",
   "calibration.instruction.showWholeHand": "Keep your whole hand in view, all the fingers",
   "calibration.instruction.handsCloser": "Bring your hand a little closer",

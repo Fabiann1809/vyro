@@ -1,9 +1,9 @@
-import { MIN_LUMINANCE, type CheckState } from './framing'
+import { lightInstruction, lightState, type CheckState } from './framing'
 import { pickHand } from './handJoints'
 import type { HandObservation, Handedness } from './handFrame'
 
 export type HandInstruction =
-  'showHands' | 'showWholeHand' | 'handsCloser' | 'handsBack' | 'moreLight'
+  'showHands' | 'showWholeHand' | 'handsCloser' | 'handsBack' | 'moreLight' | 'lessLight'
 
 export interface HandFramingReport {
   hands: CheckState
@@ -49,8 +49,8 @@ const isWhole = (hand: HandObservation): boolean =>
 // Says whether the hand is well placed in front of the camera, and what to fix first.
 export function evaluateHandFraming(input: HandFramingInput): HandFramingReport {
   const { luminance, frameSize } = input
-  const lighting: CheckState =
-    luminance === null ? 'pending' : luminance < MIN_LUMINANCE ? 'fix' : 'ok'
+  const lighting = lightState(luminance)
+  const light = lightInstruction(luminance)
   const hand = pickHand(input.hands, input.preference)
 
   if (!hand) {
@@ -58,7 +58,7 @@ export function evaluateHandFraming(input: HandFramingInput): HandFramingReport 
       hands: 'pending',
       distance: 'pending',
       lighting,
-      instruction: lighting === 'fix' ? 'moreLight' : 'showHands'
+      instruction: light ?? 'showHands'
     }
   }
 
@@ -72,7 +72,7 @@ export function evaluateHandFraming(input: HandFramingInput): HandFramingReport 
   const report = { hands: whole ? 'ok' : 'fix', distance, lighting } as const
 
   let instruction: HandInstruction | null = null
-  if (lighting === 'fix') instruction = 'moreLight'
+  if (light) instruction = light
   else if (!whole) instruction = 'showWholeHand'
   else if (distance === 'fix') instruction = size < HAND_SPAN.min ? 'handsCloser' : 'handsBack'
   return { ...report, instruction }
