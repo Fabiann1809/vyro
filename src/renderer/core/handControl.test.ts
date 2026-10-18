@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { HandObservation } from './handFrame'
 import { HAND_LANDMARK as H, type Landmark } from './landmarks'
-import { HandControl, HOLD_MS } from './handControl'
+import { FINISH_HOLD_MS, HandControl } from './handControl'
 
 // A hand that points with the tip of the index at (tipX, tipY) of the picture, as the camera sees
 // it (not mirrored): the other fingers are folded.
@@ -45,6 +45,7 @@ const openHand = (): HandObservation => {
 // The camera sees the person's left side of the screen on the right of the picture.
 const CAMERA_RIGHT = 0.9
 const CAMERA_LEFT = 0.1
+const CORNER_Y = 0.05
 
 describe('HandControl', () => {
   it('mirrors the pointer, because the person sees the picture as in a mirror', () => {
@@ -56,23 +57,28 @@ describe('HandControl', () => {
     expect(state.pointer?.y).toBeCloseTo(0.4)
   })
 
-  it('pauses when the finger stays on the zone at the left of what the person sees', () => {
+  it('finishes when the finger stays on the corner at the top left of what the person sees', () => {
     const control = new HandControl()
-    control.update([pointingHand(CAMERA_RIGHT)], 0)
+    control.update([pointingHand(CAMERA_RIGHT, CORNER_Y)], 0)
 
-    const half = control.update([pointingHand(CAMERA_RIGHT)], HOLD_MS.pause / 2)
-    expect(half.progress.pause).toBeCloseTo(0.5)
-    expect(half.fired).toBeNull()
+    const half = control.update([pointingHand(CAMERA_RIGHT, CORNER_Y)], FINISH_HOLD_MS / 2)
+    expect(half.progress).toBeCloseTo(0.5)
+    expect(half.finished).toBe(false)
 
-    expect(control.update([pointingHand(CAMERA_RIGHT)], HOLD_MS.pause).fired).toBe('pause')
+    expect(control.update([pointingHand(CAMERA_RIGHT, CORNER_Y)], FINISH_HOLD_MS).finished).toBe(
+      true
+    )
   })
 
-  it('finishes only after the longer hold, on the other side', () => {
+  it('does not finish from the other side or from below the corner', () => {
     const control = new HandControl()
-    control.update([pointingHand(CAMERA_LEFT)], 0)
 
-    expect(control.update([pointingHand(CAMERA_LEFT)], HOLD_MS.pause).fired).toBeNull()
-    expect(control.update([pointingHand(CAMERA_LEFT)], HOLD_MS.finish).fired).toBe('finish')
+    for (let time = 0; time <= 4000; time += 100) {
+      expect(control.update([pointingHand(CAMERA_LEFT, CORNER_Y)], time).finished).toBe(false)
+    }
+    for (let time = 5000; time <= 9000; time += 100) {
+      expect(control.update([pointingHand(CAMERA_RIGHT, 0.5)], time).finished).toBe(false)
+    }
   })
 
   it('does nothing with an open hand, with no hand, or in the middle of the picture', () => {
@@ -83,7 +89,7 @@ describe('HandControl', () => {
         [openHand(), ...(time % 200 === 0 ? [] : [pointingHand(0.5)])],
         time
       )
-      expect(state.fired).toBeNull()
+      expect(state.finished).toBe(false)
     }
     expect(control.update([], 6000).pointer).toBeNull()
   })

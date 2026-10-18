@@ -24,7 +24,7 @@ import { CorrectionBand } from '../immersive/CorrectionBand'
 import { RepCounter } from '../immersive/RepCounter'
 import { TunerCard } from '../immersive/TunerCard'
 import { Button } from '../kit/Button'
-import { HandZones } from '../immersive/HandZones'
+import { FinishButton } from '../immersive/FinishButton'
 import { useHandPointer } from '../handPointerStore'
 import { Icon } from '../kit/Icon'
 import { LevelMeter } from '../LevelMeter'
@@ -109,7 +109,6 @@ export function TrainingScreen(): React.JSX.Element {
   const [startedAt] = useState(() => Date.now())
   const [snapshot, setSnapshot] = useState<TrainingSnapshot>(EMPTY)
   const [banner, setBanner] = useState<Banner | null>(null)
-  const [paused, setPaused] = useState(false)
   const [elapsedMs, setElapsedMs] = useState(0)
   // While true, the next repetition that is completed is the one the skill is adjusted to.
   const [adjusting, setAdjusting] = useState(false)
@@ -120,7 +119,7 @@ export function TrainingScreen(): React.JSX.Element {
   const useCamera =
     channels.includes('body') || channels.includes('hands') || channels.includes('object')
   const useAudio = channels.includes('audio')
-  // Pointing a finger at the sides of the picture pauses or finishes without touching the computer.
+  // Pointing a finger at the finish button ends the training without touching the computer.
   const handControl = useSettings((state) => state.handControl) && useCamera
   const handControlRef = useRef<HandControl | null>(null)
   // What the microphone heard last, for the skills that look and listen at once.
@@ -195,8 +194,7 @@ export function TrainingScreen(): React.JSX.Element {
         frame.timestampMs
       )
       useHandPointer.getState().show(control.pointer, control.progress)
-      if (control.fired === 'pause') togglePause()
-      if (control.fired === 'finish') end()
+      if (control.finished) end()
     }
     const hand = pickHand(frame.hands?.observations ?? [], cameraOf(skill).hand)
     advance(
@@ -225,24 +223,13 @@ export function TrainingScreen(): React.JSX.Element {
     }
   }
 
-  const microphone = useMicrophoneFeatures(useAudio && !paused, handleSound, measureSound)
+  const microphone = useMicrophoneFeatures(useAudio, handleSound, measureSound)
 
   const startAdjusting = (): void => {
     adjustFrom.current = runRef.current?.lastRep ?? null
     setPersonalResult(null)
     setAdjusting(true)
   }
-
-  const togglePause = useCallback(() => {
-    const run = runRef.current
-    if (!run) return
-    if (run.paused) run.resume()
-    else {
-      run.pause()
-      voice.stop()
-    }
-    setPaused(run.paused)
-  }, [])
 
   const end = useCallback(() => {
     if (skill) {
@@ -272,10 +259,10 @@ export function TrainingScreen(): React.JSX.Element {
 
   // The stopwatch only runs while the session does.
   useEffect(() => {
-    if (paused || snapshot.tracking === 'lost') return
+    if (snapshot.tracking === 'lost') return
     const timer = setInterval(() => setElapsedMs((ms) => ms + 1000), 1000)
     return () => clearInterval(timer)
-  }, [paused, snapshot.tracking])
+  }, [snapshot.tracking])
 
   useEffect(() => {
     if (!banner) return
@@ -286,32 +273,29 @@ export function TrainingScreen(): React.JSX.Element {
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
       if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return
-      if (event.key.toLowerCase() === 'p') togglePause()
       if (event.key.toLowerCase() === 'f') end()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [togglePause, end])
+  }, [end])
 
   if (!skill) return <></>
 
   const quality = snapshot.lastQuality ? QUALITY[snapshot.lastQuality] : undefined
   const phaseKey = snapshot.phase ? PHASE_LABEL[snapshot.phase] : undefined
-  const interrupted = paused || snapshot.tracking === 'lost'
+  const lost = snapshot.tracking === 'lost'
   // A skill that tunes a note shows the tuner; one that only listens for sound shows how loud it is.
   const hasPitch = Object.values(skill.metrics).some((metric) => metric.type === 'pitch')
 
-  const interruption = interrupted && (
+  const interruption = lost && (
     <div
       role="alert"
       className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-[1.875rem] bg-bg/75 text-center"
     >
-      <p className="text-3xl font-bold">{paused ? t('training.paused') : t('training.lost')}</p>
-      {!paused && (
-        <Button size="lg" variant="light" onClick={() => go('calibration')}>
-          {t('training.recalibrate')}
-        </Button>
-      )}
+      <p className="text-3xl font-bold">{t('training.lost')}</p>
+      <Button size="lg" variant="light" onClick={() => go('calibration')}>
+        {t('training.recalibrate')}
+      </Button>
     </div>
   )
 
@@ -360,24 +344,27 @@ export function TrainingScreen(): React.JSX.Element {
               mirrored={handControl}
               videoClassName="max-h-[74vh] rounded-[1.875rem]"
             >
-              {handControl && <HandZones paused={paused} onPause={togglePause} onFinish={end} />}
+              <FinishButton onFinish={end} withHand={handControl} />
             </CameraStage>
           ) : (
-            <div className="relative flex w-full max-w-xl flex-col items-center gap-6 p-8">
-              <RepCounter count={snapshot.repCount} />
-              {micProblem}
-              <div role="status" aria-live="assertive" className="relative min-h-24 w-full">
-                {banner && (
-                  <CorrectionBand
-                    key={banner.id}
-                    text={banner.text}
-                    channel={banner.channel}
-                    praise={banner.praise}
-                  />
-                )}
+            <>
+              <FinishButton onFinish={end} withHand={false} />
+              <div className="relative flex w-full max-w-xl flex-col items-center gap-6 p-8">
+                <RepCounter count={snapshot.repCount} />
+                {micProblem}
+                <div role="status" aria-live="assertive" className="relative min-h-24 w-full">
+                  {banner && (
+                    <CorrectionBand
+                      key={banner.id}
+                      text={banner.text}
+                      channel={banner.channel}
+                      praise={banner.praise}
+                    />
+                  )}
+                </div>
+                {interruption}
               </div>
-              {interruption}
-            </div>
+            </>
           )}
 
           {/* These do not depend on the camera: with none, the counter and the messages still show. */}
@@ -435,24 +422,6 @@ export function TrainingScreen(): React.JSX.Element {
                 {adjusting ? t('training.personal.cancel') : t('training.personal.start')}
               </Button>
             )}
-            <Button
-              variant="secondary"
-              size="lg"
-              aria-keyshortcuts="P"
-              onClick={togglePause}
-              className="h-14 text-base"
-            >
-              {paused ? t('training.resume') : t('training.pause')}
-            </Button>
-            <Button
-              variant="light"
-              size="lg"
-              aria-keyshortcuts="F"
-              onClick={end}
-              className="h-14 text-[1.0625rem]"
-            >
-              {t('training.end')}
-            </Button>
           </div>
         </aside>
       </div>

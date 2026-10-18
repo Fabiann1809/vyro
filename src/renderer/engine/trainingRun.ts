@@ -19,11 +19,10 @@ export interface TrainingSnapshot {
 // How long the body may be out of sight before the user is told.
 const LOST_AFTER_MS = 1500
 
-// One training session as the training screen lives it: the engine plus pause and "I can't see
-// you", with the verdict of every repetition collected for the summary.
+// One training session as the training screen lives it: the engine plus "I can't see you",
+// with the verdict of every repetition collected for the summary.
 export class TrainingRun {
   private readonly session: SkillSession
-  private isPaused = false
   private lostSinceMs: number | undefined
   private snapshot: TrainingSnapshot = {
     repCount: 0,
@@ -37,10 +36,6 @@ export class TrainingRun {
     this.session = new SkillSession(skill, frame)
   }
 
-  get paused(): boolean {
-    return this.isPaused
-  }
-
   get results(): readonly RepResult[] {
     return this.session.repResults
   }
@@ -49,22 +44,7 @@ export class TrainingRun {
     return this.session.lastCompletedRep
   }
 
-  pause(): void {
-    this.isPaused = true
-  }
-
-  // The movement that was in progress when the user paused is not continued.
-  resume(): void {
-    if (!this.isPaused) return
-    this.isPaused = false
-    this.lostSinceMs = undefined
-    this.session.restartTracking()
-    this.snapshot = { ...this.snapshot, phase: null, tracking: 'tracking', feedback: null }
-  }
-
   processFrame(input: FrameInput): TrainingSnapshot {
-    if (this.isPaused) return { ...this.snapshot, feedback: null }
-
     const output = this.session.processFrame(input)
     const tracking = this.trackingAt(output.tracked, input.timestampMs)
     const lastQuality = output.repResult?.quality ?? this.snapshot.lastQuality

@@ -17,7 +17,7 @@ export interface AppSettings {
   theme: ThemePreference
   textSize: TextSize
   reduceMotion: boolean
-  // Pause or finish a training by pointing a finger at a zone of the picture; it needs the hand model.
+  // Finish a training by pointing a finger at the button in the corner of the picture; it needs the hand model.
   handControl: boolean
   // The AI coach is off until the user turns it on (and has saved a key).
   aiEnabled: boolean

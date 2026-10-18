@@ -37,24 +37,6 @@ describe('TrainingRun', () => {
     expect(phases).toContain('down')
   })
 
-  it('does not count anything while paused', () => {
-    const run = new TrainingRun(squat, FRAME_SIZE)
-    run.pause()
-    const snapshots = play(run, set([squatAngles(90, 90)]))
-
-    expect(run.paused).toBe(true)
-    expect(snapshots[snapshots.length - 1]?.repCount).toBe(0)
-  })
-
-  it('counts again after resuming', () => {
-    const run = new TrainingRun(squat, FRAME_SIZE)
-    run.pause()
-    run.resume()
-    const snapshots = play(run, set([squatAngles(90, 90)]))
-
-    expect(snapshots[snapshots.length - 1]?.repCount).toBe(1)
-  })
-
   it('says the body is lost only after a while without seeing it', () => {
     const run = new TrainingRun(squat, FRAME_SIZE)
     const recording = recordKneeAngles([...standingAngles(15), ...Array(60).fill(null)])

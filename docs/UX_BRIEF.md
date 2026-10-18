@@ -113,13 +113,13 @@ Navegación principal (barra lateral o superior discreta): **Inicio · Progreso 
 - **Mensaje de corrección:** una frase corta, grande, en una banda destacada, con icono. Aparece y se desvanece.
 - **Indicador de calidad de la última repetición:** bien / mejorable / mal (icono + texto + color).
 - **Indicador de voz** (activada/silenciada) y de privacidad.
-- **Controles mínimos:** Pausar y Terminar sesión (botones grandes, apartados, que no se pulsen sin querer). También por **atajos de teclado**.
+- **Controles mínimos:** Terminar sesión, un solo botón pequeño en la esquina superior de la imagen, que no tape el cuerpo ni se pulse sin querer. No hay pausa: quedarse quieto ya no cuenta nada. También por **atajo de teclado** (`F`) y, opcionalmente, señalándolo con el dedo.
 - Cronómetro de la sesión (pequeño).
 
 **Wireframe de referencia (1280×720):**
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ ● Privado · video no se guarda          🔊   ⏸ Pausa  ⏹ Fin │
+│ ● Privado · video no se guarda          🔊        ⏹ Fin │
 │                                                              │
 │                                          ┌──────────────┐    │
 │        [ VIDEO + ESQUELETO ]             │      12      │    │
@@ -138,7 +138,6 @@ Navegación principal (barra lateral o superior discreta): **Inicio · Progreso 
 - Normal (corrigiendo).
 - Refuerzo positivo ("¡Muy bien, sigue así!") tras varias repeticiones buenas.
 - **Persona fuera de encuadre / no se te ve**: pausa automática con aviso claro y vuelta a calibrar.
-- Pausado.
 - Cámara desconectada.
 - Fin de serie / sesión.
 
@@ -230,7 +229,7 @@ Se solicita a Claude Design que proponga y entregue:
 
 - Contraste **WCAG AA** como mínimo en todos los textos (en el "modo de pie", AAA donde sea posible).
 - Tamaños mínimos: texto del "modo de pie" legible a 3 m; contador y mensajes muy grandes.
-- Todo accionable con **teclado** (foco visible, orden lógico). Atajos durante el entrenamiento: `Espacio` pausar, `Esc` terminar.
+- Todo accionable con **teclado** (foco visible, orden lógico). Atajos durante el entrenamiento: `F` terminar.
 - No transmitir información solo con color.
 - Opción **reducir movimiento** y **alto contraste**.
 - Voz como canal redundante del mensaje visual (y viceversa), para personas con baja visión o que no miran la pantalla.

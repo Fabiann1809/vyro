@@ -170,7 +170,8 @@ export class SkillSession {
     }
   }
 
-  // Drops the repetition in progress, for example after a pause. Count and history are kept.
+  // Drops the repetition in progress, for example after the body was out of sight. Count and history
+  // are kept.
   restartTracking(): void {
     this.counter.reset()
     this.smoother.reset()
