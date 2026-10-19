@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { assessFeasibility, skillRequirementSchema, type Channel } from '@shared/feasibility'
 import type { GenerateSkillInput, GenerateSkillResult } from '@shared/skillGeneration'
-import { generatedSkillProblems } from '@shared/skill/generatedSafety'
+import { generatedSkillProblems, guitarLessonProblems } from '@shared/skill/generatedSafety'
 import { skillChannels } from '@shared/skill/skillChannels'
 import { parseSkillConfig } from '@shared/skill/skillLoader'
 import type { SkillConfig } from '@shared/skill/skillSchema'
@@ -56,7 +56,7 @@ export function readSkillText(
       problems: [`id: "${parsed.skill.id}" is already used. Pick another id.`]
     }
   }
-  const unsafe = generatedSkillProblems(parsed.skill)
+  const unsafe = [...generatedSkillProblems(parsed.skill), ...guitarLessonProblems(parsed.skill)]
   if (unsafe.length > 0) return { ok: false, problems: unsafe }
   const undeclared = declared
     ? skillChannels(parsed.skill).filter((channel) => !declared.includes(channel))

@@ -1,3 +1,5 @@
+import { cameraOf } from './cameraOf'
+import { skillChannels } from './skillChannels'
 import type { SkillConfig, SkillMetric } from './skillSchema'
 
 export const GENERATED_ID_PREFIX = 'custom_'
@@ -50,6 +52,26 @@ function thresholdProblems(skill: SkillConfig): string[] {
       return problems
     })
   )
+}
+
+const mentionsGuitar = (skill: SkillConfig): boolean =>
+  skill.object === 'guitar' || /guitar/i.test(`${skill.id} ${skill.name.es} ${skill.name.en}`)
+
+// A guitar lesson teaches with the hand and the sound, seen from the front. The posture is judged
+// once, in its own skill that comes with the app, and not again in every lesson. Checked when the
+// coach makes a skill, not when one is loaded, so a lesson made earlier keeps working.
+export function guitarLessonProblems(skill: SkillConfig): string[] {
+  if (!mentionsGuitar(skill)) return []
+  const problems: string[] = []
+  if (skillChannels(skill).includes('body')) {
+    problems.push(
+      'metrics: a guitar lesson must not measure the body (shoulder, elbow, wrist, hip...). The posture has its own skill, "guitar_posture". Measure the hand, the guitar and the sound.'
+    )
+  }
+  if (cameraOf(skill).view !== 'front') {
+    problems.push('camera.view: a guitar lesson is filmed from the front, so use "front".')
+  }
+  return problems
 }
 
 // Extra limits for a skill that nobody reviewed. Each problem is a sentence the coach can act on.

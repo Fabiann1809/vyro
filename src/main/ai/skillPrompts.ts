@@ -180,8 +180,8 @@ export const EXAMPLE_AUDIO_SKILL = {
   ]
 }
 
-// The same for a skill that looks at an object together with the body: it says which object, and
-// judges where the object is and how it lies.
+// The same for a skill that looks at an object together with the hand: it says which object, and
+// judges how the object lies. A guitar lesson never measures the body (see guitarLessonProblems).
 export const EXAMPLE_OBJECT_SKILL = {
   id: 'custom_guitar_hold_example',
   category: 'instrument',
@@ -191,23 +191,18 @@ export const EXAMPLE_OBJECT_SKILL = {
   },
   camera: {
     view: 'front',
-    fullBody: false
+    fullBody: false,
+    hand: 'auto'
   },
   object: 'guitar',
   metrics: {
-    torso: {
-      type: 'tilt',
-      from: 'hip',
-      to: 'shoulder'
-    },
     lying: {
       type: 'objectAspect'
     },
-    chestDrop: {
-      type: 'objectOffset',
-      to: 'shoulder',
-      axis: 'y',
-      scale: ['shoulder', 'hip']
+    wrist: {
+      type: 'tilt',
+      from: 'handWrist',
+      to: 'middleMcp'
     }
   },
   phases: [
@@ -234,21 +229,21 @@ export const EXAMPLE_OBJECT_SKILL = {
   },
   rules: [
     {
-      id: 'straight_back',
+      id: 'guitar_across',
       severity: 'high',
-      check: 'max(torso) <= 12',
+      check: 'min(lying) >= 1.3',
       message: {
-        es: 'Mantén la espalda recta',
-        en: 'Keep your back straight'
+        es: 'Acuesta la guitarra: el mástil debe quedar casi horizontal',
+        en: 'Lay the guitar across you: the neck should be almost level'
       }
     },
     {
-      id: 'chest_height',
+      id: 'fretting_wrist',
       severity: 'medium',
-      check: 'min(chestDrop) >= 0.15 && max(chestDrop) <= 1',
+      check: 'min(wrist) >= 70 && max(wrist) <= 110',
       message: {
-        es: 'Deja la guitarra a la altura del pecho',
-        en: 'Keep the guitar at chest height'
+        es: 'No dobles la muñeca de la mano del mástil',
+        en: 'Do not bend the wrist of the hand on the neck'
       }
     }
   ]
@@ -272,6 +267,7 @@ export function skillGeneratorPrompt(language: Language): OutboundSystem {
       '- "phases": at least two, each {"id": ..., "when": {metricName: {"gt": number, "lt": number}}} where every condition must hold together ("gt" is greater than, "lt" is less than; use one or both). Leave a gap between the thresholds of the phases so that the phase does not flicker (for example standing: knee greater than 160; down: knee less than 110).',
       '- "rep": {"sequence": [phase ids], "minDurationMs": number}. A repetition goes through the phases of the sequence in order, starting and ending in the same phase (for example ["up", "down", "up"]), with at least three steps. minDurationMs is usually between 600 and 1500.',
       `- "rules": 2 to 5 rules, each {"id": ..., "severity": "high", "medium" or "low", "check": expression, "message": {"es": ..., "en": ...}}. The check is judged at the end of each repetition over all the frames of it, with: ${SERIES_FUNCTIONS.join(', ')} of a metric (min(knee), max(torso), range(torso), avg(knee), first(knee), last(knee)); abs(...); the times ${SCALARS.join(', ')} (in milliseconds); numbers, the comparisons < <= > >= == !=, the logic && || ! and the arithmetic + - * /. The check must be TRUE for a good repetition. Include at least one rule with severity "high": the main thing for safety, or for a repetition to count as valid. The messages are short instructions in a close tone, in both languages.`,
+      '- A skill about the guitar is a lesson: film it from the front ("front") and measure only the hand, the guitar and the sound, never the body. The posture of the person who plays has its own skill that comes with the app ("guitar_posture"), so a lesson does not judge it again.',
       '',
       'Be conservative: forgiving thresholds that a beginner can reach, never pushing a joint to the end of its range. A person must be able to do the skill well and see no correction.',
       `Write the names and messages in ${LANGUAGE_NAME[language]} and in the other language of the pair, as the format asks.`,

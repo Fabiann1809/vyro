@@ -70,12 +70,12 @@ describe('a skill that looks at an object', () => {
     id: 'custom_guitar_hold',
     name: { es: 'Sujetar la guitarra', en: 'Holding the guitar' }
   }
-  const needs = { channels: ['body', 'object'], objects: ['guitar'] }
+  const needs = { channels: ['hands', 'object'], objects: ['guitar'] }
 
   it('has an example that is valid and passes the limits of generated skills', () => {
     expect(parseSkillConfig(EXAMPLE_OBJECT_SKILL).ok).toBe(true)
     expect(
-      readSkillText(JSON.stringify(EXAMPLE_OBJECT_SKILL), [], ['body', 'object'], ['guitar'])
+      readSkillText(JSON.stringify(EXAMPLE_OBJECT_SKILL), [], ['hands', 'object'], ['guitar'])
     ).toMatchObject({ ok: true })
   })
 
@@ -107,10 +107,27 @@ describe('a skill that looks at an object', () => {
   })
 
   it('reports that the object is not listed in the requirement', () => {
-    const read = readSkillText(JSON.stringify(hold), [], ['body', 'object'], ['violin'])
+    const read = readSkillText(JSON.stringify(hold), [], ['hands', 'object'], ['violin'])
 
     expect(read).toMatchObject({ ok: false })
     expect(!read.ok && read.problems.join()).toContain('"requirement.objects"')
+  })
+
+  it('sends back a guitar lesson that measures the body, or is filmed from the side', () => {
+    const body = {
+      ...hold,
+      camera: { view: 'side', fullBody: false, hand: 'auto' },
+      metrics: {
+        ...hold.metrics,
+        torso: { type: 'tilt', from: 'hip', to: 'shoulder' }
+      }
+    }
+
+    const read = readSkillText(JSON.stringify(body), [], ['body', 'hands', 'object'], ['guitar'])
+
+    expect(read).toMatchObject({ ok: false })
+    expect(!read.ok && read.problems.join()).toContain('guitar_posture')
+    expect(!read.ok && read.problems.join()).toContain('"front"')
   })
 
   it('declines an object that has no detector, such as a dumbbell', async () => {
