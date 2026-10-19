@@ -74,10 +74,31 @@ describe('MicrophoneGate', () => {
     const gate = new MicrophoneGate()
     expect(gate.isOpen).toBe(false)
 
-    gate.set(true)
+    gate.open()
     expect(gate.isOpen).toBe(true)
 
-    gate.set(false)
+    gate.close()
+    expect(gate.isOpen).toBe(false)
+  })
+
+  it('stays open when the screen that is left closes after the next one has opened', () => {
+    const gate = new MicrophoneGate()
+
+    gate.open()
+    gate.open()
+    gate.close()
+
+    expect(gate.isOpen).toBe(true)
+  })
+
+  it('is not left owing a closing, and a new page starts closed', () => {
+    const gate = new MicrophoneGate()
+    gate.close()
+    gate.open()
+    expect(gate.isOpen).toBe(true)
+
+    gate.open()
+    gate.reset()
     expect(gate.isOpen).toBe(false)
   })
 })

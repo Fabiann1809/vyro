@@ -37,15 +37,25 @@ export function mayCheckMedia(
 }
 
 // Whether a skill that listens is open. The page says so when it opens or closes one, and it is
-// closed again whenever the page is loaded anew.
+// closed again whenever the page is loaded anew. It counts the openings instead of keeping a yes or
+// no: when one screen is left and the next one opens the microphone at once, the late "closed" of
+// the first must not shut the second.
 export class MicrophoneGate {
-  private open = false
+  private openings = 0
 
   get isOpen(): boolean {
-    return this.open
+    return this.openings > 0
   }
 
-  set(open: boolean): void {
-    this.open = open
+  open(): void {
+    this.openings++
+  }
+
+  close(): void {
+    this.openings = Math.max(0, this.openings - 1)
+  }
+
+  reset(): void {
+    this.openings = 0
   }
 }

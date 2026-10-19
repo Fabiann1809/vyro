@@ -16,7 +16,8 @@ async function requestMicrophoneAccess(): Promise<CameraAccessStatus> {
 
 export function registerMicrophoneIpc(gate: MicrophoneGate): void {
   ipcMain.handle(IPC.microphoneSetOpen, (_event, open: unknown) => {
-    gate.set(open === true)
+    if (open === true) gate.open()
+    else gate.close()
   })
   ipcMain.handle(IPC.microphoneRequestAccess, requestMicrophoneAccess)
 }
