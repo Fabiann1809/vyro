@@ -201,6 +201,7 @@
   "training.hand.hold": "Señala con el índice y mantén {seconds} s",
   "training.end": "Terminar",
   "training.lost": "No te veo",
+  "training.micStarting": "Preparando el micrófono…",
   "training.recalibrate": "Calibrar de nuevo",
   "training.reps": "repeticiones",
   "training.last": "Última:",

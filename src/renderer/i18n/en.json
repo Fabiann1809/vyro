@@ -201,6 +201,7 @@
   "training.hand.hold": "Point with your index finger and hold {seconds} s",
   "training.end": "Finish",
   "training.lost": "I can't see you",
+  "training.micStarting": "Getting the microphone ready…",
   "training.recalibrate": "Calibrate again",
   "training.reps": "repetitions",
   "training.last": "Last:",

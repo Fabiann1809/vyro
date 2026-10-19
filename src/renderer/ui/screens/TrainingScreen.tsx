@@ -287,24 +287,35 @@ export function TrainingScreen(): React.JSX.Element {
   // A skill that tunes a note shows the tuner; one that only listens for sound shows how loud it is.
   const hasPitch = Object.values(skill.metrics).some((metric) => metric.type === 'pitch')
 
+  // A skill that listens is not tracked until the first reading of the sound arrives, so the wait for
+  // the microphone, or its failure, must not be told as "I can't see you".
+  const micWaiting = useAudio && microphone.status === 'starting'
+  const micFailed = useAudio && microphone.status === 'error'
+
   const interruption = lost && (
     <div
       role="alert"
-      className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-[1.875rem] bg-bg/75 text-center"
+      className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-[1.875rem] bg-bg/75 px-6 text-center"
     >
-      <p className="text-3xl font-bold">{t('training.lost')}</p>
-      <Button size="lg" variant="light" onClick={() => go('calibration')}>
-        {t('training.recalibrate')}
-      </Button>
-    </div>
-  )
-
-  const micProblem = useAudio && microphone.status === 'error' && (
-    <div role="alert" className="flex flex-col items-center gap-3 text-center">
-      <p>{t(microphone.errorMessage ?? 'microphone.error.unknown')}</p>
-      <Button variant="secondary" onClick={microphone.retry}>
-        {t('calibration.retry')}
-      </Button>
+      {micWaiting ? (
+        <p className="text-3xl font-bold">{t('training.micStarting')}</p>
+      ) : micFailed ? (
+        <>
+          <p className="text-2xl font-bold">
+            {t(microphone.errorMessage ?? 'microphone.error.unknown')}
+          </p>
+          <Button size="lg" variant="light" onClick={microphone.retry}>
+            {t('calibration.retry')}
+          </Button>
+        </>
+      ) : (
+        <>
+          <p className="text-3xl font-bold">{t('training.lost')}</p>
+          <Button size="lg" variant="light" onClick={() => go('calibration')}>
+            {t('training.recalibrate')}
+          </Button>
+        </>
+      )}
     </div>
   )
 
@@ -351,7 +362,6 @@ export function TrainingScreen(): React.JSX.Element {
               <FinishButton onFinish={end} withHand={false} />
               <div className="relative flex w-full max-w-xl flex-col items-center gap-6 p-8">
                 <RepCounter count={snapshot.repCount} />
-                {micProblem}
                 <div role="status" aria-live="assertive" className="relative min-h-24 w-full">
                   {banner && (
                     <CorrectionBand
