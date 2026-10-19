@@ -13,6 +13,7 @@ export interface ThreadActions {
   onViewRoute: () => void
   onAdjustRoute: () => void
   onRestart: () => void
+  onCreateSkill: () => void
   onEnableAi: () => void
   onOpenLibrary: () => void
 }
@@ -98,7 +99,12 @@ export function Thread({
               )
             case 'reject':
               return (
-                <RejectCard key={item.key} outcome={item.outcome} onRestart={actions.onRestart} />
+                <RejectCard
+                  key={item.key}
+                  outcome={item.outcome}
+                  onRestart={actions.onRestart}
+                  onCreateSkill={actions.onCreateSkill}
+                />
               )
             case 'invite':
               return (

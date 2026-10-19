@@ -48,10 +48,12 @@ function Reasons({ outcome }: { outcome: Refusal }): React.JSX.Element {
 // Why the coach cannot make a path for what was asked, and what it could measure instead.
 export function RejectCard({
   outcome,
-  onRestart
+  onRestart,
+  onCreateSkill
 }: {
   outcome: Refusal
   onRestart: () => void
+  onCreateSkill: () => void
 }): React.JSX.Element {
   return (
     <Card role="status" className="anim-up ml-13 flex flex-col items-start gap-3 p-6">
@@ -62,6 +64,12 @@ export function RejectCard({
         <Icon name="warning" className="size-4.5" strokeWidth={1.5} />
       </span>
       <Reasons outcome={outcome} />
+      {/* It can be measured, there is just no skill for it yet: the AI can make one. */}
+      {outcome.kind === 'no-matching-skill' && (
+        <Button className="mt-1" onClick={onCreateSkill}>
+          {t('reject.createSkill')}
+        </Button>
+      )}
       <Button variant="secondary" className="mt-1" onClick={onRestart}>
         {t('reject.restart')}
       </Button>

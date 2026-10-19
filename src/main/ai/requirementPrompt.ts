@@ -23,6 +23,7 @@ export function requirementPrompt(): string[] {
   return [
     'VYRO can only coach what it can MEASURE. Describe what the skill needs in "requirement":',
     '- "channels": the signals that would measure whether the person does it well. "body" is posture and movement of the body; "hands" is the shape and movement of the fingers; "audio" is pitch, rhythm and volume; "object" is the position of a specific object. Use an empty list if nothing could measure it.',
+    '- "channels" lists ONLY the signals that really measure this goal, never all four by default. If the result of the skill is heard (an instrument, the voice, a rhythm), measure it with "audio": the pitch, the pace and the volume say how well it is played. An instrument is an "object" only when where it is or how it is held is what must be measured; otherwise it is not an object, even if VYRO has no detector for it. Do not add "body" or "hands" to a sound skill just because a person plays it: add them only if the posture or the shape of the fingers is what would be corrected.',
     `- "objects": the objects needed when "object" is a channel. VYRO has detectors for: ${objects}. Name any other object that is needed as well, so that the app can tell it is not supported.`,
     '- "outOfScope": the reasons the skill cannot be coached whatever the channels, if any apply:',
     reasons,

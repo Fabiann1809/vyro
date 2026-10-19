@@ -18,6 +18,8 @@ interface SkillDraftState {
   draft: SkillConfig | null
   // An approval or a discard that did not go through.
   actionFailed: boolean
+  // What the person already said they want (in the chat, before being sent here): it fills the box.
+  suggestion: string
 }
 
 // Only in memory: the draft itself is kept by the main process, this is what the screen shows.
@@ -26,8 +28,14 @@ export const useSkillDraft = create<SkillDraftState>(() => ({
   error: null,
   refusal: null,
   draft: null,
-  actionFailed: false
+  actionFailed: false,
+  suggestion: ''
 }))
+
+// Opens the creation of a skill with the goal that the planner had no skill for.
+export function suggestSkill(text: string): void {
+  useSkillDraft.setState({ suggestion: text.trim() })
+}
 
 type DraftApi = {
   coach: Pick<VyroApi['coach'], 'generateSkill'>
@@ -102,6 +110,7 @@ export function resetSkillDraft(): void {
     error: null,
     refusal: null,
     draft: null,
-    actionFailed: false
+    actionFailed: false,
+    suggestion: ''
   })
 }

@@ -20,6 +20,7 @@ import { startWithExpand } from '../expandTransition'
 import { focusComposer } from '../focusComposer'
 import { useNavigation } from '../navigation'
 import { usePathPlan } from '../pathPlanStore'
+import { suggestSkill } from '../skillDraftStore'
 import { openSettings } from '../settingsTabStore'
 import { plannerSkills } from '../plannerSkills'
 import { useSession } from '../sessionStore'
@@ -190,6 +191,11 @@ export function HomeScreen(): React.JSX.Element {
     onRestart: () => {
       startOver()
       focusComposer()
+    },
+    onCreateSkill: () => {
+      const goal = [...planner.turns].reverse().find((turn) => turn.role === 'user')
+      suggestSkill(goal?.text ?? '')
+      go('skillNew')
     },
     onEnableAi: () => openSettings('ai'),
     onOpenLibrary: () => go('library')

@@ -819,6 +819,27 @@ test.describe('AI coach screen', () => {
     ).toBeVisible()
   })
 
+  test('offers to make a skill when none trains what was asked, with the words already written', async () => {
+    provider.setAnswer({
+      action: 'no-matching-skill',
+      requirement: { channels: ['body'] }
+    })
+    const page = await launch()
+    await turnOnWithFakeProvider(page)
+    await nav(page, 'Inicio').click()
+
+    await page.getByLabel('Tu mensaje').fill('Quiero aprender a caminar')
+    await page.getByLabel('Tu mensaje').press('Enter')
+
+    await expect(
+      page.getByRole('heading', { name: 'Aún no tengo una habilidad para eso' })
+    ).toBeVisible()
+    await page.getByRole('button', { name: 'Crear esta habilidad con la IA' }).click()
+
+    await expect(page.getByRole('heading', { level: 1, name: /habilidad/i })).toBeVisible()
+    await expect(page.getByRole('textbox')).toHaveValue('Quiero aprender a caminar')
+  })
+
   test('counts what it uses, and at the daily limit asks nothing of the provider', async () => {
     askReply()
     const page = await launch()

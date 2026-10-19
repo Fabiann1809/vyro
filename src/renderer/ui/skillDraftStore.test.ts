@@ -9,6 +9,7 @@ import {
   loadDraft,
   requestSkill,
   resetSkillDraft,
+  suggestSkill,
   useSkillDraft
 } from './skillDraftStore'
 import { mergeSkills, useSkills } from './skillsStore'
@@ -150,5 +151,22 @@ describe('the skill draft', () => {
 
     expect(useSkillDraft.getState()).toMatchObject({ actionFailed: true })
     expect(useSkillDraft.getState().draft?.id).toBe('custom_squat')
+  })
+})
+
+describe('suggestSkill', () => {
+  beforeEach(() => resetSkillDraft())
+
+  it('keeps what the person wrote, without the spaces around it, until the screen uses it', () => {
+    suggestSkill('  Quiero aprender a caminar  ')
+
+    expect(useSkillDraft.getState().suggestion).toBe('Quiero aprender a caminar')
+  })
+
+  it('is forgotten when the draft is reset', () => {
+    suggestSkill('Quiero aprender a caminar')
+    resetSkillDraft()
+
+    expect(useSkillDraft.getState().suggestion).toBe('')
   })
 })

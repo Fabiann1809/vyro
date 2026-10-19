@@ -72,11 +72,13 @@ export function SkillCreateScreen(): React.JSX.Element {
   const { aiEnabled, language } = useSettings()
   const skills = useSkills((state) => state.skills)
   const { pending, error, refusal, draft, actionFailed } = useSkillDraft()
-  const [description, setDescription] = useState('')
+  const [description, setDescription] = useState(() => useSkillDraft.getState().suggestion)
 
   // A draft from before is still waiting for an answer.
   useEffect(() => {
     void loadDraft(window.api)
+    // The suggestion has been used: it must not come back the next time the screen opens.
+    useSkillDraft.setState({ suggestion: '' })
   }, [])
 
   const send = (): void => {

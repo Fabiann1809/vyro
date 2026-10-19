@@ -509,6 +509,7 @@
   "route.saving": "Saving…",
   "route.saved": "Path saved",
   "route.failed": "The path could not be saved. Try again.",
+  "reject.createSkill": "Make this skill with the AI",
   "reject.restart": "Try something else",
   "chart.best": "Best · {value}",
   "chart.trend": "Trend",
