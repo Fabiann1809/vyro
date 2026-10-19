@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { bundledSkills } from '@renderer/skills'
+import { fourChannelSkill } from '@shared/skill/skillFixtures'
 import type { RepQuality, SessionDetail, SessionRow } from '@shared/sessions'
 import {
   channelSeries,
@@ -243,16 +244,16 @@ describe('errorRows', () => {
   })
 
   it('shows at most five', () => {
-    const rules = bundledSkills.skills.find((skill) => skill.id === 'guitar_posture')!.rules
+    const rules = fourChannelSkill.rules
     const rows = errorRows(
       [
         detail(
           1,
           rules.map((rule) => ({ quality: 'bad' as const, failed: [rule.id] })),
-          'guitar_posture'
+          fourChannelSkill.id
         )
       ],
-      skills,
+      [...skills, fourChannelSkill],
       NOW
     )
 
@@ -261,22 +262,26 @@ describe('errorRows', () => {
 })
 
 describe('channelSeries', () => {
-  const skills = bundledSkills.skills
-  const guitar = skills.find((skill) => skill.id === 'guitar_posture')!
+  const skills = [...bundledSkills.skills, fourChannelSkill]
+  const guitar = fourChannelSkill
   const bodyRule = guitar.rules.find((rule) => rule.id === 'straight_back')!.id
   const audioRule = guitar.rules.find((rule) => rule.id === 'out_of_tune')!.id
 
   it('counts how often each channel failed, session by session, oldest first', () => {
     const series = channelSeries(
       [
-        detail(1, [{ quality: 'bad', failed: [bodyRule] }, { quality: 'good' }], 'guitar_posture'),
+        detail(
+          1,
+          [{ quality: 'bad', failed: [bodyRule] }, { quality: 'good' }],
+          fourChannelSkill.id
+        ),
         detail(
           5,
           [
             { quality: 'bad', failed: [bodyRule, audioRule] },
             { quality: 'bad', failed: [bodyRule] }
           ],
-          'guitar_posture'
+          fourChannelSkill.id
         )
       ],
       skills

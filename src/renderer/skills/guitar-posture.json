@@ -2,70 +2,33 @@
   "id": "guitar_posture",
   "category": "instrument",
   "name": { "es": "Postura con guitarra", "en": "Guitar posture" },
-  "camera": { "view": "front", "fullBody": false, "hand": "auto" },
-  "object": "guitar",
+  "camera": { "view": "side", "fullBody": false },
   "metrics": {
     "torso": { "type": "tilt", "from": "hip", "to": "shoulder" },
-    "lying": { "type": "objectAspect" },
-    "chestDrop": {
-      "type": "objectOffset",
-      "to": "shoulder",
-      "axis": "y",
-      "scale": ["shoulder", "hip"]
-    },
-    "wrist": { "type": "tilt", "from": "handWrist", "to": "middleMcp" },
-    "level": { "type": "level" },
-    "cents": { "type": "pitch", "target": "nearest" }
+    "arm": { "type": "angle", "points": ["shoulder", "elbow", "wrist"] }
   },
   "phases": [
-    { "id": "quiet", "when": { "level": { "lt": -45 } } },
-    { "id": "sound", "when": { "level": { "gt": -30 } } }
+    { "id": "away", "when": { "torso": { "gt": 25 } } },
+    { "id": "posed", "when": { "torso": { "lt": 20 } } }
   ],
-  "rep": { "sequence": ["quiet", "sound", "quiet"], "minDurationMs": 100 },
+  "rep": { "sequence": ["away", "posed", "away"], "minDurationMs": 1000, "holdMs": 5000 },
   "rules": [
     {
       "id": "straight_back",
       "severity": "high",
       "check": "max(torso) <= 12",
       "message": {
-        "es": "Mantén la espalda recta mientras tocas",
-        "en": "Keep your back straight while you play"
+        "es": "Mantén la espalda recta",
+        "en": "Keep your back straight"
       }
     },
     {
-      "id": "guitar_across",
+      "id": "strumming_arm",
       "severity": "medium",
-      "check": "min(lying) >= 1.3",
+      "check": "min(arm) >= 70 && max(arm) <= 140",
       "message": {
-        "es": "Acuesta la guitarra: el mástil debe quedar casi horizontal",
-        "en": "Lay the guitar across you: the neck should be almost level"
-      }
-    },
-    {
-      "id": "guitar_height",
-      "severity": "medium",
-      "check": "min(chestDrop) >= 0.15 && max(chestDrop) <= 1",
-      "message": {
-        "es": "Sube o baja la guitarra hasta que quede a la altura del pecho",
-        "en": "Raise or lower the guitar until it sits at chest height"
-      }
-    },
-    {
-      "id": "fretting_wrist",
-      "severity": "medium",
-      "check": "min(wrist) >= 70 && max(wrist) <= 110",
-      "message": {
-        "es": "No dobles la muñeca de la mano del mástil",
-        "en": "Do not bend the wrist of the hand on the neck"
-      }
-    },
-    {
-      "id": "out_of_tune",
-      "severity": "low",
-      "check": "abs(avg(cents)) <= 25",
-      "message": {
-        "es": "La nota suena desafinada: ajusta la cuerda",
-        "en": "The note sounds out of tune: adjust the string"
+        "es": "Relaja el brazo que rasguea: el codo doblado, sin encoger el hombro",
+        "en": "Relax the strumming arm: elbow bent, shoulder down"
       }
     }
   ],
@@ -80,30 +43,26 @@
         "en": "Rest the body of the guitar on your leg and keep the neck almost level."
       },
       {
-        "es": "Mantén recta la muñeca de la mano del mástil, sin doblarla.",
-        "en": "Keep the wrist of the hand on the neck straight, without bending it."
+        "es": "Deja caer el hombro y apoya el antebrazo del brazo que rasguea sobre la guitarra.",
+        "en": "Let your shoulder drop and rest the forearm of your strumming arm on the guitar."
       },
       {
-        "es": "Pon la cámara de frente, con tu torso, tu mano y la guitarra a la vista.",
-        "en": "Put the camera in front of you with your torso, your hand and the guitar in view."
-      },
-      {
-        "es": "Afina antes de empezar. Cuerdas al aire, de la 6ª a la 1ª: Mi, La, Re, Sol, Si, Mi.",
-        "en": "Tune before you start. Open strings, from the 6th to the 1st: E, A, D, G, B, E."
+        "es": "Colócate de perfil a la cámara, con el hombro, el codo, la muñeca y la cadera a la vista, y mantén la postura unos segundos.",
+        "en": "Sit side-on to the camera with your shoulder, elbow, wrist and hip in view, and hold the position for a few seconds."
       }
     ],
     "notMeasured": [
       {
-        "es": "Que el pulgar quede detrás del mástil y no lo rodee por delante.",
-        "en": "That your thumb stays behind the neck and does not wrap around the front."
+        "es": "Que el cuello y la cabeza no se adelanten.",
+        "en": "That your neck and head do not lean forward."
       },
       {
-        "es": "Que los dedos pisen con la yema y cerca del traste.",
-        "en": "That your fingers press with the tips and close to the fret."
+        "es": "La altura y la inclinación de la guitarra: de perfil la cámara no las puede juzgar.",
+        "en": "The height and tilt of the guitar: from the side the camera cannot judge them."
       },
       {
-        "es": "Que los hombros, el cuello y la mano que rasguea estén relajados.",
-        "en": "That your shoulders, neck and strumming hand are relaxed."
+        "es": "Que los hombros y la mano que rasguea estén relajados.",
+        "en": "That your shoulders and strumming hand are relaxed."
       }
     ]
   }

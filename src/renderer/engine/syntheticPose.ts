@@ -146,6 +146,22 @@ export function seatedPose(leanDeg = 0, side: Side = 'left'): Landmark[] {
   return sidePose({ shoulder, hip, knee, ankle }, side)
 }
 
+// A person sitting with a guitar, seen from the side: the torso leans `leanDeg` from the vertical and
+// the strumming arm hangs from the shoulder with the elbow bent at `elbowDeg`.
+export function guitaristPose(leanDeg = 0, elbowDeg = 100, side: Side = 'left'): Landmark[] {
+  const lean = rad(leanDeg)
+  const hip = { x: 640, y: 450 }
+  const shoulder = { x: hip.x + TORSO * Math.sin(lean), y: hip.y - TORSO * Math.cos(lean) }
+  const elbow = { x: shoulder.x, y: shoulder.y + 170 }
+  // The forearm is the upper arm turned by the elbow angle, so the angle stays exact.
+  const theta = rad(elbowDeg)
+  const wrist = {
+    x: elbow.x + 150 * -Math.sin(theta),
+    y: elbow.y + 150 * -Math.cos(theta)
+  }
+  return sidePose({ shoulder, elbow, wrist, hip }, side)
+}
+
 // One smooth squat from standing, down to `bottomDeg` and back up, over `frames` frames.
 export function squatAngles(frames: number, bottomDeg = 90, topDeg = 175): number[] {
   const middle = (topDeg + bottomDeg) / 2

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { fourChannelSkill } from './skillFixtures'
 import { loadSkills } from './skillLoader'
 import { ruleChannel } from './ruleChannels'
 import { skillChannels } from './skillChannels'
@@ -14,7 +15,7 @@ const skill = (id: string): (typeof skills)[number] => {
 
 describe('ruleChannel', () => {
   it('gives each rule of a skill with four channels the channel of what it checks', () => {
-    const guitar = skill('guitar_posture')
+    const guitar = fourChannelSkill
 
     expect(ruleChannel(guitar, 'straight_back')).toBe('body')
     expect(ruleChannel(guitar, 'guitar_across')).toBe('object')

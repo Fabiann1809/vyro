@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { bundledSkills } from '@renderer/skills'
+import { fourChannelSkill } from '@shared/skill/skillFixtures'
 import type { SkillConfig } from '@shared/skill/skillSchema'
 import {
   categoryOf,
@@ -35,12 +36,7 @@ describe('categoryOf', () => {
 
 describe('toLibrarySkill', () => {
   it('lists the channels in the order the interface always uses', () => {
-    expect(toLibrarySkill(byId('guitar_posture')).channels).toEqual([
-      'body',
-      'hands',
-      'object',
-      'audio'
-    ])
+    expect(toLibrarySkill(fourChannelSkill).channels).toEqual(['body', 'hands', 'object', 'audio'])
   })
 })
 
@@ -52,7 +48,7 @@ describe('filterSkills', () => {
   it('keeps the skills that use a channel, among others', () => {
     const ids = filterSkills(all, { channel: 'audio', category: null }).map((e) => e.skill.id)
 
-    expect(ids).toContain('guitar_posture')
+    expect(ids).toContain('piano_note')
     expect(ids).toContain('string_tuning')
     expect(ids).not.toContain('squat')
   })
@@ -78,7 +74,7 @@ describe('skillNeeds', () => {
   })
 
   it('asks for the object too', () => {
-    expect(skillNeeds(byId('guitar_posture'))).toEqual([
+    expect(skillNeeds(fourChannelSkill)).toEqual([
       'library.needs.camera',
       'library.needs.microphone',
       'library.needs.guitar'

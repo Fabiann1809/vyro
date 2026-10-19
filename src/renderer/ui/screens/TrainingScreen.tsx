@@ -58,7 +58,9 @@ const PHASE_LABEL: Record<string, MessageKey> = {
   lifted: 'training.phase.lifted',
   quiet: 'training.phase.quiet',
   ringing: 'training.phase.ringing',
-  hit: 'training.phase.hit'
+  hit: 'training.phase.hit',
+  posed: 'training.phase.posed',
+  away: 'training.phase.away'
 }
 
 const PRAISE: readonly MessageKey[] = [
