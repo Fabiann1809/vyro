@@ -24,6 +24,19 @@ describe('parseSkillConfig', () => {
     })
   })
 
+  it('accepts a held posture only with a sequence of away, in position, away', () => {
+    const held = (sequence: string[]): Record<string, unknown> => ({
+      ...validSkillInput,
+      rep: { sequence, minDurationMs: 500, holdMs: 3000 }
+    })
+
+    expect(parseSkillConfig(held(['down', 'up', 'down'])).ok).toBe(true)
+    expect(parseSkillConfig(held(['up', 'down', 'up', 'down', 'up']))).toEqual({
+      ok: false,
+      errors: [expect.stringContaining('rep.holdMs')]
+    })
+  })
+
   it('reports every problem at once, not just the first', () => {
     const result = parseSkillConfig({ ...validSkillInput, id: 'Bad Id', rules: [] })
 

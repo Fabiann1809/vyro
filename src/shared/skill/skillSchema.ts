@@ -215,7 +215,11 @@ export const skillConfigSchema = z
         sequence: z
           .array(identifier)
           .min(3, 'needs at least three steps, for example up, down, up'),
-        minDurationMs: z.number().int().positive()
+        minDurationMs: z.number().int().positive(),
+        // For a posture that is held rather than a movement: the middle step of the sequence counts
+        // as a repetition once the person has stayed in it this long, even if they were already there
+        // when the skill began. The first and last step are then where they are not in position.
+        holdMs: z.number().int().positive().optional()
       })
       .strict(),
     rules: z.array(rule).min(1, 'needs at least one rule'),
@@ -291,7 +295,14 @@ export const skillConfigSchema = z
       }
     })
 
-    const { sequence } = skill.rep
+    const { sequence, holdMs } = skill.rep
+    if (holdMs !== undefined && sequence.length !== 3) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['rep', 'holdMs'],
+        message: 'a held posture needs a sequence of exactly three steps: away, in position, away'
+      })
+    }
     if (sequence.length >= 3 && sequence[0] !== sequence[sequence.length - 1]) {
       ctx.addIssue({
         code: 'custom',

@@ -44,6 +44,8 @@ export class RepCounter {
   private readonly detector: PhaseDetector
   private readonly sequence: readonly string[]
   private readonly minDurationMs: number
+  // Set for a posture that is held: the middle phase counts once it has lasted this long.
+  private readonly holdMs: number | undefined
   private readonly options: RepCounterOptions
 
   // How many steps of the sequence the current attempt has gone through. 0 = not started.
@@ -58,6 +60,7 @@ export class RepCounter {
     this.detector = new PhaseDetector(skill)
     this.sequence = skill.rep.sequence
     this.minDurationMs = skill.rep.minDurationMs
+    this.holdMs = skill.rep.holdMs
     this.options = { ...DEFAULT_OPTIONS, ...options }
   }
 
@@ -77,8 +80,7 @@ export class RepCounter {
 
     if (change.changed && change.phase !== null) return this.onPhaseChange(change.phase, sample)
 
-    this.onSamePhase(sample)
-    return null
+    return this.onSamePhase(sample)
   }
 
   // Call when the person leaves the frame or the camera changes: the attempt in progress is lost.
@@ -89,6 +91,13 @@ export class RepCounter {
   }
 
   private onPhaseChange(phase: string, sample: RepSample): RepEvent | null {
+    if (this.holdMs !== undefined) {
+      // Leaving the posture before the time is up loses the attempt; entering it starts one.
+      this.abandon()
+      if (phase === this.sequence[1]) this.begin(sample)
+      return null
+    }
+
     if (this.progress === 0) {
       if (phase === this.sequence[0]) this.begin(sample)
       return null
@@ -108,25 +117,55 @@ export class RepCounter {
     return this.progress === this.sequence.length ? this.finish(sample) : null
   }
 
-  private onSamePhase(sample: RepSample): void {
-    if (this.progress === 0) return
+  private onSamePhase(sample: RepSample): RepEvent | null {
+    if (this.progress === 0) return null
+    if (this.holdMs !== undefined) return this.onHeld(sample, this.holdMs)
 
     // While still at the starting phase the repetition has not really begun: keep moving its
     // start forward until the body leaves it.
     const start = this.sequence[0]
     if (this.progress === 1 && start && this.detector.isIn(start, sample.values)) {
       this.begin(sample)
-      return
+      return null
     }
 
     this.samples.push(sample)
     if (this.samples.length > this.options.maxSamples) this.abandon()
+    return null
+  }
+
+  // The posture goes on: the repetition is complete once it has been held long enough, and the next
+  // one starts right there, so a posture kept for a minute is judged again and again.
+  private onHeld(sample: RepSample, holdMs: number): RepEvent | null {
+    this.samples.push(sample)
+    const durationMs = sample.timestampMs - this.startMs
+    if (durationMs < holdMs) {
+      if (this.samples.length > this.options.maxSamples) this.abandon()
+      return null
+    }
+
+    const phase = this.sequence[1] ?? ''
+    const event: RepEvent = {
+      type: 'completed',
+      rep: {
+        index: ++this.completed,
+        startMs: this.startMs,
+        endMs: sample.timestampMs,
+        durationMs,
+        steps: [...this.steps, { phase, timestampMs: sample.timestampMs }],
+        samples: this.samples
+      }
+    }
+    this.begin(sample)
+    return event
   }
 
   private begin(sample: RepSample): void {
     this.progress = 1
     this.startMs = sample.timestampMs
-    this.steps = [{ phase: this.sequence[0] ?? '', timestampMs: sample.timestampMs }]
+    // A held posture begins in the middle phase of the sequence, not in the first.
+    const first = this.holdMs !== undefined ? this.sequence[1] : this.sequence[0]
+    this.steps = [{ phase: first ?? '', timestampMs: sample.timestampMs }]
     this.samples = [sample]
   }
 

@@ -51,6 +51,49 @@ function squatCycle(frames: number, bottom = 90, top = 175): number[] {
 
 const standing = (frames: number): number[] => Array(frames).fill(175)
 
+// The same skill as a posture that is held: "up" is the posture and "down" is being away from it.
+const held = skillFrom({
+  ...validSkillInput,
+  rep: { sequence: ['down', 'up', 'down'], minDurationMs: 500, holdMs: 1000 }
+})
+
+describe('RepCounter holding a posture', () => {
+  it('completes a repetition once the posture has been held, even when it was there from the start', () => {
+    const session = new Session(new RepCounter(held))
+
+    session.feed(standing(40))
+
+    expect(session.completed).toHaveLength(1)
+    expect(session.completed[0]?.steps.map((step) => step.phase)).toEqual(['up', 'up'])
+    expect(session.completed[0]?.durationMs).toBeGreaterThanOrEqual(1000)
+  })
+
+  it('loses the attempt when the posture is left before the time is up', () => {
+    const session = new Session(new RepCounter(held))
+
+    session.feed([...standing(20), ...Array(10).fill(90), ...standing(20)])
+
+    expect(session.events).toEqual([])
+  })
+
+  it('judges the posture again and again while it is kept', () => {
+    const session = new Session(new RepCounter(held))
+
+    session.feed(standing(100))
+
+    expect(session.completed).toHaveLength(3)
+    expect(session.completed.map((rep) => rep.index)).toEqual([1, 2, 3])
+  })
+
+  it('keeps every frame of the hold for the rules to look at', () => {
+    const session = new Session(new RepCounter(held))
+
+    session.feed(standing(40))
+
+    expect(session.completed[0]?.samples.length).toBeGreaterThan(25)
+  })
+})
+
 describe('RepCounter', () => {
   it('counts nothing while the body has not moved', () => {
     const session = new Session(new RepCounter(squat))
