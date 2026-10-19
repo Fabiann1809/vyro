@@ -46,6 +46,7 @@ type Instruction = FramingInstruction | HandInstruction | ObjectInstruction | Au
 const INSTRUCTION: Record<Instruction, MessageKey> = {
   stepIntoView: 'calibration.instruction.stepIntoView',
   showFullBody: 'calibration.instruction.showFullBody',
+  showUpperBody: 'calibration.instruction.showUpperBody',
   moveBack: 'calibration.instruction.moveBack',
   moveCloser: 'calibration.instruction.moveCloser',
   turnSideways: 'calibration.instruction.turnSideways',
@@ -88,9 +89,14 @@ const check = (
   state: CheckState
 ): CheckItem => ({ id, label, state, channel })
 
-function bodyChecks(report: FramingReport): CheckItem[] {
+function bodyChecks(report: FramingReport, fullBody: boolean): CheckItem[] {
   return [
-    check('body', 'fullBody', 'calibration.check.fullBody', report.fullBody),
+    check(
+      'body',
+      'fullBody',
+      fullBody ? 'calibration.check.fullBody' : 'calibration.check.upperBody',
+      report.fullBody
+    ),
     check('body', 'profile', 'calibration.check.profile', report.profile),
     check('body', 'distance', 'calibration.check.distance', report.distance),
     check('body', 'lighting', 'calibration.check.lighting', report.lighting)
@@ -123,10 +129,10 @@ function audioChecks(report: AudioFramingReport): CheckItem[] {
 }
 
 // Everything together; lighting is the same one for the body and the hands, so it shows once.
-function combine({ body, hand, object, audio }: Sources): Report {
+function combine({ body, hand, object, audio }: Sources, fullBody: boolean): Report {
   return {
     checks: [
-      ...(body ? bodyChecks(body) : []),
+      ...(body ? bodyChecks(body, fullBody) : []),
       ...(hand ? handChecks(hand, !body) : []),
       ...(object ? objectChecks(object) : []),
       ...(audio ? audioChecks(audio) : [])
@@ -193,23 +199,27 @@ export function CalibrationScreen(): React.JSX.Element {
   const useObject = channels.includes('object')
   const useAudio = channels.includes('audio')
   const useCamera = useBody || useHands || useObject
+  const wholeBody = skill ? cameraOf(skill).fullBody : true
 
   const flowRef = useRef(new CalibrationFlow())
   const audioFramingRef = useRef(new AudioFraming())
   const luminanceRef = useRef<{ value: number | null; at: number }>({ value: null, at: -Infinity })
   const [waiting] = useState(() => waitingSources(useBody, useHands, useObject, useAudio))
   const sourcesRef = useRef<Sources>(waiting)
-  const [report, setReport] = useState<Report>(() => combine(waiting))
+  const [report, setReport] = useState<Report>(() => combine(waiting, wholeBody))
   const [countdown, setCountdown] = useState<CalibrationState>({ phase: 'checking' })
   const [levelDb, setLevelDb] = useState(-100)
 
   // Puts what the sources say together, and moves the countdown on.
-  const publish = useCallback((nowMs: number) => {
-    const next = combine(sourcesRef.current)
-    const state = flowRef.current.update(next.instruction === null, nowMs)
-    setReport((current) => (sameReport(current, next) ? current : next))
-    setCountdown((current) => (sameCountdown(current, state) ? current : state))
-  }, [])
+  const publish = useCallback(
+    (nowMs: number) => {
+      const next = combine(sourcesRef.current, wholeBody)
+      const state = flowRef.current.update(next.instruction === null, nowMs)
+      setReport((current) => (sameReport(current, next) ? current : next))
+      setCountdown((current) => (sameCountdown(current, state) ? current : state))
+    },
+    [wholeBody]
+  )
 
   const handleFrame = useCallback(
     (frame: PoseFrame, landmarks: Landmark[] | null, video: HTMLVideoElement) => {

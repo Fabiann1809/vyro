@@ -265,7 +265,7 @@ test('a skill with the guitar is calibrated with the body, the hand, the guitar 
   await expect(
     page.getByRole('heading', { level: 1, name: /Calibración · Postura con guitarra/ })
   ).toBeVisible()
-  for (const check of ['Cuerpo completo', 'Mano completa', 'Objeto completo', 'Ruido de la sala']) {
+  for (const check of ['Torso y brazo', 'Mano completa', 'Objeto completo', 'Ruido de la sala']) {
     await expect(page.getByText(check, { exact: true })).toBeVisible()
   }
 })
@@ -277,7 +277,7 @@ test('groups the checks of the calibration by what is watched, and leaves with E
 
   const groups = page.getByRole('group')
   await expect(
-    groups.filter({ hasText: 'Cuerpo completo' }).getByText('Cuerpo', { exact: true })
+    groups.filter({ hasText: 'Torso y brazo' }).getByText('Cuerpo', { exact: true })
   ).toBeVisible()
   await expect(
     groups.filter({ hasText: 'Mano completa' }).getByText('Manos', { exact: true })

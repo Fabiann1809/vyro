@@ -143,4 +143,14 @@ describe('evaluateFraming', () => {
       instruction: null
     })
   })
+
+  it('asks for the shoulders, the arm and the hip, not the feet, when the legs are not used', () => {
+    const landmarks = person()
+    landmarks[JOINT_INDEX.left.wrist] = { x: 0.5, y: 1, z: 0, visibility: 0.2 }
+
+    expect(framing({ landmarks, camera: { view: 'side', fullBody: false } })).toMatchObject({
+      fullBody: 'fix',
+      instruction: 'showUpperBody'
+    })
+  })
 })

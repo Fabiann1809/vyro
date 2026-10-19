@@ -6,6 +6,7 @@ export type CheckState = 'pending' | 'ok' | 'fix'
 export type FramingInstruction =
   | 'stepIntoView'
   | 'showFullBody'
+  | 'showUpperBody'
   | 'moveBack'
   | 'moveCloser'
   | 'turnSideways'
@@ -113,11 +114,12 @@ function profileState(
 function firstInstruction(
   report: Omit<FramingReport, 'instruction'>,
   light: FramingInstruction | null,
-  close: boolean
+  close: boolean,
+  fullBody: boolean
 ): FramingInstruction | null {
   if (light) return light
   if (report.fullBody === 'pending') return 'stepIntoView'
-  if (report.fullBody === 'fix') return 'showFullBody'
+  if (report.fullBody === 'fix') return fullBody ? 'showFullBody' : 'showUpperBody'
   if (report.distance === 'fix') return close ? 'moveBack' : 'moveCloser'
   if (report.profile === 'fix') return 'turnSideways'
   return null
@@ -137,7 +139,7 @@ export function evaluateFraming(input: FramingInput): FramingReport {
       distance: 'pending',
       lighting
     } as const
-    return { ...report, instruction: firstInstruction(report, light, false) }
+    return { ...report, instruction: firstInstruction(report, light, false, camera.fullBody) }
   }
 
   const names = camera.fullBody ? FULL_BODY_JOINTS : UPPER_BODY_JOINTS
@@ -155,5 +157,5 @@ export function evaluateFraming(input: FramingInput): FramingReport {
   } as const
 
   const close = complete && tooClose(body, span)
-  return { ...report, instruction: firstInstruction(report, light, close) }
+  return { ...report, instruction: firstInstruction(report, light, close, camera.fullBody) }
 }
