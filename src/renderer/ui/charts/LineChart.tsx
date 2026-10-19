@@ -2,6 +2,7 @@ import { t } from '@renderer/i18n'
 import {
   areaPath,
   bestIndex,
+  fitRange,
   linePath,
   pathLength,
   pickLabels,
@@ -15,7 +16,7 @@ import {
 import { useDrawn } from './useDrawn'
 
 const WIDTH = 640
-const HEIGHT = 200
+const HEIGHT = 240
 // The left side has room for the numbers of the scale; the right side only for the last dot.
 const FRAME: Frame = { width: WIDTH, height: HEIGHT, padX: 44, padRight: 14, padY: 14 }
 
@@ -24,7 +25,7 @@ const FRAME: Frame = { width: WIDTH, height: HEIGHT, padX: 44, padRight: 14, pad
 export function LineChart({
   values,
   labels,
-  range = { min: 40, max: 100 },
+  range: fixedRange,
   summary,
   seriesName
 }: {
@@ -37,6 +38,8 @@ export function LineChart({
   seriesName: string
 }): React.JSX.Element {
   const drawn = useDrawn()
+  // Left to itself, the scale grows downwards for a low score instead of drawing it outside.
+  const range = fixedRange ?? fitRange(values)
   const points = seriesPoints(values, FRAME, range)
   const length = pathLength(points)
   const line = trend(values)
@@ -54,7 +57,7 @@ export function LineChart({
         <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="block h-auto w-full overflow-visible">
           <path d={grid} className="fill-none stroke-line/6" strokeWidth={1} />
           <path
-            d={areaPath(points, HEIGHT)}
+            d={areaPath(points, HEIGHT - FRAME.padY)}
             className="fill-good/8 transition-opacity duration-700"
             style={{ opacity: drawn ? 1 : 0 }}
           />

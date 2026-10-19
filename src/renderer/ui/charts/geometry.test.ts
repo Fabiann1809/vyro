@@ -8,6 +8,7 @@ import {
   ringDash,
   seriesPoints,
   share,
+  fitRange,
   ticks,
   trend,
   yOf,
@@ -133,5 +134,36 @@ describe('small helpers', () => {
     expect(percentOn(0, { min: -50, max: 50 })).toBe(50)
     expect(percentOn(-80, { min: -50, max: 50 })).toBe(0)
     expect(percentOn(80, { min: -50, max: 50 })).toBe(100)
+  })
+})
+
+describe('fitRange', () => {
+  it('keeps the usual scale for the usual scores', () => {
+    expect(fitRange([55, 78, 90])).toEqual({ min: 40, max: 100 })
+    expect(fitRange([])).toEqual({ min: 40, max: 100 })
+  })
+
+  it('does not zoom in on high scores: a scale that moves is hard to compare', () => {
+    expect(fitRange([78, 90])).toEqual({ min: 40, max: 100 })
+  })
+
+  it('goes down in steps of 20 for a lower score, never below 0', () => {
+    expect(fitRange([55, 35, 90])).toEqual({ min: 20, max: 100 })
+    expect(fitRange([4, 38])).toEqual({ min: 0, max: 60 })
+  })
+
+  it('always spans at least 40 points, and never goes over 100', () => {
+    expect(fitRange([100, 100])).toEqual({ min: 40, max: 100 })
+    expect(fitRange([0, 0])).toEqual({ min: 0, max: 40 })
+  })
+
+  it('leaves every value inside the scale', () => {
+    for (let low = 0; low <= 100; low += 7) {
+      for (let high = low; high <= 100; high += 11) {
+        const range = fitRange([low, high])
+        expect(low).toBeGreaterThanOrEqual(range.min)
+        expect(high).toBeLessThanOrEqual(range.max)
+      }
+    }
   })
 })

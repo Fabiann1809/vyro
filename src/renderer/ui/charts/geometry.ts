@@ -92,6 +92,17 @@ export function bestIndex(values: readonly number[]): number {
   return best
 }
 
+// The scale of a chart of scores: it follows the values, in steps of 20, so that every point falls
+// inside the drawing and the line uses the height it has. It never starts above 40 and never ends
+// above 100, and it always spans at least 40 points. It does not zoom in on high scores: a scale
+// that moves is hard to compare.
+export function fitRange(values: readonly number[], floor = 40, ceiling = 100): Range {
+  if (values.length === 0) return { min: floor, max: ceiling }
+  const low = Math.min(floor, Math.max(0, Math.floor((Math.min(...values) - 5) / 20) * 20))
+  const high = Math.min(ceiling, Math.max(low + 40, Math.ceil((Math.max(...values) + 5) / 20) * 20))
+  return { min: low, max: high }
+}
+
 // Round values to put on the side of a chart: the ends and the middle of a range.
 export function ticks(range: Range): number[] {
   return [range.min, (range.min + range.max) / 2, range.max]

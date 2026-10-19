@@ -55,61 +55,64 @@ export function ActiveRouteCard({
         </p>
       </div>
 
-      <ol aria-hidden="true" className="flex items-center py-2">
-        {states.map((state, index) => {
-          const isLast = index === states.length - 1
-          const done = state?.state === 'done'
-          const now = state?.state === 'current'
-          return (
-            <li key={index} className={`flex items-center ${isLast ? '' : 'flex-1'}`}>
-              <span
-                className={`flex size-8.5 shrink-0 items-center justify-center rounded-full ${
-                  done
-                    ? 'bg-brand text-on-brand'
-                    : now
-                      ? 'border-2 border-brand text-brand'
-                      : 'border border-line/10 bg-lock text-mut3'
-                }`}
-                style={now ? { animation: 'vy-node 2.2s ease-in-out infinite' } : undefined}
-              >
-                <Icon
-                  name={done ? 'check' : now ? 'book' : 'lock'}
-                  className="size-3.75"
-                  strokeWidth={1.8}
-                />
-              </span>
-              {!isLast && <span className={`h-0.5 flex-1 ${done ? 'bg-brand' : 'bg-line/10'}`} />}
-            </li>
-          )
-        })}
-      </ol>
+      {/* The steps and the criterion sit in the middle of what is left, so a tall card has no hole. */}
+      <div className="flex flex-1 flex-col justify-center gap-4.5">
+        <ol aria-hidden="true" className="flex items-center py-2">
+          {states.map((state, index) => {
+            const isLast = index === states.length - 1
+            const done = state?.state === 'done'
+            const now = state?.state === 'current'
+            return (
+              <li key={index} className={`flex items-center ${isLast ? '' : 'flex-1'}`}>
+                <span
+                  className={`flex size-8.5 shrink-0 items-center justify-center rounded-full ${
+                    done
+                      ? 'bg-brand text-on-brand'
+                      : now
+                        ? 'border-2 border-brand text-brand'
+                        : 'border border-line/10 bg-lock text-mut3'
+                  }`}
+                  style={now ? { animation: 'vy-node 2.2s ease-in-out infinite' } : undefined}
+                >
+                  <Icon
+                    name={done ? 'check' : now ? 'book' : 'lock'}
+                    className="size-3.75"
+                    strokeWidth={1.8}
+                  />
+                </span>
+                {!isLast && <span className={`h-0.5 flex-1 ${done ? 'bg-brand' : 'bg-line/10'}`} />}
+              </li>
+            )
+          })}
+        </ol>
 
-      {required !== null && !progress.completed && (
-        <div>
-          <div className="flex flex-wrap justify-between gap-x-3 gap-y-1 text-[0.8125rem] text-t4">
-            <span>{t('dashboard.route.criterion')}</span>
-            <span>{t('path.step.counted', { counted, required })}</span>
-          </div>
-          <div
-            role="progressbar"
-            aria-valuenow={percent}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={t('dashboard.route.criterion')}
-            className="mt-2 h-1.5 overflow-hidden rounded-full bg-line/7"
-          >
+        {required !== null && !progress.completed && (
+          <div>
+            <div className="flex flex-wrap justify-between gap-x-3 gap-y-1 text-[0.8125rem] text-t4">
+              <span>{t('dashboard.route.criterion')}</span>
+              <span>{t('path.step.counted', { counted, required })}</span>
+            </div>
             <div
-              className="h-full rounded-full bg-good transition-[width] duration-700"
-              style={{ width: `${percent}%` }}
-            />
+              role="progressbar"
+              aria-valuenow={percent}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={t('dashboard.route.criterion')}
+              className="mt-2 h-1.5 overflow-hidden rounded-full bg-line/7"
+            >
+              <div
+                className="h-full rounded-full bg-good transition-[width] duration-700"
+                style={{ width: `${percent}%` }}
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <button
         type="button"
         onClick={onOpen}
-        className="mt-auto self-start text-sm font-semibold text-accent hover:underline"
+        className="self-start text-sm font-semibold text-accent hover:underline"
       >
         {t('dashboard.route.open')} →
       </button>
