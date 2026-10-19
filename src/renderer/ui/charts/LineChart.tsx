@@ -16,7 +16,8 @@ import { useDrawn } from './useDrawn'
 
 const WIDTH = 640
 const HEIGHT = 200
-const FRAME: Frame = { width: WIDTH, height: HEIGHT, padX: 44, padY: 14 }
+// The left side has room for the numbers of the scale; the right side only for the last dot.
+const FRAME: Frame = { width: WIDTH, height: HEIGHT, padX: 44, padRight: 14, padY: 14 }
 
 // A series over time: the line draws itself from left to right, a dashed line shows where it is
 // heading, and the best mark is named. The data is also there as a table for screen readers.
@@ -120,7 +121,10 @@ export function LineChart({
           </span>
         )}
       </div>
-      <div aria-hidden="true" className="flex justify-between pl-9 text-[0.71875rem] text-mut2">
+      <div
+        aria-hidden="true"
+        className="flex justify-between pr-1 pl-9 text-[0.71875rem] text-mut2"
+      >
         {pickLabels(labels).map((label, index) => (
           <span key={index}>{label}</span>
         ))}
@@ -135,23 +139,26 @@ export function LineChart({
           {t('chart.trend')}
         </span>
       </div>
-      <table className="sr-only">
-        <caption>{summary}</caption>
-        <thead>
-          <tr>
-            <th>{t('chart.table.when')}</th>
-            <th>{seriesName}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {values.map((value, index) => (
-            <tr key={index}>
-              <td>{labels[index]}</td>
-              <td>{Math.round(value)}</td>
+      {/* The wrapper hides it: a table keeps its own width even with sr-only on it. */}
+      <div className="sr-only">
+        <table>
+          <caption>{summary}</caption>
+          <thead>
+            <tr>
+              <th>{t('chart.table.when')}</th>
+              <th>{seriesName}</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {values.map((value, index) => (
+              <tr key={index}>
+                <td>{labels[index]}</td>
+                <td>{Math.round(value)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   )
 }

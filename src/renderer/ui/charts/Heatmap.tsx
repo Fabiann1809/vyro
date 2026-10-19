@@ -28,7 +28,7 @@ export function Heatmap({
     <div
       role="img"
       aria-label={summary}
-      className="grid aspect-12/7 grid-flow-col grid-rows-7 gap-1"
+      className="grid min-h-36 flex-1 grid-flow-col grid-rows-7 gap-1"
     >
       {cells.map((cell) => (
         <div

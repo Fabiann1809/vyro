@@ -53,7 +53,7 @@ export function QualityCard({ detail }: { detail: SessionDetail | undefined }): 
             t('dashboard.quality.rep', { n: index + 1, quality: t(QUALITY_WORD[quality]) })
           )}
           summary={t('dashboard.quality.summary', { count: qualities.length })}
-          height="h-36"
+          height="min-h-36 flex-1"
         />
       )}
 

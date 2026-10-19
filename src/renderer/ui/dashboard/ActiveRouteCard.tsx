@@ -86,7 +86,7 @@ export function ActiveRouteCard({
 
       {required !== null && !progress.completed && (
         <div>
-          <div className="flex justify-between text-[0.8125rem] text-t4">
+          <div className="flex flex-wrap justify-between gap-x-3 gap-y-1 text-[0.8125rem] text-t4">
             <span>{t('dashboard.route.criterion')}</span>
             <span>{t('path.step.counted', { counted, required })}</span>
           </div>

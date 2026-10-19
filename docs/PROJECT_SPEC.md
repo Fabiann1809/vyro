@@ -349,6 +349,10 @@ La postura se mide en su propia clase, de perfil y sin sonido; las clases que en
 - [x] **T19.4 La postura va primero.** Una ruta de guitarra empieza por la postura (el planificador la añade si falta, o la sube al principio) y, si alguien abre una clase de guitarra sin haber hecho la postura, la calibración de la clase muestra un aviso con un botón para hacerla primero; no bloquea. *Hecho cuando:* una prueba comprueba que la ruta empieza por la postura y otra que el aviso sale solo si no hay sesión de postura guardada.
 - [x] **T19.5 Salidas del planificador, en general.** Las instrucciones de la IA piden listar solo las señales que de verdad miden el objetivo y medir por el sonido todo lo que se oye (instrumentos, voz, ritmo): un instrumento solo es un objeto si lo que importa es dónde está o cómo se sostiene. La tarjeta "Aún no tengo una habilidad para eso" ofrece "Crear esta habilidad con la IA", que abre la creación de habilidad con la frase de la persona ya escrita. *Hecho cuando:* una prueba e2e con proveedor falso lleva de la tarjeta a la creación con la frase puesta, y la sugerencia no vuelve a aparecer la siguiente vez. La parte de las instrucciones queda sin verificar con una IA real.
 
+### Fase 20 — Pulido tras las pruebas
+
+- [x] **T20.1 Estadísticas e Inicio.** El "Tablero" pasa a llamarse "Estadísticas" (menú y título). Se arregla su maquetación: las tablas para lectores de pantalla de las gráficas empujaban la página hacia un lado (barra horizontal), la gráfica de puntuación deja la misma holgura a ambos lados, y las tarjetas de constancia, calidad y canales llenan su espacio en vez de dejar huecos. Inicio explica en su descripción que VYRO se especializa en lo que se puede ver y escuchar (cuerpo, manos y sonido) y que lo demás no lo puede entrenar. *Hecho cuando:* en ventanas de 900, 1100 y 1280 px de ancho no hay desborde horizontal en Estadísticas, las capturas no muestran huecos grandes en esas tarjetas, e Inicio cabe en una ventana de 1280×720.
+
 ### Aplazado
 Vista frontal, detección de fatiga, clips de errores, modelos propios que juzguen técnica, firma de código y auto-actualización, módulos de comunidad.
 

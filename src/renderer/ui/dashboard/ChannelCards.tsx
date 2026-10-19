@@ -23,7 +23,7 @@ function ChannelCard({ series }: { series: ChannelSeries }): React.JSX.Element {
   const name = t(look.label)
 
   return (
-    <Card className="flex flex-col gap-3 p-5">
+    <Card className="flex w-full flex-col gap-3 p-5">
       <span className="self-start">
         <ChannelChip channel={series.channel} />
       </span>
@@ -63,7 +63,7 @@ export function ChannelCards({ series }: { series: readonly ChannelSeries[] }): 
         <h2 className="text-[1.1875rem] font-semibold">{t('dashboard.channels.title')}</h2>
         <p className="text-[0.8125rem] text-mut">{t('dashboard.channels.hint')}</p>
       </div>
-      <ul className="grid grid-cols-2 gap-4.5 lg:col-span-3 lg:grid-cols-4">
+      <ul className="grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4.5 lg:col-span-3">
         {series.map((item) => (
           <li key={item.channel} className="flex">
             <ChannelCard series={item} />

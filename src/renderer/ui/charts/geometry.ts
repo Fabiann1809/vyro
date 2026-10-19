@@ -11,6 +11,8 @@ export interface Frame {
   height: number
   // Room left empty on each side, for labels and for the dots not to be cut off.
   padX: number
+  // The right side, when it needs less than the left; the same as padX when left out.
+  padRight?: number
   padY: number
 }
 
@@ -29,7 +31,7 @@ export function yOf(value: number, frame: Frame, range: Range): number {
 // The points of a series, evenly spaced from left to right. One point sits in the middle.
 export function seriesPoints(values: readonly number[], frame: Frame, range: Range): Point[] {
   const count = values.length
-  const usable = frame.width - 2 * frame.padX
+  const usable = frame.width - frame.padX - (frame.padRight ?? frame.padX)
   return values.map((value, index) => ({
     x: frame.padX + (count === 1 ? usable / 2 : (index * usable) / (count - 1)),
     y: yOf(value, frame, range)

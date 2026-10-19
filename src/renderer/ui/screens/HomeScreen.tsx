@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { t, type MessageKey } from '@renderer/i18n'
+import type { SkillChannel } from '@shared/skill/skillChannels'
 import { CoachErrorNotice } from '../CoachErrorNotice'
 import { Thread, type ThreadActions } from '../chat/Thread'
 import { ChatComposer } from '../chat/ChatComposer'
@@ -15,6 +16,7 @@ import {
   useHomeChat
 } from '../homeChatStore'
 import { Button } from '../kit/Button'
+import { ChannelChip } from '../kit/ChannelChip'
 import { CoachAvatar } from '../kit/CoachAvatar'
 import { startWithExpand } from '../expandTransition'
 import { focusComposer } from '../focusComposer'
@@ -29,6 +31,35 @@ import { useReducedMotion } from '../useReducedMotion'
 
 // What the empty screen offers to start with. With the coach on, a suggestion fills the box; with it
 // off, it opens the skill itself, so that the screen is never a dead end.
+const SCOPE_ITEMS: ReadonlyArray<{ channel: SkillChannel; text: MessageKey }> = [
+  { channel: 'body', text: 'home.scope.body' },
+  { channel: 'hands', text: 'home.scope.hands' },
+  { channel: 'audio', text: 'home.scope.audio' }
+]
+
+// What VYRO is good at, said plainly: it coaches what the camera can see and the microphone can
+// hear, and it says so when something is neither.
+function ScopeNote(): React.JSX.Element {
+  return (
+    <div className="mb-6 flex max-w-195 flex-col items-center gap-3">
+      <p className="text-center text-[0.9375rem] leading-normal text-mut2 text-pretty">
+        {t('home.scope.intro')}
+      </p>
+      <ul className="flex flex-wrap justify-center gap-2.5">
+        {SCOPE_ITEMS.map((item) => (
+          <li
+            key={item.channel}
+            className="flex items-center gap-2.5 rounded-full border border-line/8 py-1.5 pr-4 pl-1.5 text-[0.8125rem] text-t3"
+          >
+            <ChannelChip channel={item.channel} />
+            {t(item.text)}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 const SUGGESTIONS: ReadonlyArray<{ skillId: string; label: MessageKey; prompt: MessageKey }> = [
   { skillId: 'squat', label: 'home.suggest.squat.label', prompt: 'home.suggest.squat.prompt' },
   {
@@ -208,13 +239,14 @@ export function HomeScreen(): React.JSX.Element {
           aria-hidden="true"
           className="pointer-events-none absolute top-[-14rem] left-1/2 h-160 w-250 -translate-x-1/2 bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--brand)_9%,transparent),transparent)]"
         />
-        <CoachAvatar size={104} />
-        <h1 className="mt-7.5 mb-3.5 text-center font-display text-[3.625rem] leading-[1.05] font-semibold tracking-tight">
+        <CoachAvatar size={84} />
+        <h1 className="mt-5 mb-3 text-center font-display text-[3.625rem] leading-[1.05] font-semibold tracking-tight">
           {t('home.title')}
         </h1>
-        <p className="mb-8.5 max-w-135 text-center text-lg leading-normal text-mut text-pretty">
+        <p className="mb-3.5 max-w-135 text-center text-lg leading-normal text-mut text-pretty">
           {t('home.lead')}
         </p>
+        <ScopeNote />
         <ChatComposer
           variant="hero"
           value={draft}
