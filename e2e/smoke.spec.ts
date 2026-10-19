@@ -443,6 +443,43 @@ test('shows a skill that was saved in the database after the app was built, and 
   ).toBeVisible()
 })
 
+test('suggests the posture before a guitar lesson, without blocking it', async () => {
+  await (await launch()).title()
+  await app?.close()
+  // A lesson made before the rule about the body existed: it keeps working.
+  const squat = JSON.parse(readFileSync('src/renderer/skills/squat.json', 'utf-8')) as object
+  const db = new DatabaseSync(join(userData, 'vyro.db'))
+  db.prepare(
+    'INSERT INTO custom_skills (id, config_json, status, created_at) VALUES (?, ?, ?, ?)'
+  ).run(
+    'custom_guitar_lesson',
+    JSON.stringify({
+      ...squat,
+      id: 'custom_guitar_lesson',
+      name: { es: 'Cuerda al aire de guitarra', en: 'Open guitar string' }
+    }),
+    'approved',
+    1
+  )
+  db.close()
+  const page = await launch()
+  await nav(page, 'Biblioteca').click()
+
+  await page.getByRole('button', { name: 'Cuerda al aire de guitarra' }).click()
+  await expect(
+    page.getByRole('heading', { level: 1, name: /Calibración · Cuerda al aire de guitarra/ })
+  ).toBeVisible()
+  await expect(
+    page.getByText('Te recomendamos hacer primero la postura con la guitarra')
+  ).toBeVisible()
+
+  await page.getByRole('button', { name: 'Hacer la postura primero' }).click()
+  await expect(
+    page.getByRole('heading', { level: 1, name: /Calibración · Postura con guitarra/ })
+  ).toBeVisible()
+  await expect(page.getByText('Te recomendamos hacer primero la postura')).toHaveCount(0)
+})
+
 test('goes back to the skills of the app when all the data is deleted', async () => {
   await (await launch()).title()
   await app?.close()

@@ -27,6 +27,7 @@ import {
 import { sampleLuminance } from '@renderer/core/lighting'
 import { localize, t, type MessageKey } from '@renderer/i18n'
 import { cameraOf } from '@shared/skill/cameraOf'
+import { GUITAR_POSTURE_ID, isGuitarLesson } from '@shared/skill/guitar'
 import { skillChannels, type SkillChannel } from '@shared/skill/skillChannels'
 import { CameraStage } from '../CameraStage'
 import { ChecksPanel, type CheckItem } from '../immersive/ChecksPanel'
@@ -191,6 +192,7 @@ export function CalibrationScreen(): React.JSX.Element {
   const go = useNavigation((state) => state.go)
   const previous = useNavigation((state) => state.previous)
   const skillId = useSession((state) => state.skillId)
+  const selectSkill = useSession((state) => state.selectSkill)
   const skills = useSkills((state) => state.skills)
   const skill = skills.find((candidate) => candidate.id === skillId)
   const channels = skill ? skillChannels(skill) : []
@@ -200,6 +202,13 @@ export function CalibrationScreen(): React.JSX.Element {
   const useAudio = channels.includes('audio')
   const useCamera = useBody || useHands || useObject
   const wholeBody = skill ? cameraOf(skill).fullBody : true
+
+  // A guitar lesson is better after the posture; it only says so, and only until the posture has been done.
+  const [postureMissing, setPostureMissing] = useState(false)
+  const lessonNeedsPosture =
+    skill !== undefined &&
+    isGuitarLesson(skill) &&
+    skills.some((candidate) => candidate.id === GUITAR_POSTURE_ID)
 
   const flowRef = useRef(new CalibrationFlow())
   const audioFramingRef = useRef(new AudioFraming())
@@ -267,6 +276,21 @@ export function CalibrationScreen(): React.JSX.Element {
   const microphone = useMicrophoneFeatures(useAudio, handleSound)
 
   const cancel = useCallback(() => go(returnTarget(previous)), [go, previous])
+
+  useEffect(() => {
+    if (!lessonNeedsPosture) return
+    let cancelled = false
+    window.api.sessions
+      .list({ skillId: GUITAR_POSTURE_ID, limit: 1 })
+      .then((rows) => {
+        if (!cancelled) setPostureMissing(rows.length === 0)
+      })
+      // If the history cannot be read, saying nothing is better than a wrong notice.
+      .catch(() => undefined)
+    return () => {
+      cancelled = true
+    }
+  }, [lessonNeedsPosture])
 
   // Without a chosen skill there is nothing to calibrate for.
   useEffect(() => {
@@ -400,6 +424,14 @@ export function CalibrationScreen(): React.JSX.Element {
         </div>
 
         <div className="flex w-95 shrink-0 flex-col gap-3.5 overflow-y-auto">
+          {lessonNeedsPosture && postureMissing && (
+            <div className="flex flex-col items-start gap-3 rounded-3xl border border-line/6 bg-card p-5">
+              <p>{t('calibration.posture.notice')}</p>
+              <Button variant="secondary" onClick={() => selectSkill(GUITAR_POSTURE_ID)}>
+                {t('calibration.posture.go')}
+              </Button>
+            </div>
+          )}
           <ChecksPanel checks={report.checks} />
           {skill.guide && <SkillGuide guide={skill.guide} open={false} />}
           {useCamera &&

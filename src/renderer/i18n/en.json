@@ -192,6 +192,8 @@
   "calibration.holdStill": "All set. Stay like this",
   "calibration.check.fullBody": "Whole body",
   "calibration.check.upperBody": "Torso and arm",
+  "calibration.posture.notice": "We suggest doing the guitar posture first: it is measured once and the lessons do not check it again.",
+  "calibration.posture.go": "Do the posture first",
   "calibration.check.profile": "Sideways",
   "calibration.check.distance": "Distance",
   "calibration.check.lighting": "Lighting",

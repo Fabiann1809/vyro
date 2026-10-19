@@ -14,10 +14,12 @@ import { SettingsScreen } from './ui/screens/SettingsScreen'
 import { SkillCreateScreen } from './ui/screens/SkillCreateScreen'
 import { SummaryScreen } from './ui/screens/SummaryScreen'
 import { TrainingScreen } from './ui/screens/TrainingScreen'
+import { useSession } from './ui/sessionStore'
 import { useSettings } from './ui/settingsStore'
 import { useAppliedAppearance } from './ui/useAppliedAppearance'
 
 function CurrentScreen({ screen }: { screen: Screen }): React.JSX.Element {
+  const skillId = useSession((state) => state.skillId)
   switch (screen) {
     case 'home':
       return <HomeScreen />
@@ -30,7 +32,7 @@ function CurrentScreen({ screen }: { screen: Screen }): React.JSX.Element {
     case 'how':
       return <HowScreen />
     case 'calibration':
-      return <CalibrationScreen />
+      return <CalibrationScreen key={skillId ?? ''} />
     case 'training':
       return <TrainingScreen />
     case 'summary':

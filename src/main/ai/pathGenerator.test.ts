@@ -1,11 +1,12 @@
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { afterEach, describe, expect, it } from 'vitest'
 import { planObjectsForLater } from '@shared/feasibilityFixtures'
+import type { PathToSave } from '@shared/paths'
 import type { PlanPathInput } from '@shared/pathPlan'
 import { parseJsonAnswer } from './answer'
 import { LlmError } from './errors'
 import type { GenerateRequest, LlmClient } from './llmClient'
-import { generatePathTurn, planTurnSchema } from './pathGenerator'
+import { generatePathTurn, planTurnSchema, withPostureFirst } from './pathGenerator'
 
 const skills: PlanPathInput['skills'] = [
   { id: 'squat', name: { es: 'Sentadilla', en: 'Squat' }, ruleIds: ['depth', 'torso_lean'] },
@@ -352,5 +353,88 @@ describe('the schema that the model has to follow', () => {
 
     expect(planTurnSchema(['squat'], true).safeParse(question).success).toBe(true)
     expect(planTurnSchema(['squat'], false).safeParse(question).success).toBe(false)
+  })
+})
+
+describe('the posture of a guitar path', () => {
+  const guitarSkills: PlanPathInput['skills'] = [
+    ...skills,
+    {
+      id: 'guitar_posture',
+      name: { es: 'Postura con guitarra', en: 'Guitar posture' },
+      ruleIds: ['straight_back']
+    },
+    {
+      id: 'custom_guitar_open_string',
+      name: { es: 'Cuerda abierta de guitarra', en: 'Open guitar string' },
+      ruleIds: ['wrist']
+    }
+  ]
+  const path = (...steps: unknown[]): PathToSave => ({
+    goal: 'Aprender guitarra',
+    steps: steps as PathToSave['steps']
+  })
+  const ids = (result: PathToSave): Array<string | null> => result.steps.map((s) => s.skillId)
+
+  it('starts with the posture when the model forgot it', () => {
+    const result = withPostureFirst(
+      path(skillStep('custom_guitar_open_string'), skillStep('squat')),
+      guitarSkills,
+      'es'
+    )
+
+    expect(ids(result)).toEqual(['guitar_posture', 'custom_guitar_open_string', 'squat'])
+    expect(result.steps[0]).toMatchObject({
+      title: 'Postura con la guitarra',
+      criterionSessions: 1
+    })
+  })
+
+  it('writes the step it adds in the language of the person', () => {
+    const result = withPostureFirst(
+      path(skillStep('custom_guitar_open_string')),
+      guitarSkills,
+      'en'
+    )
+
+    expect(result.steps[0]).toMatchObject({ title: 'Guitar posture' })
+  })
+
+  it('moves a posture that came later to the front, without repeating it', () => {
+    const result = withPostureFirst(
+      path(skillStep('custom_guitar_open_string'), skillStep('guitar_posture')),
+      guitarSkills,
+      'es'
+    )
+
+    expect(ids(result)).toEqual(['guitar_posture', 'custom_guitar_open_string'])
+  })
+
+  it('leaves alone a path with no guitar lesson, or a posture that is already first', () => {
+    const squats = path(skillStep('squat'), restStep)
+    const done = path(skillStep('guitar_posture'), skillStep('custom_guitar_open_string'))
+
+    expect(withPostureFirst(squats, guitarSkills, 'es')).toEqual(squats)
+    expect(withPostureFirst(done, guitarSkills, 'es')).toEqual(done)
+  })
+
+  it('reaches the person through the planner', async () => {
+    const model = scriptedModel(
+      JSON.stringify({
+        action: 'propose',
+        requirement: bodyOnly,
+        path: { goal: 'Aprender guitarra', steps: [skillStep('custom_guitar_open_string')] }
+      })
+    )
+
+    const result = await generatePathTurn(
+      model,
+      input([user('Quiero aprender guitarra')], { skills: guitarSkills })
+    )
+
+    expect(result).toMatchObject({ kind: 'path' })
+    if (result.kind === 'path') {
+      expect(ids(result.path)).toEqual(['guitar_posture', 'custom_guitar_open_string'])
+    }
   })
 })

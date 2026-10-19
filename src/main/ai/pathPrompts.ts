@@ -38,6 +38,7 @@ export function pathPlannerPrompt(input: PlanPathInput, canAsk: boolean): Outbou
       '- A step with kind "skill" practises one of the skills above: set its "skillId", "criterionSessions" (how many sessions, usually 2 to 5) and "criterionScore" (the score from 0 to 100 to reach in them, usually between 60 and 85, higher as the path advances).',
       '- A step with kind "auxiliary" is a rest day, a warm-up or a short bit of theory that VYRO cannot measure: set "skillId", "criterionSessions" and "criterionScore" to null. Never make a path of only auxiliary steps.',
       ...guidePrompt(),
+      `- When the path teaches the guitar, its first skill step is "guitar_posture": the posture is measured once, before the lessons.`,
       `- A path has at most ${MAX_PATH_STEPS} steps. Each description is one or two sentences saying why the step is there and how to do it. Be conservative: prefer slow, controlled work, and never push through pain.`,
       'If the goal can be measured but none of the skills above trains it, answer with action "no-matching-skill".',
       '',

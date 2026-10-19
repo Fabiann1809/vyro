@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import { assessFeasibility, skillRequirementSchema } from '@shared/feasibility'
-import { pathToSaveSchema } from '@shared/paths'
+import { MAX_PATH_STEPS, pathToSaveSchema, type PathToSave } from '@shared/paths'
 import { MAX_QUESTIONS, type PlanPathInput, type PlanPathResult } from '@shared/pathPlan'
+import { GUITAR_POSTURE_ID, isGuitarLesson } from '@shared/skill/guitar'
 import type { LlmClient } from './llmClient'
 import { buildMessages, textTurn } from './outbound'
 import { pathPlannerPrompt } from './pathPrompts'
@@ -70,6 +71,43 @@ export function planTurnSchema(skillIds: readonly string[], canAsk: boolean): z.
     : z.discriminatedUnion('action', [propose, noMatchingSkill])
 }
 
+const POSTURE_STEP = {
+  es: {
+    title: 'Postura con la guitarra',
+    description:
+      'Antes de las clases, asegura tu postura: espalda recta y brazo relajado, de perfil a la cámara. Se mide una vez y las clases ya no la revisan.'
+  },
+  en: {
+    title: 'Guitar posture',
+    description:
+      'Before the lessons, get your posture right: straight back and a relaxed arm, side-on to the camera. It is measured once and the lessons do not check it again.'
+  }
+} as const
+
+// A path with guitar lessons starts with the posture, whatever the model wrote. The prompt asks for
+// it too, but this is the one that makes it always true.
+export function withPostureFirst(
+  path: PathToSave,
+  skills: PlanPathInput['skills'],
+  language: PlanPathInput['language']
+): PathToSave {
+  const lessonIds = new Set(skills.filter(isGuitarLesson).map((skill) => skill.id))
+  const hasLesson = path.steps.some((step) => step.kind === 'skill' && lessonIds.has(step.skillId))
+  if (!hasLesson || !skills.some((skill) => skill.id === GUITAR_POSTURE_ID)) return path
+
+  const isPosture = (step: PathToSave['steps'][number]): boolean =>
+    step.kind === 'skill' && step.skillId === GUITAR_POSTURE_ID
+  const posture = path.steps.find(isPosture) ?? {
+    kind: 'skill' as const,
+    skillId: GUITAR_POSTURE_ID,
+    criterionSessions: 1,
+    criterionScore: 60,
+    ...POSTURE_STEP[language]
+  }
+  const others = path.steps.filter((step) => !isPosture(step))
+  return { ...path, steps: [posture, ...others].slice(0, MAX_PATH_STEPS) }
+}
+
 // One step of the planning conversation. The model describes what the skill needs and what it
 // proposes; this function decides, with the rule of the scope, what the user gets to see.
 export async function generatePathTurn(
@@ -113,7 +151,7 @@ export async function generatePathTurn(
     case 'ask':
       return { kind: 'question', question: turn.question }
     case 'propose':
-      return { kind: 'path', path: turn.path }
+      return { kind: 'path', path: withPostureFirst(turn.path, input.skills, input.language) }
     case 'no-matching-skill':
       return { kind: 'no-matching-skill' }
   }

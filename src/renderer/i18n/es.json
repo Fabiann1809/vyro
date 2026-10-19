@@ -192,6 +192,8 @@
   "calibration.holdStill": "Todo listo. Quédate así",
   "calibration.check.fullBody": "Cuerpo completo",
   "calibration.check.upperBody": "Torso y brazo",
+  "calibration.posture.notice": "Te recomendamos hacer primero la postura con la guitarra: se mide una sola vez y las clases ya no la revisan.",
+  "calibration.posture.go": "Hacer la postura primero",
   "calibration.check.profile": "De perfil",
   "calibration.check.distance": "Distancia",
   "calibration.check.lighting": "Iluminación",
