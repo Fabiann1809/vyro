@@ -57,6 +57,17 @@ export function planTurnSchema(skillIds: readonly string[], canAsk: boolean): z.
         })
       }
     })
+    value.path.steps.forEach((step, index) => {
+      const draws = (step.guide?.diagrams ?? []).length > 0
+      if (!draws && step.guide?.tips.some((tip) => /diagram/i.test(tip))) {
+        context.addIssue({
+          code: 'custom',
+          path: ['path', 'steps', index, 'guide', 'tips'],
+          message:
+            'A tip mentions a diagram, but this step has none. The app only draws guitar chords, piano keys and exercise poses: add the diagram or take the mention out.'
+        })
+      }
+    })
     if (!value.path.steps.some((step) => step.kind === 'skill')) {
       context.addIssue({
         code: 'custom',

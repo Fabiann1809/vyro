@@ -438,3 +438,36 @@ describe('the posture of a guitar path', () => {
     }
   })
 })
+
+describe('tips that point at something the app does not have', () => {
+  const theory = (tip: string, diagrams: unknown[] = []): unknown => ({
+    title: 'Teoría de cuerdas abiertas',
+    description: 'Aprende los nombres de las cuerdas.',
+    kind: 'auxiliary',
+    skillId: null,
+    criterionSessions: null,
+    criterionScore: null,
+    guide: { tips: [tip], minutes: 10, diagrams }
+  })
+  const schema = planTurnSchema(['squat'], false)
+  const parse = (step: unknown): boolean =>
+    schema.safeParse({
+      action: 'propose',
+      requirement: bodyOnly,
+      path: { goal: 'Aprender guitarra', steps: [step, skillStep('squat')] }
+    }).success
+
+  it('sends back a tip that says to look at a diagram the step does not have', () => {
+    expect(parse(theory('Mira el diagrama de cuerdas en la app'))).toBe(false)
+  })
+
+  it('accepts the same tip when the step does carry a diagram', () => {
+    expect(parse(theory('Mira el diagrama de este acorde', [{ kind: 'chord', name: 'Am' }]))).toBe(
+      true
+    )
+  })
+
+  it('accepts a tip that mentions nothing of the app', () => {
+    expect(parse(theory('Repite el nombre de cada cuerda en voz alta'))).toBe(true)
+  })
+})
