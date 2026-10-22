@@ -365,6 +365,18 @@ La postura se mide en su propia clase, de perfil y sin sonido; las clases que en
 - [ ] **T21.5 Resumen y Estadísticas.** La pantalla de resumen y Estadísticas hablan en la unidad de la habilidad, muestran las medidas que ella declara y la comparación con la sesión anterior ("hoy 12 s, antes 8 s"). Las habilidades de cuerpo siguen mostrando repeticiones. *Hecho cuando:* capturas de una sesión de sentadilla y otra de postura/flauta muestran cada una sus medidas, y el coach con IA recibe las mismas cifras (solo números).
 - [ ] **T21.6 La IA elige la unidad.** Las instrucciones para generar habilidades y rutas piden declarar `progress` según lo que se mide (sonido sostenido, acordes limpios, postura mantenida) y la validación lo comprueba. *Hecho cuando:* una prueba con proveedor falso acepta una habilidad de flauta con `attempts` y `timeWell`, y rechaza una con medidas que su configuración no permite. Queda sin verificar con una IA real.
 
+### Fase 22 — Comprobar qué instrumento suena
+
+Hoy el canal de audio mide altura, volumen y ritmo, pero no el timbre: una voz, un silbido o una nota reproducida desde otro aparato cuentan igual que el instrumento pedido. Decidido con el usuario: añadir un clasificador de sonido que corra en local (como el detector de guitarra) y que una habilidad pueda pedir un instrumento. Todo sigue en local: el audio nunca se guarda ni sale del equipo, solo se guardan números.
+
+- [ ] **T22.1 Elegir y probar el clasificador.** Elegir un modelo de clasificación de audio que corra en el renderer sin red (candidato: YAMNet con la tarea de clasificación de audio de MediaPipe, ya usada para la pose), con licencia compatible, tamaño anotado y empaquetado en `src/renderer/assets/models/`. Decidir con el usuario la lista de clases que se usarán (flauta, guitarra, piano, voz...). *Hecho cuando:* un script de prueba clasifica clips cortos y la decisión (modelo, licencia, tamaño, clases) queda en DECISIONS.
+- [ ] **T22.2 Clasificador en `core/audio`.** Módulo puro que recibe ventanas de audio y devuelve la probabilidad de cada instrumento, con suavizado para no parpadear. *Hecho cuando:* las pruebas con clips sintéticos y grabados de ejemplo dan la clase esperada y silencio da "ninguno".
+- [ ] **T22.3 Métrica `instrument` en las habilidades.** Nueva métrica de audio en el esquema (por ejemplo `instrument: "flute"` con la confianza como valor) que las reglas pueden usar ("confianza media ≥ 0.5"). La IA solo puede nombrar instrumentos de la lista conocida, igual que los objetos y los diagramas (D18). *Hecho cuando:* el cargador rechaza instrumentos desconocidos y las reglas la evalúan con `engine`, sin que el motor conozca ningún instrumento concreto.
+- [ ] **T22.4 Calibración y entrenamiento.** La calibración de una habilidad con instrumento no marca "Sonido" hasta que se reconoce ese instrumento, y durante la práctica avisa con un mensaje cuando suena otra cosa ("No oigo una flauta"). Los textos van en `i18n`. *Hecho cuando:* una prueba e2e con micrófono falso cubre el caso de otro sonido y el caso correcto.
+- [ ] **T22.5 La IA pide el instrumento.** Las instrucciones para generar rutas y habilidades piden declarar el instrumento cuando importa quién suena, y la validación lo comprueba. *Hecho cuando:* una prueba con proveedor falso acepta una habilidad de flauta con instrumento y rechaza uno desconocido. Queda sin verificar con una IA real.
+
+Sin verificar sin micrófono real: la confianza mínima y su fiabilidad con ruido de fondo o instrumentos parecidos; se ajustará con grabaciones del usuario.
+
 ### Aplazado
 Vista frontal, detección de fatiga, clips de errores, modelos propios que juzguen técnica, firma de código y auto-actualización, módulos de comunidad.
 
