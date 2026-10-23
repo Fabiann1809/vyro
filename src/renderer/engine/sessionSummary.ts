@@ -8,7 +8,14 @@ export interface FrequentError {
   message: { es: string; en: string }
 }
 
-export interface SessionSummary {
+// What is needed of an attempt to measure progress: also what a stored session keeps of it.
+export interface Attempt {
+  quality: RepQuality
+  durationMs: number
+}
+
+// The numbers that say how well a session went, so one session can be set against another.
+export interface SessionNumbers {
   // Repetitions that could be judged; those the body could not be measured in are left out.
   judged: number
   good: number
@@ -24,6 +31,9 @@ export interface SessionSummary {
   // not be judged ends a run: nobody checked it, so the run cannot be claimed across it.
   bestStreak: number
   bestStreakMs: number
+}
+
+export interface SessionSummary extends SessionNumbers {
   // Most frequent first.
   errors: FrequentError[]
   // The quality of each repetition in order, to see whether the technique fades.
@@ -34,6 +44,14 @@ export interface SessionSummary {
 const POINTS: Record<RepQuality, number> = { good: 1, 'needs-work': 0.5, bad: 0, unknown: 0 }
 
 export function summarizeSession(results: readonly RepResult[]): SessionSummary {
+  return {
+    ...sessionNumbers(results),
+    errors: frequentErrors(results),
+    qualities: results.map((result) => result.quality)
+  }
+}
+
+export function sessionNumbers(results: readonly Attempt[]): SessionNumbers {
   const judgedResults = results.filter((result) => result.quality !== 'unknown')
   const count = (quality: RepQuality): number =>
     judgedResults.filter((result) => result.quality === quality).length
@@ -56,9 +74,7 @@ export function summarizeSession(results: readonly RepResult[]): SessionSummary 
     cleanRate: percent(count('good'), judgedResults.length),
     timeWell: percent(goodMs, judgedMs),
     bestStreak: streak.count,
-    bestStreakMs: streak.durationMs,
-    errors: frequentErrors(results),
-    qualities: results.map((result) => result.quality)
+    bestStreakMs: streak.durationMs
   }
 }
 
@@ -68,7 +84,7 @@ const sum = (values: readonly number[]): number => values.reduce((total, value) 
 const percent = (part: number, whole: number): number | null =>
   whole > 0 ? Math.round((100 * part) / whole) : null
 
-function bestStreak(results: readonly RepResult[]): { count: number; durationMs: number } {
+function bestStreak(results: readonly Attempt[]): { count: number; durationMs: number } {
   let best = { count: 0, durationMs: 0 }
   let current = { count: 0, durationMs: 0 }
 
