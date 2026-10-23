@@ -4,6 +4,7 @@ import { MAX_TIP_LENGTH, MAX_TIPS } from '../guide'
 import { PROGRESS_MEASURES, PROGRESS_UNITS } from './progress'
 import { ANY_JOINT_NAMES } from './joints'
 import { DETECTABLE_OBJECTS } from './objects'
+import { INSTRUMENTS } from './instruments'
 import { isAudioMetric, isObjectMetric } from './skillChannels'
 
 // Names the rule expressions already use (functions and per-repetition values). A metric called
@@ -147,6 +148,12 @@ const intervalMetric = z
 // The beats per minute of the last notes.
 const tempoMetric = z.object({ type: z.literal('tempo') }).strict()
 
+// How sure the sound is of being this instrument, from 0 to 1. Only instruments of the known list
+// can be named. Rules usually read its average ("avg(flute) >= 0.5").
+const instrumentMetric = z
+  .object({ type: z.literal('instrument'), name: z.enum(INSTRUMENTS) })
+  .strict()
+
 const metric = z.discriminatedUnion('type', [
   angleMetric,
   tiltMetric,
@@ -157,7 +164,8 @@ const metric = z.discriminatedUnion('type', [
   pitchMetric,
   levelMetric,
   intervalMetric,
-  tempoMetric
+  tempoMetric,
+  instrumentMetric
 ])
 
 const threshold = z

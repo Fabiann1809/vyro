@@ -58,6 +58,8 @@ function measureAudio(
         : null
     case 'tempo':
       return audio.bpm
+    case 'instrument':
+      return audio.instruments?.[metric.name] ?? null
     default:
       return null
   }

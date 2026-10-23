@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { measureSound, type AudioFeatures } from '@renderer/core/audio/capture'
 import { frequencyOfMidi, noteToMidi } from '@renderer/core/audio/pitch'
 import { clickTrack, levelSeries, SAMPLE_RATE, tone } from '@renderer/core/audio/syntheticSound'
+import { compileExpression } from '@shared/skill/expression'
+import { INSTRUMENTS } from '@shared/skill/instruments'
 import { skillChannels } from '@shared/skill/skillChannels'
 import { parseSkillConfig } from '@shared/skill/skillLoader'
 import type { SkillConfig } from '@shared/skill/skillSchema'
+import { scoreInstruments } from '@renderer/core/audio/instrument'
 import { AudioTracker, type AudioState } from './audioTracker'
 import { computeMetrics } from './metrics'
 
@@ -246,5 +249,57 @@ describe('which channels a skill uses', () => {
 
   it('does not need a camera when it only listens', () => {
     expect(skillWith({ m: { type: 'level' } }).camera).toBeUndefined()
+  })
+})
+
+describe('the instrument that sounds', () => {
+  const skill = skillWith({ flute: { type: 'instrument', name: 'flute' } })
+
+  const heardFlute = (score: number): AudioState =>
+    new AudioTracker().update(0, {
+      ...featuresOf(tone(440, 0.1)),
+      instruments: scoreInstruments([{ name: 'Flute', score }])
+    })
+
+  it('is how sure the sound is of being that instrument', () => {
+    expect(measure(skill, heardFlute(0.8))['flute']).toBeCloseTo(0.8)
+  })
+
+  it('is 0 when another instrument is heard', () => {
+    const guitar = new AudioTracker().update(0, {
+      ...featuresOf(tone(440, 0.1)),
+      instruments: scoreInstruments([{ name: 'Guitar', score: 0.9 }])
+    })
+
+    expect(measure(skill, guitar)['flute']).toBe(0)
+  })
+
+  it('is null while the sound is not being classified', () => {
+    expect(measure(skill, stateOf(tone(440, 0.1)))['flute']).toBeNull()
+    expect(measure(skill, null)['flute']).toBeNull()
+  })
+
+  it('belongs to the audio channel and needs no camera', () => {
+    expect(skillChannels(skill)).toEqual(['audio'])
+  })
+
+  it('is read by a rule as an average, without the engine knowing any instrument', () => {
+    const result = compileExpression('avg(flute) >= 0.5', ['flute'])
+    if (!result.ok) throw new Error(result.error)
+
+    expect(result.expression.evaluate({ series: { flute: [0.7, 0.8, 0.6] }, scalars: {} })).toBe(
+      true
+    )
+    expect(result.expression.evaluate({ series: { flute: [0.1, 0.2, 0.9] }, scalars: {} })).toBe(
+      false
+    )
+  })
+
+  it.each(INSTRUMENTS)('accepts %s', (name) => {
+    expect(() => skillWith({ heard: { type: 'instrument', name } })).not.toThrow()
+  })
+
+  it('refuses an instrument that is not in the list', () => {
+    expect(() => skillWith({ heard: { type: 'instrument', name: 'kazoo' } })).toThrow()
   })
 })

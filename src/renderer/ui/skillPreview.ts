@@ -74,6 +74,8 @@ function metricText(name: string, metric: SkillMetric): string {
       return t('skill.metric.interval', { name, semitones: metric.semitones })
     case 'tempo':
       return t('skill.metric.tempo', { name })
+    case 'instrument':
+      return t('skill.metric.instrument', { name, instrument: t(`instrument.${metric.name}`) })
     case 'objectOffset':
       return t('skill.metric.objectOffset', {
         name,

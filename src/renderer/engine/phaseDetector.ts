@@ -25,7 +25,9 @@ export const DEFAULT_HYSTERESIS: Record<MetricType, number> = {
   pitch: 3,
   level: 3,
   interval: 5,
-  tempo: 2
+  tempo: 2,
+  // A score from 0 to 1.
+  instrument: 0.1
 }
 
 type Verdict = 'yes' | 'no' | 'unknown'

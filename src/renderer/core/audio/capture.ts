@@ -1,3 +1,4 @@
+import type { InstrumentScores } from './instrument'
 import { levelDb, peakLevel } from './level'
 import { detectPitch } from './pitch'
 
@@ -14,6 +15,9 @@ export interface AudioFeatures {
   pitchHz: number
   // How sure the pitch is, 0..1; 0 when there is none.
   pitchClarity: number
+  // How likely each instrument is, when the sound is classified (it takes about a second of sound,
+  // so the extractors above leave it out).
+  instruments?: InstrumentScores
 }
 
 // Turns the samples of one reading into numbers. It receives a buffer that is reused, so it must not

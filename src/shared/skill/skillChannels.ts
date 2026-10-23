@@ -8,7 +8,8 @@ const AUDIO_METRICS: ReadonlySet<SkillMetric['type']> = new Set([
   'pitch',
   'level',
   'interval',
-  'tempo'
+  'tempo',
+  'instrument'
 ])
 
 export const isAudioMetric = (metric: SkillMetric): boolean => AUDIO_METRICS.has(metric.type)

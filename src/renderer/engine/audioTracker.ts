@@ -1,4 +1,5 @@
 import type { AudioFeatures } from '@renderer/core/audio/capture'
+import type { InstrumentScores } from '@renderer/core/audio/instrument'
 import { centsBetween } from '@renderer/core/audio/pitch'
 import { estimateBpm, OnsetDetector } from '@renderer/core/audio/rhythm'
 
@@ -13,6 +14,8 @@ export interface AudioState {
   previousNoteHz: number
   // Beats per minute of the last notes; null while there are too few.
   bpm: number | null
+  // How likely each instrument is, when the sound is being classified; null otherwise.
+  instruments: InstrumentScores | null
 }
 
 // A reading with less clarity than this is not taken as a pitch.
@@ -51,7 +54,8 @@ export class AudioTracker {
       pitchHz,
       noteHz: this.current.length > 0 ? middleOf(this.current) : 0,
       previousNoteHz: this.previous,
-      bpm: estimateBpm(this.onsetTimes)
+      bpm: estimateBpm(this.onsetTimes),
+      instruments: features.instruments ?? null
     }
   }
 
