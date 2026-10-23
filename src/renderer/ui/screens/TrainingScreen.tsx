@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { measureSound, type AudioFeatures } from '@renderer/core/audio/capture'
+import { DEFAULT_AUDIO_FRAMING } from '@renderer/core/audio/audioFraming'
+import { OtherSoundWatch } from '@renderer/core/audio/otherSoundWatch'
 import { nearestNote, type Note } from '@renderer/core/audio/pitch'
 import type { PoseFrame } from '@renderer/core/detectionLoop'
 import type { Landmark } from '@renderer/core/landmarks'
@@ -20,7 +22,7 @@ import { pickHand } from '@renderer/core/handJoints'
 import { cameraOf } from '@shared/skill/cameraOf'
 import { isGeneratedSkillId } from '@shared/skill/generatedSafety'
 import { ruleChannel } from '@shared/skill/ruleChannels'
-import { skillChannels, type SkillChannel } from '@shared/skill/skillChannels'
+import { skillChannels, skillInstrument, type SkillChannel } from '@shared/skill/skillChannels'
 import { CameraStage } from '../CameraStage'
 import { CorrectionBand } from '../immersive/CorrectionBand'
 import { liveLines, unitLabel } from '../liveProgress'
@@ -132,6 +134,12 @@ export function TrainingScreen(): React.JSX.Element {
   const audioRef = useRef<AudioFeatures | null>(null)
   const [levelDb, setLevelDb] = useState(-100)
   const [note, setNote] = useState<Note | null>(null)
+  // The instrument the skill asks to hear, and whether something else has been sounding for a while.
+  const wanted = skill ? skillInstrument(skill) : null
+  const otherSoundRef = useRef(
+    new OtherSoundWatch(DEFAULT_AUDIO_FRAMING.otherSoundMs, DEFAULT_AUDIO_FRAMING.silenceDb)
+  )
+  const [wrongSound, setWrongSound] = useState(false)
 
   const bannerOf = (message: FeedbackMessage, id: number): Banner =>
     message.kind === 'praise'
@@ -219,6 +227,15 @@ export function TrainingScreen(): React.JSX.Element {
   const handleSound = (features: AudioFeatures): void => {
     audioRef.current = features
     setLevelDb(features.levelDb)
+    setWrongSound(
+      otherSoundRef.current.update(
+        now(),
+        features.levelDb,
+        wanted === null || features.heardInstrument === undefined
+          ? null
+          : features.heardInstrument === wanted
+      )
+    )
     setNote(
       features.pitchHz > 0 && features.pitchClarity >= MIN_PITCH_CLARITY
         ? nearestNote(features.pitchHz)
@@ -229,7 +246,7 @@ export function TrainingScreen(): React.JSX.Element {
     }
   }
 
-  const microphone = useMicrophoneFeatures(useAudio, handleSound, measureSound)
+  const microphone = useMicrophoneFeatures(useAudio, handleSound, measureSound, wanted !== null)
 
   // Says out loud that the app is not measuring, with the same limits as the other messages.
   const announce = useCallback(
@@ -291,6 +308,9 @@ export function TrainingScreen(): React.JSX.Element {
   useEffect(() => {
     if (micStatus === 'error') announce('micFailed')
   }, [micStatus, announce])
+  useEffect(() => {
+    if (wrongSound) announce('wrongSound')
+  }, [wrongSound, announce])
   useEffect(() => {
     if (snapshot.lastQuality === 'unknown') announce('unmeasured')
   }, [snapshot.lastQuality, snapshot.repCount, announce])
@@ -370,11 +390,13 @@ export function TrainingScreen(): React.JSX.Element {
       </header>
 
       <p role="status" className="min-h-6 text-center text-lg">
-        {adjusting
-          ? t('training.personal.hint')
-          : personalResult
-            ? t(PERSONAL_RESULT[personalResult])
-            : ''}
+        {wrongSound && wanted
+          ? t('training.wrongSound', { instrument: t(`instrument.${wanted}.a`) })
+          : adjusting
+            ? t('training.personal.hint')
+            : personalResult
+              ? t(PERSONAL_RESULT[personalResult])
+              : ''}
       </p>
 
       <div className="flex min-h-0 flex-1 gap-5">

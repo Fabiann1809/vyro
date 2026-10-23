@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
+import type { InstrumentScores } from './instrument'
+import type { SoundListener } from './instrumentListener'
 import { tone } from './syntheticSound'
 import {
   AudioCapture,
@@ -15,8 +17,11 @@ function fakeSetup(amplitude = 0.5): {
   track: { stop: ReturnType<typeof vi.fn> }
   context: { close: ReturnType<typeof vi.fn>; destinationUsed: boolean }
   tick: () => void
+  // Lets time go by in the clock of the audio, in seconds.
+  advance: (seconds: number) => void
   stopped: () => boolean
 } {
+  let now = 0
   const track = { stop: vi.fn() }
   const context = { close: vi.fn(() => Promise.resolve()), destinationUsed: false }
   let read: (() => void) | undefined
@@ -28,6 +33,9 @@ function fakeSetup(amplitude = 0.5): {
   }
   const fakeContext = {
     sampleRate: 48_000,
+    get currentTime() {
+      return now
+    },
     resume: () => Promise.resolve(),
     close: context.close,
     createAnalyser: () => analyser,
@@ -58,6 +66,9 @@ function fakeSetup(amplitude = 0.5): {
     track,
     context,
     tick: () => read?.(),
+    advance: (seconds) => {
+      now += seconds
+    },
     stopped: () => stopped
   }
 }
@@ -205,5 +216,31 @@ describe('buildMicrophoneConstraints', () => {
     expect(buildMicrophoneConstraints('mic-2')).toMatchObject({
       audio: { deviceId: { exact: 'mic-2' } }
     })
+  })
+
+  it('hands the sound that went by to the listener of instruments and reports what it hears', async () => {
+    const { deps, tick, advance } = fakeSetup()
+    const push = vi.fn<SoundListener['push']>(() => ({
+      scores: { flute: 0.9 } as unknown as InstrumentScores,
+      heard: 'flute'
+    }))
+    const received: AudioFeatures[] = []
+    await AudioCapture.open((features) => received.push(features), { deps, listener: { push } })
+
+    advance(0.05)
+    tick()
+
+    expect(push.mock.calls[0]?.[0]).toHaveLength(2400)
+    expect(push.mock.calls[0]?.[1]).toBe(48_000)
+    expect(received[0]).toMatchObject({ heardInstrument: 'flute' })
+  })
+
+  it('hears no instrument when nothing asked for the listener', async () => {
+    const { deps, tick } = fakeSetup()
+    const received: AudioFeatures[] = []
+    await AudioCapture.open((features) => received.push(features), { deps })
+    tick()
+
+    expect(received[0]).not.toHaveProperty('heardInstrument')
   })
 })

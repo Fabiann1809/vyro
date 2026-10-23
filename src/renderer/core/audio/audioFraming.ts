@@ -1,7 +1,14 @@
 import type { CheckState } from '../framing'
+import { OtherSoundWatch } from './otherSoundWatch'
 
 export type AudioInstruction =
-  'waitForMicrophone' | 'measuringRoom' | 'quietRoom' | 'makeSound' | 'louder' | 'tooLoud'
+  | 'waitForMicrophone'
+  | 'measuringRoom'
+  | 'quietRoom'
+  | 'makeSound'
+  | 'louder'
+  | 'tooLoud'
+  | 'otherSound'
 
 export interface AudioFramingReport {
   noise: CheckState
@@ -22,6 +29,8 @@ export interface AudioFramingOptions {
   silenceDb: number
   // A sample this close to full scale is cut off.
   maxPeak: number
+  // How long a sound that is not the instrument asked for may go on before it is said.
+  otherSoundMs: number
 }
 
 export const DEFAULT_AUDIO_FRAMING: AudioFramingOptions = {
@@ -30,7 +39,8 @@ export const DEFAULT_AUDIO_FRAMING: AudioFramingOptions = {
   minSoundDb: -40,
   minRiseDb: 12,
   silenceDb: -55,
-  maxPeak: 0.98
+  maxPeak: 0.98,
+  otherSoundMs: 2000
 }
 
 const middleOf = (values: readonly number[]): number => {
@@ -50,13 +60,23 @@ export class AudioFraming {
   private soundHeard = false
   private strongest = -100
   private clipped = false
+  private readonly otherSound: OtherSoundWatch
 
-  constructor(private readonly options: AudioFramingOptions = DEFAULT_AUDIO_FRAMING) {}
+  constructor(private readonly options: AudioFramingOptions = DEFAULT_AUDIO_FRAMING) {
+    this.otherSound = new OtherSoundWatch(options.otherSoundMs, options.silenceDb)
+  }
 
-  // Feeds one reading of the sound. `peak` is the largest sample, 0..1.
-  update(timestampMs: number, levelDb: number, peak: number): AudioFramingReport {
+  // Feeds one reading of the sound. `peak` is the largest sample, 0..1. `instrumentHeard` says
+  // whether the instrument the skill asks for is sounding; null when the skill does not ask for one
+  // (or the sound is not being classified), and then any sound will do.
+  update(
+    timestampMs: number,
+    levelDb: number,
+    peak: number,
+    instrumentHeard: boolean | null = null
+  ): AudioFramingReport {
     if (this.noiseDb === null) return this.measureRoom(timestampMs, levelDb)
-    return this.listenForSound(levelDb, peak)
+    return this.listenForSound(timestampMs, levelDb, peak, instrumentHeard)
   }
 
   // For the screen, before the first reading arrives.
@@ -72,6 +92,7 @@ export class AudioFraming {
     this.soundHeard = false
     this.strongest = -100
     this.clipped = false
+    this.otherSound.reset()
   }
 
   private measureRoom(timestampMs: number, levelDb: number): AudioFramingReport {
@@ -98,18 +119,34 @@ export class AudioFraming {
     return { noise: 'ok', sound: 'pending', instruction: 'makeSound' }
   }
 
-  private listenForSound(levelDb: number, peak: number): AudioFramingReport {
+  private listenForSound(
+    timestampMs: number,
+    levelDb: number,
+    peak: number,
+    instrumentHeard: boolean | null
+  ): AudioFramingReport {
     const { minSoundDb, minRiseDb, silenceDb, maxPeak } = this.options
     const noise = this.noiseDb ?? -100
 
     this.strongest = Math.max(this.strongest, levelDb)
     this.clipped = this.clipped || peak >= maxPeak
-    if (!this.soundHeard && levelDb >= minSoundDb && levelDb - noise >= minRiseDb) {
+    const loudEnough = levelDb >= minSoundDb && levelDb - noise >= minRiseDb
+    if (!this.soundHeard && loudEnough && instrumentHeard !== false) {
       this.soundHeard = peak < maxPeak
     }
 
     if (this.soundHeard) return { noise: 'ok', sound: 'ok', instruction: null }
+
+    // Sound that is not the instrument: said once it has gone on for a while, since the model needs
+    // a moment to recognise the first notes. It is timed even while the sound is too loud.
+    const other = this.otherSound.update(timestampMs, levelDb, instrumentHeard)
     if (peak >= maxPeak) return { noise: 'ok', sound: 'fix', instruction: 'tooLoud' }
+    if (other) {
+      return { noise: 'ok', sound: 'fix', instruction: 'otherSound' }
+    }
+    if (instrumentHeard === false && levelDb >= silenceDb) {
+      return { noise: 'ok', sound: 'pending', instruction: 'makeSound' }
+    }
     return {
       noise: 'ok',
       sound: this.strongest < silenceDb ? 'pending' : 'fix',

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { AudioFeatures, FeatureExtractor } from '@renderer/core/audio/capture'
+import { loadInstrumentListener } from '@renderer/core/audio/instrumentModel'
 import { classifyCameraError, type CameraErrorKind } from '@renderer/core/camera'
 import type { MessageKey } from '@renderer/i18n'
 import { listenToMicrophone } from './microphone'
@@ -26,7 +27,10 @@ export function useMicrophoneFeatures(
   active: boolean,
   onFeatures: (features: AudioFeatures) => void,
   // What to measure in the sound; only how loud it is, unless asked for more.
-  extract?: FeatureExtractor
+  extract?: FeatureExtractor,
+  // Also tell which instrument is playing. If the model cannot be loaded the sound is still measured,
+  // only without the instrument.
+  classify = false
 ): MicrophoneFeatures {
   const [failure, setFailure] = useState<CameraErrorKind | null>(null)
   const [heard, setHeard] = useState(false)
@@ -43,15 +47,26 @@ export function useMicrophoneFeatures(
     let cancelled = false
     let close: (() => void) | undefined
 
-    listenToMicrophone(
-      window.api,
-      (features) => {
-        if (cancelled) return
-        setHeard(true)
-        callback.current(features)
-      },
-      { deviceId: useSettings.getState().audioDeviceId ?? undefined, extract }
-    )
+    const listener = classify
+      ? loadInstrumentListener().catch(() => undefined)
+      : Promise.resolve(undefined)
+
+    listener
+      .then((instruments) =>
+        listenToMicrophone(
+          window.api,
+          (features) => {
+            if (cancelled) return
+            setHeard(true)
+            callback.current(features)
+          },
+          {
+            deviceId: useSettings.getState().audioDeviceId ?? undefined,
+            extract,
+            listener: instruments
+          }
+        )
+      )
       .then((listening) => {
         if (cancelled) listening.close()
         else close = listening.close
@@ -66,7 +81,7 @@ export function useMicrophoneFeatures(
       setHeard(false)
       setFailure(null)
     }
-  }, [active, attempt, extract])
+  }, [active, attempt, extract, classify])
 
   const retry = useCallback(() => setAttempt((count) => count + 1), [])
 

@@ -170,3 +170,55 @@ describe('starting a skill that listens', () => {
     ).toBe(true)
   })
 })
+
+describe('AudioFraming with an instrument to hear', () => {
+  // A quiet room first, then a loud enough sound with the instrument heard or not.
+  function afterRoom(): { framing: AudioFraming; now: number } {
+    const framing = new AudioFraming()
+    return { framing, now: hear(framing, 0, 2000, -60).now }
+  }
+
+  it('does not take another sound as the instrument', () => {
+    const { framing, now } = afterRoom()
+    let report = framing.update(now, -20, 0.1, false)
+    for (let at = now + STEP_MS; at < now + 3000; at += STEP_MS) {
+      report = framing.update(at, -20, 0.1, false)
+    }
+
+    expect(report).toEqual({ noise: 'ok', sound: 'fix', instruction: 'otherSound' })
+  })
+
+  it('gives the model a moment before saying it is another sound', () => {
+    const { framing, now } = afterRoom()
+
+    expect(framing.update(now, -20, 0.1, false)).toMatchObject({
+      sound: 'pending',
+      instruction: 'makeSound'
+    })
+  })
+
+  it('accepts the sound once the instrument is heard, and keeps it', () => {
+    const { framing, now } = afterRoom()
+    framing.update(now, -20, 0.1, false)
+
+    expect(framing.update(now + 500, -20, 0.1, true)).toMatchObject({ sound: 'ok' })
+    expect(framing.update(now + 900, -70, 0.001, false)).toMatchObject({ sound: 'ok' })
+  })
+
+  it('times a sound that is not the instrument even while it is too loud', () => {
+    const { framing, now } = afterRoom()
+    let report = framing.update(now, -6, 0.99, false)
+    for (let at = now + STEP_MS; at < now + 3000; at += STEP_MS) {
+      report = framing.update(at, -6, 0.99, false)
+    }
+    expect(report.instruction).toBe('tooLoud')
+
+    expect(framing.update(now + 3100, -6, 0.5, false).instruction).toBe('otherSound')
+  })
+
+  it('takes any sound when no instrument is asked for', () => {
+    const { framing, now } = afterRoom()
+
+    expect(framing.update(now, -20, 0.1, null)).toMatchObject({ sound: 'ok' })
+  })
+})

@@ -28,7 +28,7 @@ import { sampleLuminance } from '@renderer/core/lighting'
 import { localize, t, type MessageKey } from '@renderer/i18n'
 import { cameraOf } from '@shared/skill/cameraOf'
 import { GUITAR_POSTURE_ID, isGuitarLesson } from '@shared/skill/guitar'
-import { skillChannels, type SkillChannel } from '@shared/skill/skillChannels'
+import { skillChannels, skillInstrument, type SkillChannel } from '@shared/skill/skillChannels'
 import { CameraStage } from '../CameraStage'
 import { ChecksPanel, type CheckItem } from '../immersive/ChecksPanel'
 import { Button } from '../kit/Button'
@@ -66,7 +66,8 @@ const INSTRUCTION: Record<Instruction, MessageKey> = {
   quietRoom: 'calibration.instruction.quietRoom',
   makeSound: 'calibration.instruction.makeSound',
   louder: 'calibration.instruction.louder',
-  tooLoud: 'calibration.instruction.tooLoud'
+  tooLoud: 'calibration.instruction.tooLoud',
+  otherSound: 'calibration.instruction.otherSound'
 }
 
 // What the screen shows: the checks that apply to the skill and the one thing to fix first.
@@ -200,6 +201,8 @@ export function CalibrationScreen(): React.JSX.Element {
   const useHands = channels.includes('hands')
   const useObject = channels.includes('object')
   const useAudio = channels.includes('audio')
+  // The instrument the skill asks to hear, when it does.
+  const wanted = skill ? skillInstrument(skill) : null
   const useCamera = useBody || useHands || useObject
   const wholeBody = skill ? cameraOf(skill).fullBody : true
 
@@ -265,15 +268,23 @@ export function CalibrationScreen(): React.JSX.Element {
       const now = performance.now()
       sourcesRef.current = {
         ...sourcesRef.current,
-        audio: audioFramingRef.current.update(now, features.levelDb, features.peak)
+        audio: audioFramingRef.current.update(
+          now,
+          features.levelDb,
+          features.peak,
+          // Not classified (no model): any sound will do.
+          wanted === null || features.heardInstrument === undefined
+            ? null
+            : features.heardInstrument === wanted
+        )
       }
       setLevelDb(features.levelDb)
       publish(now)
     },
-    [publish]
+    [publish, wanted]
   )
 
-  const microphone = useMicrophoneFeatures(useAudio, handleSound)
+  const microphone = useMicrophoneFeatures(useAudio, handleSound, undefined, wanted !== null)
 
   const cancel = useCallback(() => go(returnTarget(previous)), [go, previous])
 
@@ -317,7 +328,7 @@ export function CalibrationScreen(): React.JSX.Element {
   const spoken = counting
     ? String(countdown.remaining)
     : instruction
-      ? t(INSTRUCTION[instruction])
+      ? t(INSTRUCTION[instruction], wanted ? { instrument: t(`instrument.${wanted}.a`) } : {})
       : t('calibration.holdStill')
 
   // What is said to the person, once, in one place: it is read out as it changes.

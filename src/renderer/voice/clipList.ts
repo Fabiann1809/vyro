@@ -17,11 +17,12 @@ export const ruleClipId = (skillId: string, ruleId: string): string => `${skillI
 export const praiseClipId = (variant: number): string => `praise.${variant}`
 
 // What the app says when it is not measuring: the person is out of sight, an attempt could not be
-// judged, or the microphone does not work. Each one has its text in i18n.
+// judged, the microphone does not work, or the sound is not the instrument asked for. Each one has its text in i18n.
 export const STATUS_NOTICES = {
   lost: 'training.lost',
   unmeasured: 'training.unmeasured',
-  micFailed: 'training.micFailed'
+  micFailed: 'training.micFailed',
+  wrongSound: 'training.wrongSound.voice'
 } as const
 export type StatusNotice = keyof typeof STATUS_NOTICES
 export const statusClipId = (notice: StatusNotice): string => `status.${notice}`

@@ -1,3 +1,4 @@
+import type { InstrumentName } from './instruments'
 import { isHandJoint, type AnyJointName } from './joints'
 import type { SkillConfig, SkillMetric } from './skillSchema'
 
@@ -11,6 +12,14 @@ const AUDIO_METRICS: ReadonlySet<SkillMetric['type']> = new Set([
   'tempo',
   'instrument'
 ])
+
+// The instrument a skill asks to hear, if any: the one its first instrument metric names.
+export function skillInstrument(skill: Pick<SkillConfig, 'metrics'>): InstrumentName | null {
+  for (const metric of Object.values(skill.metrics)) {
+    if (metric.type === 'instrument') return metric.name
+  }
+  return null
+}
 
 export const isAudioMetric = (metric: SkillMetric): boolean => AUDIO_METRICS.has(metric.type)
 
