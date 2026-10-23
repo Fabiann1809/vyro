@@ -12,6 +12,7 @@ import type { FrameSize } from '@renderer/engine/metrics'
 import { TrainingRun, type TrainingSnapshot } from '@renderer/engine/trainingRun'
 import { localize, t, type MessageKey } from '@renderer/i18n'
 import { voice } from '@renderer/voice'
+import { sessionNumbers } from '@renderer/engine/sessionSummary'
 import type { StatusNotice } from '@renderer/voice/clipList'
 import { VoicePolicy } from '@renderer/voice/voicePolicy'
 import { HandControl } from '@renderer/core/handControl'
@@ -22,6 +23,7 @@ import { ruleChannel } from '@shared/skill/ruleChannels'
 import { skillChannels, type SkillChannel } from '@shared/skill/skillChannels'
 import { CameraStage } from '../CameraStage'
 import { CorrectionBand } from '../immersive/CorrectionBand'
+import { liveLines, unitLabel } from '../liveProgress'
 import { RepCounter } from '../immersive/RepCounter'
 import { TunerCard } from '../immersive/TunerCard'
 import { Button } from '../kit/Button'
@@ -82,6 +84,7 @@ const EMPTY: TrainingSnapshot = {
   phase: null,
   lastQuality: null,
   tracking: 'tracking',
+  numbers: sessionNumbers([]),
   feedback: null
 }
 
@@ -312,6 +315,7 @@ export function TrainingScreen(): React.JSX.Element {
   const quality = snapshot.lastQuality ? QUALITY[snapshot.lastQuality] : undefined
   const phaseKey = snapshot.phase ? PHASE_LABEL[snapshot.phase] : undefined
   const lost = snapshot.tracking === 'lost'
+  const progressLines = liveLines(snapshot.numbers, skill.progress?.measures ?? [])
   // A skill that tunes a note shows the tuner; one that only listens for sound shows how loud it is.
   const hasPitch = Object.values(skill.metrics).some((metric) => metric.type === 'pitch')
 
@@ -389,7 +393,11 @@ export function TrainingScreen(): React.JSX.Element {
             <>
               <FinishButton onFinish={end} withHand={false} />
               <div className="relative flex w-full max-w-xl flex-col items-center gap-6 p-8">
-                <RepCounter count={snapshot.repCount} />
+                <RepCounter
+                  count={snapshot.repCount}
+                  label={unitLabel(skill)}
+                  lines={progressLines}
+                />
                 <div role="status" aria-live="assertive" className="relative min-h-24 w-full">
                   {banner && (
                     <CorrectionBand
@@ -409,7 +417,11 @@ export function TrainingScreen(): React.JSX.Element {
           {useCamera && (
             <>
               <div className="absolute top-5 right-5 rounded-3xl bg-bg/85 px-6.5 py-4 text-center">
-                <RepCounter count={snapshot.repCount} />
+                <RepCounter
+                  count={snapshot.repCount}
+                  label={unitLabel(skill)}
+                  lines={progressLines}
+                />
               </div>
               <div role="status" aria-live="assertive">
                 {banner && (

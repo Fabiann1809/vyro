@@ -12,6 +12,7 @@
     { "id": "posed", "when": { "torso": { "lt": 20 }, "arm": { "gt": 60, "lt": 170 } } }
   ],
   "rep": { "sequence": ["away", "posed", "away"], "minDurationMs": 1000, "holdMs": 5000 },
+  "progress": { "unit": "holds", "measures": ["timeWell", "bestStreak", "vsPrevious"] },
   "rules": [
     {
       "id": "straight_back",
