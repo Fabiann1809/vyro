@@ -17,6 +17,74 @@ const rep = (quality: RepQuality, failedRules: string[] = []): RepResult => ({
   failed: failedRules.map(failure)
 })
 
+const timed = (quality: RepQuality, durationMs: number): RepResult => ({
+  ...rep(quality),
+  durationMs
+})
+
+describe('the progress measures of a session', () => {
+  it('has nothing to measure when no attempt could be judged', () => {
+    expect(summarizeSession([])).toMatchObject({
+      cleanRate: null,
+      timeWell: null,
+      bestStreak: 0,
+      bestStreakMs: 0
+    })
+    expect(summarizeSession([rep('unknown')]).cleanRate).toBeNull()
+  })
+
+  it('is complete for a session of good attempts', () => {
+    const summary = summarizeSession([timed('good', 3000), timed('good', 3000)])
+
+    expect(summary).toMatchObject({
+      cleanRate: 100,
+      timeWell: 100,
+      bestStreak: 2,
+      bestStreakMs: 6000
+    })
+  })
+
+  it('is empty for a session of bad attempts', () => {
+    const summary = summarizeSession([timed('bad', 3000), timed('needs-work', 3000)])
+
+    expect(summary).toMatchObject({ cleanRate: 0, timeWell: 0, bestStreak: 0, bestStreakMs: 0 })
+  })
+
+  it('weighs the time of each attempt, not only how many there were', () => {
+    // 1 good attempt out of 3, but it was the long one: 6 s of 10 s.
+    const summary = summarizeSession([
+      timed('bad', 2000),
+      timed('good', 6000),
+      timed('needs-work', 2000)
+    ])
+
+    expect(summary).toMatchObject({ cleanRate: 33, timeWell: 60 })
+  })
+
+  it('finds the longest run of good attempts, whatever its place', () => {
+    const summary = summarizeSession([
+      timed('good', 1000),
+      timed('bad', 1000),
+      timed('good', 2000),
+      timed('good', 3000),
+      timed('needs-work', 1000),
+      timed('good', 1000)
+    ])
+
+    expect(summary).toMatchObject({ bestStreak: 2, bestStreakMs: 5000 })
+  })
+
+  it('does not let an attempt that could not be judged break a run', () => {
+    const summary = summarizeSession([
+      timed('good', 1000),
+      timed('unknown', 1000),
+      timed('good', 1000)
+    ])
+
+    expect(summary).toMatchObject({ bestStreak: 2, bestStreakMs: 2000, judged: 2 })
+  })
+})
+
 describe('summarizeSession', () => {
   it('gives no score when nothing could be judged', () => {
     expect(summarizeSession([])).toMatchObject({ judged: 0, score: null, errors: [] })

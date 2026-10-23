@@ -16,6 +16,14 @@ export interface SessionSummary {
   bad: number
   // 0..100, or null when no repetition could be judged.
   score: number | null
+  // 0..100: the share of the judged attempts that were good, or null when none could be judged.
+  cleanRate: number | null
+  // The time of the good attempts against the time of all the judged ones (0..100, or null).
+  timeWell: number | null
+  // The longest run of good attempts in a row, and how long that run lasted. Attempts that could
+  // not be judged neither count nor break a run.
+  bestStreak: number
+  bestStreakMs: number
   // Most frequent first.
   errors: FrequentError[]
   // The quality of each repetition in order, to see whether the technique fades.
@@ -33,15 +41,45 @@ export function summarizeSession(results: readonly RepResult[]): SessionSummary 
   const points = judgedResults.reduce((sum, result) => sum + POINTS[result.quality], 0)
   const score = judgedResults.length > 0 ? Math.round((100 * points) / judgedResults.length) : null
 
+  const streak = bestStreak(judgedResults)
+  const judgedMs = sum(judgedResults.map((result) => result.durationMs))
+  const goodMs = sum(
+    judgedResults.filter((result) => result.quality === 'good').map((result) => result.durationMs)
+  )
+
   return {
     judged: judgedResults.length,
     good: count('good'),
     needsWork: count('needs-work'),
     bad: count('bad'),
     score,
+    cleanRate: percent(count('good'), judgedResults.length),
+    timeWell: percent(goodMs, judgedMs),
+    bestStreak: streak.count,
+    bestStreakMs: streak.durationMs,
     errors: frequentErrors(results),
     qualities: results.map((result) => result.quality)
   }
+}
+
+const sum = (values: readonly number[]): number => values.reduce((total, value) => total + value, 0)
+
+// A share as a whole percent; null when there is nothing to divide by.
+const percent = (part: number, whole: number): number | null =>
+  whole > 0 ? Math.round((100 * part) / whole) : null
+
+function bestStreak(judged: readonly RepResult[]): { count: number; durationMs: number } {
+  let best = { count: 0, durationMs: 0 }
+  let current = { count: 0, durationMs: 0 }
+
+  for (const result of judged) {
+    current =
+      result.quality === 'good'
+        ? { count: current.count + 1, durationMs: current.durationMs + result.durationMs }
+        : { count: 0, durationMs: 0 }
+    if (current.count > best.count) best = current
+  }
+  return best
 }
 
 function frequentErrors(results: readonly RepResult[]): FrequentError[] {
