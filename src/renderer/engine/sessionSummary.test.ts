@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { sessionDigestSchema } from '@shared/coach'
+import type { SkillConfig } from '@shared/skill/skillSchema'
 import type { RepQuality, RepResult, RuleOutcome } from './repEvaluator'
 import { buildSessionDigest, buildSessionToSave, summarizeSession } from './sessionSummary'
 
@@ -181,6 +183,40 @@ describe('buildSessionDigest', () => {
         { ruleId: 'depth', count: 1 }
       ]
     })
+  })
+
+  it('adds the unit and the measures that the skill declares, and nothing else', () => {
+    const results = [timed('good', 6000), timed('good', 6000), timed('bad', 3000)]
+    const progress: SkillConfig['progress'] = {
+      unit: 'holds',
+      measures: ['timeWell', 'bestStreak']
+    }
+
+    expect(buildSessionDigest('guitar_posture', 1, 15_000, results, progress)).toMatchObject({
+      unit: 'holds',
+      timeWell: 80,
+      bestStreakSeconds: 12
+    })
+    expect(buildSessionDigest('guitar_posture', 1, 15_000, results, progress)).not.toHaveProperty(
+      'cleanRate'
+    )
+  })
+
+  it('sends only what a skill without progress always sent', () => {
+    const digest = buildSessionDigest('squat', 1, 1000, [rep('good')])
+
+    expect(Object.keys(digest ?? {})).not.toContain('unit')
+    expect(digest).not.toHaveProperty('timeWell')
+  })
+
+  it('goes through the schema that guards what is sent to the AI', () => {
+    const results = [timed('good', 6000), timed('bad', 3000)]
+    const digest = buildSessionDigest('guitar_posture', 1, 9000, results, {
+      unit: 'holds',
+      measures: ['cleanRate', 'timeWell', 'bestStreak']
+    })
+
+    expect(sessionDigestSchema.safeParse(digest).success).toBe(true)
   })
 
   it('carries no text of the rules, only their names', () => {

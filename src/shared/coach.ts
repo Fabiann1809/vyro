@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { PROGRESS_UNITS } from './skill/progress'
 
 // Why a request to the AI coach did not give an answer. The page turns each into a message in the
 // user's language; none of them carries text from the provider.
@@ -94,7 +95,13 @@ export const sessionDigestSchema = z
     needsWorkCount: count,
     badCount: count,
     score: z.number().int().min(0).max(100).nullable(),
-    errors: z.array(z.object({ ruleId: identifier, count }).strict()).max(50)
+    errors: z.array(z.object({ ruleId: identifier, count }).strict()).max(50),
+    // Only for a skill that declares how its progress is measured: what an attempt is called and
+    // the measures it shows. They are percentages and seconds, never anything else.
+    unit: z.enum(PROGRESS_UNITS).optional(),
+    cleanRate: z.number().int().min(0).max(100).nullable().optional(),
+    timeWell: z.number().int().min(0).max(100).nullable().optional(),
+    bestStreakSeconds: z.number().int().min(0).max(86_400).optional()
   })
   .strict()
 

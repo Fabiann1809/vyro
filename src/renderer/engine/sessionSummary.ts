@@ -1,5 +1,6 @@
 import type { SessionDigest } from '@shared/coach'
 import type { SessionToSave } from '@shared/sessions'
+import type { SkillConfig } from '@shared/skill/skillSchema'
 import type { RepQuality, RepResult } from './repEvaluator'
 
 export interface FrequentError {
@@ -141,11 +142,13 @@ export function buildSessionDigest(
   skillId: string,
   startedAt: number,
   durationMs: number,
-  results: readonly RepResult[]
+  results: readonly RepResult[],
+  progress?: SkillConfig['progress']
 ): SessionDigest | null {
   if (results.length === 0) return null
 
   const summary = summarizeSession(results)
+  const measures = progress?.measures ?? []
   return {
     skillId,
     startedAt,
@@ -155,6 +158,13 @@ export function buildSessionDigest(
     needsWorkCount: summary.needsWork,
     badCount: summary.bad,
     score: summary.score,
-    errors: summary.errors.map(({ ruleId, count }) => ({ ruleId, count }))
+    errors: summary.errors.map(({ ruleId, count }) => ({ ruleId, count })),
+    // What the skill says about its progress goes along, and nothing it does not declare.
+    ...(progress && { unit: progress.unit }),
+    ...(measures.includes('cleanRate') && { cleanRate: summary.cleanRate }),
+    ...(measures.includes('timeWell') && { timeWell: summary.timeWell }),
+    ...(measures.includes('bestStreak') && {
+      bestStreakSeconds: Math.round(summary.bestStreakMs / 1000)
+    })
   }
 }

@@ -28,6 +28,11 @@ const VALUE: Record<Change['what'], (numbers: SessionNumbers) => number | null> 
   bestStreak: (numbers) => (numbers.bestStreak > 0 ? numbers.bestStreakMs : null)
 }
 
+// The value of one measure for a session, in the unit it is compared in; null when it could not be
+// worked out.
+export const measureOf = (what: Change['what'], numbers: SessionNumbers): number | null =>
+  VALUE[what](numbers)
+
 function trendOf(today: number, before: number, margin: number): Trend {
   if (today - before > margin) return 'better'
   return before - today > margin ? 'worse' : 'same'

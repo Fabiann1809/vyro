@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react'
-import { buildSessionDigest, summarizeSession } from '@renderer/engine/sessionSummary'
+import {
+  buildSessionDigest,
+  sessionNumbers,
+  summarizeSession,
+  type SessionNumbers
+} from '@renderer/engine/sessionSummary'
 import { localize, t } from '@renderer/i18n'
 import { ruleChannel } from '@shared/skill/ruleChannels'
 import { HBars } from '../charts/HBars'
@@ -17,6 +22,7 @@ import { useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
 import { useSkills } from '../skillsStore'
 import { compareWithBefore, stepOutcome, type Comparison, type StepOutcome } from '../summaryData'
+import { measureRows, UNIT_SEQUENCE, UNIT_TOTAL, unjudgedCount } from '../summaryProgress'
 
 // A session this short says little about the technique.
 const SHORT_SESSION_REPS = 5
@@ -27,6 +33,8 @@ const clock = (ms: number): string => {
 }
 
 interface Context {
+  // The session before this one, to set the measures of the skill against it.
+  previous: SessionNumbers | null
   comparison: Comparison
   step: StepOutcome | null
 }
@@ -51,9 +59,14 @@ export function SummaryScreen(): React.JSX.Element {
       window.api.sessions.list({ skillId: finished.skillId }),
       window.api.paths.getCurrent().catch(() => null)
     ])
-      .then(([sessions, path]) => {
+      .then(async ([sessions, path]) => {
+        const last = sessions
+          .filter((session) => session.startedAt < finished.startedAt)
+          .sort((a, b) => b.startedAt - a.startedAt)[0]
+        const detail = last ? await window.api.sessions.get(last.id) : null
         if (cancelled) return
         setContext({
+          previous: detail ? sessionNumbers(detail.reps) : null,
           comparison: compareWithBefore(sessions, finished.startedAt, score),
           step: stepOutcome(path, finished.skillId, finished.startedAt, score)
         })
@@ -80,14 +93,18 @@ export function SummaryScreen(): React.JSX.Element {
     finished.skillId,
     finished.startedAt,
     finished.durationMs,
-    finished.results
+    finished.results,
+    skill.progress
   )
   const qualities = summary.qualities.flatMap((quality) => {
     const chart = toChartQuality(quality)
     return chart ? [chart] : []
   })
   const name = localize(skill.name)
-  const { comparison, step } = context ?? { comparison: null, step: null }
+  const { comparison, step, previous } = context ?? { comparison: null, step: null, previous: null }
+  const unit = skill.progress?.unit ?? 'reps'
+  const rows = measureRows(summary, previous, skill.progress?.measures ?? [])
+  const unjudged = unjudgedCount(summary.qualities)
 
   const goNext = (): void => {
     if (step?.kind === 'completed' && step.next?.kind === 'skill') {
@@ -202,7 +219,7 @@ export function SummaryScreen(): React.JSX.Element {
           <Card className="flex flex-col gap-4.5 p-6 lg:col-span-2">
             <div>
               <p className="text-[0.8125rem] text-mut">
-                {t('summary.total', { count: summary.judged })}
+                {t(UNIT_TOTAL[unit], { count: summary.judged })}
               </p>
               <h2 className="mt-1 text-xl font-semibold">
                 {t('summary.counts', {
@@ -239,7 +256,10 @@ export function SummaryScreen(): React.JSX.Element {
             {summary.judged < SHORT_SESSION_REPS && (
               <p className="text-sm text-mut">{t('summary.short')}</p>
             )}
-            <p className="text-[0.8125rem] text-mut">{t('summary.sequence')}</p>
+            {unjudged > 0 && (
+              <p className="text-sm text-mut">{t('summary.unjudged', { count: unjudged })}</p>
+            )}
+            <p className="text-[0.8125rem] text-mut">{t(UNIT_SEQUENCE[unit])}</p>
             <QualityBars
               qualities={qualities}
               labels={qualities.map((quality, index) =>
@@ -254,10 +274,33 @@ export function SummaryScreen(): React.JSX.Element {
                   )
                 })
               )}
-              summary={t('summary.sequence')}
+              summary={t(UNIT_SEQUENCE[unit])}
               height="h-24"
             />
           </Card>
+
+          {rows.length > 0 && (
+            <Card className="flex flex-col gap-3 p-6 lg:col-span-2">
+              <p className="text-[0.8125rem] text-mut">{t('summary.measures')}</p>
+              <ul className="flex flex-col gap-2.5">
+                {rows.map((row) => (
+                  <li key={row.label} className="flex flex-wrap items-baseline gap-x-3">
+                    <span className="text-base text-t4">{t(row.label)}</span>
+                    <span className="font-display text-2xl font-semibold tabular-nums">
+                      {row.value}
+                    </span>
+                    {row.before && (
+                      <span className="text-sm text-mut">
+                        {row.trend === 'better' && <span aria-hidden="true">↑ </span>}
+                        {row.trend === 'worse' && <span aria-hidden="true">↓ </span>}
+                        {t('summary.measure.before', { value: row.before })}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
 
           <Card className="flex flex-col gap-4 p-6">
             <p className="text-[0.8125rem] text-mut">{t('summary.errors')}</p>
