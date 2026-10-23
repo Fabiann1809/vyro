@@ -9,7 +9,7 @@
   },
   "phases": [
     { "id": "away", "when": { "torso": { "gt": 25 } } },
-    { "id": "posed", "when": { "torso": { "lt": 20 } } }
+    { "id": "posed", "when": { "torso": { "lt": 20 }, "arm": { "gt": 60, "lt": 170 } } }
   ],
   "rep": { "sequence": ["away", "posed", "away"], "minDurationMs": 1000, "holdMs": 5000 },
   "rules": [
