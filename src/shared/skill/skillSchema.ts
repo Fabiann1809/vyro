@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { diagramRefSchema, MAX_DIAGRAMS } from '../diagrams'
 import { MAX_TIP_LENGTH, MAX_TIPS } from '../guide'
+import { PROGRESS_MEASURES, PROGRESS_UNITS } from './progress'
 import { ANY_JOINT_NAMES } from './joints'
 import { DETECTABLE_OBJECTS } from './objects'
 import { isAudioMetric, isObjectMetric } from './skillChannels'
@@ -67,6 +68,14 @@ const skillGuide = z
     tips: z.array(localizedTip).min(1).max(MAX_TIPS),
     notMeasured: z.array(localizedTip).max(4).default([]),
     diagrams: z.array(diagramRefSchema).max(MAX_DIAGRAMS).default([])
+  })
+  .strict()
+
+// What the person sees as progress: the name of an attempt and the numbers of a session.
+const skillProgress = z
+  .object({
+    unit: z.enum(PROGRESS_UNITS).default('reps'),
+    measures: z.array(z.enum(PROGRESS_MEASURES)).max(PROGRESS_MEASURES.length).default([])
   })
   .strict()
 
@@ -223,7 +232,8 @@ export const skillConfigSchema = z
       })
       .strict(),
     rules: z.array(rule).min(1, 'needs at least one rule'),
-    guide: skillGuide.optional()
+    guide: skillGuide.optional(),
+    progress: skillProgress.optional()
   })
   .strict()
   .superRefine((skill, ctx) => {
@@ -301,6 +311,21 @@ export const skillConfigSchema = z
         code: 'custom',
         path: ['rep', 'holdMs'],
         message: 'a held posture needs a sequence of exactly three steps: away, in position, away'
+      })
+    }
+    const measures = skill.progress?.measures ?? []
+    if (new Set(measures).size !== measures.length) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['progress', 'measures'],
+        message: 'a measure is listed twice'
+      })
+    }
+    if (measures.includes('timeWell') && holdMs === undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['progress', 'measures'],
+        message: '"timeWell" needs "rep.holdMs": it adds up the time of the held attempts'
       })
     }
     if (sequence.length >= 3 && sequence[0] !== sequence[sequence.length - 1]) {

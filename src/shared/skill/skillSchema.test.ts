@@ -36,6 +36,43 @@ describe('the guide of a skill', () => {
   })
 })
 
+describe('the progress of a skill', () => {
+  it('counts repetitions, with no measures, when left out', () => {
+    expect(skillConfigSchema.parse(validSkill).progress).toBeUndefined()
+
+    const progress = skillConfigSchema.parse({ ...validSkill, progress: {} }).progress
+    expect(progress).toEqual({ unit: 'reps', measures: [] })
+  })
+
+  it('accepts a unit with the measures that fit it', () => {
+    const progress = { unit: 'attempts', measures: ['cleanRate', 'bestStreak', 'vsPrevious'] }
+
+    expect(problemsWith({ progress })).toEqual([])
+  })
+
+  it.each([
+    ['a unit that does not exist', { unit: 'laps' }],
+    ['a measure that does not exist', { measures: ['speed'] }],
+    ['a measure listed twice', { measures: ['cleanRate', 'cleanRate'] }],
+    ['a field that is not listed', { unit: 'reps', color: 'red' }]
+  ])('rejects %s', (_name, progress) => {
+    expect(problemsWith({ progress }).length).toBeGreaterThan(0)
+  })
+
+  it('rejects "timeWell" unless the attempts are held', () => {
+    const progress = { unit: 'holds', measures: ['timeWell'] }
+
+    expect(problemsWith({ progress }).join()).toContain('rep.holdMs')
+  })
+
+  it('accepts "timeWell" when the attempts are held', () => {
+    const rep = { sequence: ['up', 'down', 'up'], minDurationMs: 800, holdMs: 3000 }
+    const progress = { unit: 'holds', measures: ['timeWell'] }
+
+    expect(problemsWith({ rep, progress })).toEqual([])
+  })
+})
+
 describe('skillConfigSchema', () => {
   it('accepts a valid skill', () => {
     expect(skillConfigSchema.safeParse(validSkill).success).toBe(true)
