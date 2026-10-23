@@ -74,14 +74,14 @@ describe('the progress measures of a session', () => {
     expect(summary).toMatchObject({ bestStreak: 2, bestStreakMs: 5000 })
   })
 
-  it('does not let an attempt that could not be judged break a run', () => {
+  it('ends a run at an attempt that could not be judged, since nobody checked it', () => {
     const summary = summarizeSession([
       timed('good', 1000),
       timed('unknown', 1000),
       timed('good', 1000)
     ])
 
-    expect(summary).toMatchObject({ bestStreak: 2, bestStreakMs: 2000, judged: 2 })
+    expect(summary).toMatchObject({ bestStreak: 1, bestStreakMs: 1000, judged: 2 })
   })
 })
 

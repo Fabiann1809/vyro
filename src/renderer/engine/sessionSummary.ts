@@ -20,8 +20,8 @@ export interface SessionSummary {
   cleanRate: number | null
   // The time of the good attempts against the time of all the judged ones (0..100, or null).
   timeWell: number | null
-  // The longest run of good attempts in a row, and how long that run lasted. Attempts that could
-  // not be judged neither count nor break a run.
+  // The longest run of good attempts in a row, and how long that run lasted. An attempt that could
+  // not be judged ends a run: nobody checked it, so the run cannot be claimed across it.
   bestStreak: number
   bestStreakMs: number
   // Most frequent first.
@@ -41,7 +41,7 @@ export function summarizeSession(results: readonly RepResult[]): SessionSummary 
   const points = judgedResults.reduce((sum, result) => sum + POINTS[result.quality], 0)
   const score = judgedResults.length > 0 ? Math.round((100 * points) / judgedResults.length) : null
 
-  const streak = bestStreak(judgedResults)
+  const streak = bestStreak(results)
   const judgedMs = sum(judgedResults.map((result) => result.durationMs))
   const goodMs = sum(
     judgedResults.filter((result) => result.quality === 'good').map((result) => result.durationMs)
@@ -68,11 +68,11 @@ const sum = (values: readonly number[]): number => values.reduce((total, value) 
 const percent = (part: number, whole: number): number | null =>
   whole > 0 ? Math.round((100 * part) / whole) : null
 
-function bestStreak(judged: readonly RepResult[]): { count: number; durationMs: number } {
+function bestStreak(results: readonly RepResult[]): { count: number; durationMs: number } {
   let best = { count: 0, durationMs: 0 }
   let current = { count: 0, durationMs: 0 }
 
-  for (const result of judged) {
+  for (const result of results) {
     current =
       result.quality === 'good'
         ? { count: current.count + 1, durationMs: current.durationMs + result.durationMs }
