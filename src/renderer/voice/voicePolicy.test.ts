@@ -116,3 +116,48 @@ describe('VoicePolicy', () => {
     expect(said[0]?.message.text).toBe('fix depth')
   })
 })
+
+describe('VoicePolicy status notices', () => {
+  it.each([
+    ['lost', 'status.lost', 'No te veo'],
+    ['unmeasured', 'status.unmeasured', 'No pude medir ese intento'],
+    ['micFailed', 'status.micFailed', 'No puedo usar el micrófono']
+  ] as const)('says that %s with its own clip', (notice, clipId, text) => {
+    const { policy, said } = setup()
+
+    expect(policy.announce(notice, settings, 0)).toBe(true)
+    expect(said[0]?.message).toEqual({ clipId, text })
+  })
+
+  it('says it in English when the language is English', () => {
+    const { policy, said } = setup()
+    setLanguage('en')
+
+    policy.announce('lost', { ...settings, language: 'en' }, 0)
+
+    expect(said[0]?.message.text).toBe("I can't see you")
+  })
+
+  it('is silent when the voice is off', () => {
+    const { policy, said } = setup()
+
+    expect(policy.announce('lost', { ...settings, enabled: false }, 0)).toBe(false)
+    expect(said).toEqual([])
+  })
+
+  it('does not repeat a notice too soon, but does after a while', () => {
+    const { policy } = setup()
+
+    expect(policy.announce('lost', settings, 0)).toBe(true)
+    expect(policy.announce('lost', settings, 10_000)).toBe(false)
+    expect(policy.announce('lost', settings, 20_000)).toBe(true)
+  })
+
+  it('does not talk over the voice that is still speaking', () => {
+    const { policy, said, speaking } = setup()
+    speaking.now = true
+
+    expect(policy.announce('unmeasured', settings, 0)).toBe(false)
+    expect(said).toEqual([])
+  })
+})

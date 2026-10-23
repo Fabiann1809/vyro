@@ -1,6 +1,12 @@
 import type { FeedbackMessage } from '@renderer/engine/feedback'
 import { localize, t, type Language, type MessageKey } from '@renderer/i18n'
-import { praiseClipId, ruleClipId } from './clipList'
+import {
+  praiseClipId,
+  ruleClipId,
+  STATUS_NOTICES,
+  statusClipId,
+  type StatusNotice
+} from './clipList'
 import type { HowItSounded, SayOptions, SpokenMessage } from './voice'
 
 // The part of Voice the policy needs.
@@ -47,19 +53,36 @@ export class VoicePolicy {
 
   // Returns true when the message was spoken.
   consider(message: FeedbackMessage, settings: VoiceSettings, nowMs: number): boolean {
-    if (!settings.enabled || !isImportant(message)) return false
+    if (!isImportant(message)) return false
 
-    const identity = identityOf(message)
+    // A safety alert about the movement in progress is the only thing worth interrupting for, and
+    // the one the user needs to hear right now.
+    const urgent = message.kind === 'correction' && message.live && message.severity === 'high'
+    return this.speak(identityOf(message), this.spokenForm(message), settings, nowMs, urgent)
+  }
+
+  // Tells the person the app is not measuring. Subject to the same limits as any other message.
+  announce(notice: StatusNotice, settings: VoiceSettings, nowMs: number): boolean {
+    const spoken = { clipId: statusClipId(notice), text: t(STATUS_NOTICES[notice]) }
+    return this.speak(spoken.clipId, spoken, settings, nowMs, false)
+  }
+
+  private speak(
+    identity: string,
+    message: SpokenMessage,
+    settings: VoiceSettings,
+    nowMs: number,
+    urgent: boolean
+  ): boolean {
+    if (!settings.enabled) return false
+
     const last = this.lastSpokenAt.get(identity)
     if (last !== undefined && nowMs - last < this.options.repeatMs) return false
 
-    // Never talk over the voice. A safety alert about the movement in progress is the only
-    // thing worth interrupting for, and the one the user needs to hear right now.
-    const urgent = message.kind === 'correction' && message.live && message.severity === 'high'
+    // Never talk over the voice.
     if (this.talker.isSpeaking() && !urgent) return false
 
-    const spoken = this.talker.say(this.spokenForm(message), settings)
-    if (spoken === 'silent') return false
+    if (this.talker.say(message, settings) === 'silent') return false
 
     this.lastSpokenAt.set(identity, nowMs)
     return true

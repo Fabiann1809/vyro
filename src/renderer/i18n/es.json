@@ -206,6 +206,8 @@
   "training.end": "Terminar",
   "training.lost": "No te veo",
   "training.micStarting": "Preparando el micrófono…",
+  "training.unmeasured": "No pude medir ese intento",
+  "training.micFailed": "No puedo usar el micrófono",
   "training.recalibrate": "Calibrar de nuevo",
   "training.reps": "repeticiones",
   "training.last": "Última:",

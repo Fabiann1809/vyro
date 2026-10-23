@@ -26,6 +26,11 @@ foreach ($language in $texts.Keys) {
   foreach ($variant in 0..2) {
     $clips += [pscustomobject]@{ Language = $language; Id = "praise.$variant"; Text = $texts[$language]."training.praise.$variant" }
   }
+  # Keep in step with STATUS_NOTICES in src/renderer/voice/clipList.ts.
+  $notices = [ordered]@{ lost = 'training.lost'; unmeasured = 'training.unmeasured'; micFailed = 'training.micFailed' }
+  foreach ($notice in $notices.Keys) {
+    $clips += [pscustomobject]@{ Language = $language; Id = "status.$notice"; Text = $texts[$language].($notices[$notice]) }
+  }
   $clips += [pscustomobject]@{ Language = $language; Id = 'system.sample'; Text = $texts[$language].'settings.voice.sample' }
 }
 

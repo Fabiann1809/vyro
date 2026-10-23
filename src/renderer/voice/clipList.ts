@@ -16,6 +16,16 @@ export const SAMPLE_CLIP_ID = 'system.sample'
 export const ruleClipId = (skillId: string, ruleId: string): string => `${skillId}.${ruleId}`
 export const praiseClipId = (variant: number): string => `praise.${variant}`
 
+// What the app says when it is not measuring: the person is out of sight, an attempt could not be
+// judged, or the microphone does not work. Each one has its text in i18n.
+export const STATUS_NOTICES = {
+  lost: 'training.lost',
+  unmeasured: 'training.unmeasured',
+  micFailed: 'training.micFailed'
+} as const
+export type StatusNotice = keyof typeof STATUS_NOTICES
+export const statusClipId = (notice: StatusNotice): string => `status.${notice}`
+
 // Every message the user may hear. The recorded clips are made from this list, so a message that
 // is not here cannot be spoken when the computer has no voice.
 export function listClips(
@@ -34,6 +44,11 @@ export function listClips(
       id: praiseClipId(variant),
       language,
       text: texts[language][`training.praise.${variant}`] ?? ''
+    })),
+    ...(Object.keys(STATUS_NOTICES) as StatusNotice[]).map((notice) => ({
+      id: statusClipId(notice),
+      language,
+      text: texts[language][STATUS_NOTICES[notice]] ?? ''
     })),
     { id: SAMPLE_CLIP_ID, language, text: texts[language]['settings.voice.sample'] ?? '' }
   ])

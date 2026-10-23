@@ -12,6 +12,7 @@ import type { FrameSize } from '@renderer/engine/metrics'
 import { TrainingRun, type TrainingSnapshot } from '@renderer/engine/trainingRun'
 import { localize, t, type MessageKey } from '@renderer/i18n'
 import { voice } from '@renderer/voice'
+import type { StatusNotice } from '@renderer/voice/clipList'
 import { VoicePolicy } from '@renderer/voice/voicePolicy'
 import { HandControl } from '@renderer/core/handControl'
 import { pickHand } from '@renderer/core/handJoints'
@@ -227,6 +228,17 @@ export function TrainingScreen(): React.JSX.Element {
 
   const microphone = useMicrophoneFeatures(useAudio, handleSound, measureSound)
 
+  // Says out loud that the app is not measuring, with the same limits as the other messages.
+  const announce = useCallback(
+    (notice: StatusNotice): void => {
+      if (!skill) return
+      const { voiceEnabled, language, volume } = useSettings.getState()
+      policyRef.current ??= new VoicePolicy(voice, skill.id)
+      policyRef.current.announce(notice, { enabled: voiceEnabled, language, volume }, Date.now())
+    },
+    [skill]
+  )
+
   const startAdjusting = (): void => {
     adjustFrom.current = runRef.current?.lastRep ?? null
     setPersonalResult(null)
@@ -265,6 +277,20 @@ export function TrainingScreen(): React.JSX.Element {
     const timer = setInterval(() => setElapsedMs((ms) => ms + 1000), 1000)
     return () => clearInterval(timer)
   }, [snapshot.tracking])
+
+  // While the microphone starts or fails, "I can't see you" is not what is wrong (see below).
+  const micStatus = useAudio ? microphone.status : null
+  useEffect(() => {
+    if (snapshot.tracking === 'lost' && micStatus !== 'starting' && micStatus !== 'error') {
+      announce('lost')
+    }
+  }, [snapshot.tracking, micStatus, announce])
+  useEffect(() => {
+    if (micStatus === 'error') announce('micFailed')
+  }, [micStatus, announce])
+  useEffect(() => {
+    if (snapshot.lastQuality === 'unknown') announce('unmeasured')
+  }, [snapshot.lastQuality, snapshot.repCount, announce])
 
   useEffect(() => {
     if (!banner) return
