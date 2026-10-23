@@ -229,6 +229,60 @@ describe('a skill that listens', () => {
     })
   })
 
+  describe('and asks to hear an instrument', () => {
+    const flute = {
+      ...tuner,
+      id: 'custom_flute_note',
+      metrics: { ...tuner.metrics, flute: { type: 'instrument', name: 'flute' } },
+      rules: [
+        ...tuner.rules,
+        {
+          id: 'not_flute',
+          severity: 'high',
+          check: 'avg(flute) >= 0.5',
+          message: { es: 'No oigo una flauta', en: 'I do not hear a flute' }
+        }
+      ]
+    }
+
+    it('keeps the instrument it names, and listens without a camera', async () => {
+      const model = scriptedModel(answer(flute, { channels: ['audio'] }))
+
+      const result = await generateSkill(model, input({ description: 'Quiero tocar flauta' }))
+
+      expect(result.kind === 'skill' && result.skill.metrics['flute']).toEqual({
+        type: 'instrument',
+        name: 'flute'
+      })
+      expect(result.kind === 'skill' && result.skill.camera).toBeUndefined()
+    })
+
+    it('is asked to be fixed when it names an instrument that is not in the list', async () => {
+      const kazoo = {
+        ...flute,
+        metrics: { ...flute.metrics, flute: { type: 'instrument', name: 'kazoo' } }
+      }
+      const model = scriptedModel(
+        answer(kazoo, { channels: ['audio'] }),
+        answer(flute, { channels: ['audio'] })
+      )
+
+      const result = await generateSkill(model, input())
+
+      expect(result.kind).toBe('skill')
+      const repair = model.requests[1]?.messages.at(-1)?.content ?? ''
+      expect(repair).toContain('metrics.flute.name')
+      expect(repair).toContain('"voice"')
+    })
+
+    it('tells the coach which instruments it can name', () => {
+      const prompt: string = skillGeneratorPrompt('es')
+
+      expect(prompt).toContain('"type": "instrument"')
+      for (const name of ['flute', 'guitar', 'piano', 'voice']) expect(prompt).toContain(name)
+    })
+  })
+
   it('is asked to be fixed when it listens but the coach did not say so', async () => {
     const model = scriptedModel(answer(tuner, bodyOnly), answer(tuner, { channels: ['audio'] }))
 
