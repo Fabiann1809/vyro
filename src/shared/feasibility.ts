@@ -47,6 +47,23 @@ export const skillRequirementSchema = z
   })
   .strict()
 
+// A skill that is heard names its instrument as an "object" some of the time and not others. With
+// no detector for it, that made the same request work once and fail the next. When the sound is
+// measured, an object nobody can detect is only the instrument that makes it: it is dropped, and
+// the object channel with it if nothing else is left. Without sound it stays, and is declined.
+export function dropHeardInstruments<T extends { channels: Channel[]; objects: string[] }>(
+  requirement: T
+): T {
+  if (!requirement.channels.includes('audio')) return requirement
+
+  const objects = requirement.objects.filter((name) => name in OBJECT_REGISTRY)
+  if (objects.length === requirement.objects.length) return requirement
+
+  const channels =
+    objects.length > 0 ? requirement.channels : requirement.channels.filter((c) => c !== 'object')
+  return { ...requirement, channels, objects }
+}
+
 export type SkillRequirement = z.input<typeof skillRequirementSchema>
 
 // Where a channel or an object stands. `phase` is the phase of the spec that brings it.
@@ -133,7 +150,7 @@ export function assessFeasibility(
   channelRegistry: ChannelRegistry = CHANNEL_REGISTRY,
   objectRegistry: ObjectRegistry = OBJECT_REGISTRY
 ): Feasibility {
-  const parsed = skillRequirementSchema.parse(requirement)
+  const parsed = dropHeardInstruments(skillRequirementSchema.parse(requirement))
   const needed = CHANNELS.filter((channel) => parsed.channels.includes(channel))
   const channels = needed.map((channel) =>
     assessChannel(channel, parsed.objects, channelRegistry, objectRegistry)

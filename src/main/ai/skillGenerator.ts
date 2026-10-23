@@ -1,5 +1,10 @@
 import { z } from 'zod'
-import { assessFeasibility, skillRequirementSchema, type Channel } from '@shared/feasibility'
+import {
+  assessFeasibility,
+  dropHeardInstruments,
+  skillRequirementSchema,
+  type Channel
+} from '@shared/feasibility'
 import type { GenerateSkillInput, GenerateSkillResult } from '@shared/skillGeneration'
 import { generatedSkillProblems, guitarLessonProblems } from '@shared/skill/generatedSafety'
 import { skillChannels } from '@shared/skill/skillChannels'
@@ -94,11 +99,12 @@ export async function generateSkill(
 ): Promise<SkillGeneration> {
   const schema = answerSchema.superRefine((value, context) => {
     if (assessFeasibility(value.requirement).verdict !== 'supported') return
+    const requirement = dropHeardInstruments(value.requirement)
     const read = readSkillText(
       value.skill,
       input.existingSkillIds,
-      value.requirement.channels,
-      value.requirement.objects
+      requirement.channels,
+      requirement.objects
     )
     if (!read.ok) {
       for (const message of read.problems) {
@@ -134,11 +140,12 @@ export async function generateSkill(
   }
 
   // It was read once already inside the schema; reading it again gives the skill itself.
+  const requirement = dropHeardInstruments(answer.requirement)
   const read = readSkillText(
     answer.skill,
     input.existingSkillIds,
-    answer.requirement.channels,
-    answer.requirement.objects
+    requirement.channels,
+    requirement.objects
   )
   if (!read.ok) throw new Error('A skill that was already checked cannot be read.')
   return { kind: 'skill', skill: read.skill, config: read.config }

@@ -163,6 +163,17 @@ describe('a skill that listens', () => {
     expect(result.kind === 'skill' && result.skill.camera).toBeUndefined()
   })
 
+  it('is generated when the coach lists the instrument it hears as an object too', async () => {
+    const model = scriptedModel(
+      answer(tuner, { channels: ['audio', 'object'], objects: ['flute'] })
+    )
+
+    const result = await generateSkill(model, input({ description: 'Quiero tocar flauta' }))
+
+    expect(result).toMatchObject({ kind: 'skill', skill: { id: 'custom_low_a' } })
+    expect(model.requests).toHaveLength(1)
+  })
+
   it('is asked to be fixed when it listens but the coach did not say so', async () => {
     const model = scriptedModel(answer(tuner, bodyOnly), answer(tuner, { channels: ['audio'] }))
 

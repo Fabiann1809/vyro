@@ -177,6 +177,23 @@ describe('a skill that cannot be coached', () => {
     expect(result.measurable).toEqual(['body'])
   })
 
+  it('does not ask for a detector when the instrument is only heard', () => {
+    const result = assessFeasibility({ channels: ['hands', 'audio', 'object'], objects: ['flute'] })
+
+    expect(result.verdict).toBe('supported')
+    expect(result.channels.map((c) => c.channel)).toEqual(['hands', 'audio'])
+  })
+
+  it('keeps an object that has a detector when the skill is heard', () => {
+    const result = assessFeasibility({
+      channels: ['audio', 'object'],
+      objects: ['guitar', 'flute']
+    })
+
+    expect(result.verdict).toBe('supported')
+    expect(result.channels.find((c) => c.channel === 'object')?.unsupportedObjects).toEqual([])
+  })
+
   it('lists only the objects that have no detector', () => {
     const result = assessFeasibility({
       channels: ['object'],
