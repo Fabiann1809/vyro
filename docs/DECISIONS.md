@@ -113,3 +113,14 @@ Format: **context → decision → consequences**.
 - **Context:** steps that VYRO cannot measure (a warm-up, a chord) still need to help the person learn. A diagram of where the fingers go is the most useful help, and also the easiest to get wrong: a model can invent a plausible but false fingering.
 - **Decision:** the AI writes the tips of a step and may only name a diagram (a chord, some notes, a pose). The drawing comes from a library checked by hand and rendered by the app; a name that is not in the library is rejected, and the model is asked to correct it.
 - **Consequences:** the library has to be written and kept by hand, so it starts small (open chords, a keyboard, three poses). The tips themselves are still AI text, so every guide carries a notice that it is general orientation.
+
+## D19 — YAMNet tells which instrument is sounding
+
+- **Context:** the audio channel measures pitch, level and rhythm, but not timbre: a voice, a whistle or a phone playing a note count the same as the instrument the skill asks for.
+- **Decision:** classify the sound with YAMNet (Apache 2.0, 4,126,810 bytes, 521 AudioSet classes) through the MediaPipe audio task (`@mediapipe/tasks-audio`, pinned like `tasks-vision`). Model and wasm are bundled and run in the renderer without network, like the pose model. The audio is analysed in memory and never kept (D15). Skills may ask for one instrument of a fixed list; each is a group of YAMNet classes:
+  - `guitar`: Guitar, Electric guitar, Acoustic guitar, Steel guitar; `bass`: Bass guitar; `ukulele`: Ukulele
+  - `piano`: Piano, Electric piano, Keyboard (musical)
+  - `flute`: Flute; `violin`: Violin, fiddle; `saxophone`: Saxophone; `trumpet`: Trumpet; `clarinet`: Clarinet; `harmonica`: Harmonica
+  - `drums`: Drum kit, Drum, Snare drum, Bass drum
+  - `voice`: Singing, Child singing, Speech (sung notes are often heard as speech)
+- **Consequences:** the list is closed and written by hand (the AI can only name one of them, as with objects and diagrams). The model hears the instrument family, not the quality of playing. Tried on synthetic clips only (`tools/instrument-classifier/classify.mjs`): silence, noise and plucked strings are told apart, but a pure synthetic tone is heard as "Sine wave", so how well it recognises a real flute, piano or voice is **not measured yet** and needs real recordings before the thresholds of T22.3 are trusted.

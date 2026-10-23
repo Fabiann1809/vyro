@@ -1,0 +1,90 @@
+<!doctype html>
+<meta charset="utf-8" />
+<script type="module">
+  import { AudioClassifier, FilesetResolver } from '/audio/audio_bundle.mjs'
+
+  const RATE = 16000
+  const SECONDS = 4
+  const N = RATE * SECONDS
+
+  // Synthetic stand-ins: they check that the pipeline runs and that the classes are the ones we
+  // expect to read. They do not replace real recordings of each instrument.
+  const clip = (voice) => {
+    const out = new Float32Array(N)
+    voice(out)
+    return out
+  }
+  const notes = [440, 494, 523, 587]
+  const clips = {
+    silence: clip(() => {}),
+    noise: clip((out) => out.forEach((_, i) => (out[i] = (Math.random() - 0.5) * 0.4))),
+    flute: clip((out) => {
+      for (let i = 0; i < N; i++) {
+        const f = notes[Math.floor(i / (N / 4))] * 2
+        const t = i / RATE
+        const swell = 0.6 + 0.1 * Math.sin(2 * Math.PI * 5 * t)
+        out[i] =
+          swell * (0.5 * Math.sin(2 * Math.PI * f * t) + 0.08 * Math.sin(2 * Math.PI * 2 * f * t)) +
+          (Math.random() - 0.5) * 0.02
+      }
+    }),
+    guitar: clip((out) => {
+      for (let n = 0; n < 4; n++) {
+        const period = Math.round(RATE / (notes[n] / 2))
+        const buffer = Array.from({ length: period }, () => Math.random() - 0.5)
+        for (let i = 0; i < N / 4; i++) {
+          const j = i % period
+          const next = buffer[(j + 1) % period]
+          buffer[j] = 0.498 * (buffer[j] + next)
+          out[n * (N / 4) + i] = buffer[j] * 1.5
+        }
+      }
+    }),
+    piano: clip((out) => {
+      for (let n = 0; n < 4; n++) {
+        const f = notes[n] / 2
+        for (let i = 0; i < N / 4; i++) {
+          const t = i / RATE
+          let v = 0
+          for (let h = 1; h <= 6; h++) {
+            v +=
+              (Math.sin(2 * Math.PI * f * h * Math.sqrt(1 + 0.0004 * h * h) * t) / h) *
+              Math.exp(-t * (1.5 + h))
+          }
+          out[n * (N / 4) + i] = v * 0.7
+        }
+      }
+    }),
+    voice: clip((out) => {
+      for (let i = 0; i < N; i++) {
+        const t = i / RATE
+        const f = 180 + 12 * Math.sin(2 * Math.PI * 5.5 * t)
+        let v = 0
+        for (let h = 1; h <= 20; h++) {
+          const formant =
+            Math.exp(-(((h * f - 700) / 350) ** 2)) + 0.6 * Math.exp(-(((h * f - 1200) / 400) ** 2))
+          v += (formant / h) * Math.sin(2 * Math.PI * h * f * t)
+        }
+        out[i] = v * 0.4
+      }
+    })
+  }
+
+  window.run = async () => {
+    const fileset = await FilesetResolver.forAudioTasks('/audio/wasm')
+    const classifier = await AudioClassifier.createFromOptions(fileset, {
+      baseOptions: { modelAssetPath: '/model/yamnet.tflite' },
+      maxResults: 5
+    })
+    const result = {}
+    for (const [name, samples] of Object.entries(clips)) {
+      const windows = classifier.classify(samples, RATE)
+      result[name] = windows.map((w) =>
+        w.classifications[0].categories
+          .map((c) => `${c.categoryName} ${c.score.toFixed(2)}`)
+          .slice(0, 3)
+      )
+    }
+    return result
+  }
+</script>

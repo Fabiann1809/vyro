@@ -29,3 +29,12 @@ The `lite` variant is the default. Whether to switch to `full` is decided from t
 - License: the pictures are CC BY 2.0 and the boxes CC BY 4.0 (Open Images); credit goes to the dataset.
 - Class: `Guitar`. Measured on 296 pictures it never saw: AP50 0.822 (the minimum is 0.5), AP 0.534. It fails on small guitars (AP of medium objects 0.03); the full numbers are in `tools/guitar-detector/metrics.json`.
 - Used by the object channel (T15.3 on).
+
+## yamnet.tflite
+
+- Source: https://storage.googleapis.com/mediapipe-models/audio_classifier/yamnet/float32/1/yamnet.tflite
+- SHA-256: `4d8b4a53282dc83ef04e3e7dbc4fbc98082e34e44ed798e16c3a0cdd4c584faf`
+- Size: 4,126,810 bytes
+- License: Apache 2.0 (Google YAMNet, MediaPipe audio classifier); labels from AudioSet (CC BY 4.0).
+- Classes: 521 AudioSet classes; VYRO groups some of them into instruments (see D19 in `docs/DECISIONS.md`).
+- Input: 16 kHz mono audio in windows of 0.975 s. Used by the instrument check (phase 22). Try it with `node tools/instrument-classifier/classify.mjs` (set `CHROMIUM_PATH` to a Chromium executable).

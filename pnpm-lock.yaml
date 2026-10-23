@@ -178,6 +178,9 @@ importers:
       '@fontsource-variable/unbounded':
         specifier: 5.3.0
         version: 5.3.0
+      '@mediapipe/tasks-audio':
+        specifier: 1.1.1
+        version: 1.1.1
       '@mediapipe/tasks-vision':
         specifier: 1.1.1
         version: 1.1.1
@@ -622,6 +625,9 @@ packages:
   '@malept/flatpak-bundler@0.4.0':
     resolution: {integrity: sha512-9QOtNffcOF/c1seMCDnjckb3R9WHcG34tky+FHpNKKCW0wc/scYLwMtO+ptyGUfMW0/b/n4qRiALlaFHc9Oj7Q==}
     engines: {node: '>= 10.0.0'}
+
+  '@mediapipe/tasks-audio@1.1.1':
+    resolution: {integrity: sha512-y4Zny8Dwo7Cll68c+eq3wwoOylurA/dkeljtxrUnctbsrSf9JJ6H+GbQK/9KIZ2UMU0vJRTghM2+r4dFCNM3LQ==}
 
   '@mediapipe/tasks-vision@1.1.1':
     resolution: {integrity: sha512-jwntgT5tzDrKOkqg6xNDNpRcTUnGvmylZE5DFnzPXossiWOIDdZX+C81LI75hlXhsG58YZW+lGzcmjH1qrQE/Q==}
@@ -3624,6 +3630,8 @@ snapshots:
       tmp-promise: 3.0.3
     transitivePeerDependencies:
       - supports-color
+
+  '@mediapipe/tasks-audio@1.1.1': {}
 
   '@mediapipe/tasks-vision@1.1.1': {}
 
