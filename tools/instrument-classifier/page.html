@@ -74,15 +74,16 @@
     const fileset = await FilesetResolver.forAudioTasks('/audio/wasm')
     const classifier = await AudioClassifier.createFromOptions(fileset, {
       baseOptions: { modelAssetPath: '/model/yamnet.tflite' },
-      maxResults: 5
+      maxResults: 12
     })
     const result = {}
     for (const [name, samples] of Object.entries(clips)) {
       const windows = classifier.classify(samples, RATE)
       result[name] = windows.map((w) =>
-        w.classifications[0].categories
-          .map((c) => `${c.categoryName} ${c.score.toFixed(2)}`)
-          .slice(0, 3)
+        w.classifications[0].categories.map((c) => ({
+          name: c.categoryName,
+          score: Number(c.score.toFixed(3))
+        }))
       )
     }
     return result

@@ -1,6 +1,6 @@
 // Classifies short synthetic clips with the bundled YAMNet model, in a headless Chromium, to check
 // that the model runs offline with the MediaPipe audio task and which classes it answers.
-// Usage: node tools/instrument-classifier/classify.mjs
+// Usage: node tools/instrument-classifier/classify.mjs [--json]
 import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
@@ -39,9 +39,23 @@ const page = await browser.newPage()
 page.on('pageerror', (error) => console.error('page error:', error.message))
 await page.goto(`http://127.0.0.1:${server.address().port}/`)
 const result = await page.evaluate(() => window.run())
-for (const [name, windows] of Object.entries(result)) {
-  console.log(`\n${name}`)
-  windows.slice(0, 2).forEach((top) => console.log('  ', top.join(' | ')))
+if (process.argv.includes('--json')) {
+  // The raw answers, to keep as test fixtures for the code that reads them.
+  console.log(JSON.stringify(result))
+} else {
+  for (const [name, windows] of Object.entries(result)) {
+    console.log(`
+${name}`)
+    windows.slice(0, 2).forEach((top) =>
+      console.log(
+        '  ',
+        top
+          .slice(0, 3)
+          .map((c) => `${c.name} ${c.score.toFixed(2)}`)
+          .join(' | ')
+      )
+    )
+  }
 }
 await browser.close()
 server.close()
