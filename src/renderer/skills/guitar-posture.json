@@ -23,12 +23,21 @@
       }
     },
     {
-      "id": "strumming_arm",
+      "id": "arm_closed",
       "severity": "medium",
-      "check": "min(arm) >= 70 && max(arm) <= 140",
+      "check": "min(arm) >= 70",
       "message": {
-        "es": "Relaja el brazo que rasguea: el codo doblado, sin encoger el hombro",
-        "en": "Relax the strumming arm: elbow bent, shoulder down"
+        "es": "Abre un poco el codo del brazo que rasguea",
+        "en": "Open the elbow of your strumming arm a little"
+      }
+    },
+    {
+      "id": "arm_open",
+      "severity": "medium",
+      "check": "max(arm) <= 140",
+      "message": {
+        "es": "Dobla un poco más el codo del brazo que rasguea",
+        "en": "Bend the elbow of your strumming arm a little more"
       }
     }
   ],

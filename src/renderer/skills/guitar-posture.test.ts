@@ -37,8 +37,8 @@ describe('guitar posture', () => {
   })
 
   it('catches an arm that is too closed or too open', () => {
-    expect(judge(0, 65)).toEqual([['strumming_arm']])
-    expect(judge(0, 160)).toEqual([['strumming_arm']])
+    expect(judge(0, 65)).toEqual([['arm_closed']])
+    expect(judge(0, 160)).toEqual([['arm_open']])
   })
 
   it('does not count a pose with the elbow folded or locked, such as a hug', () => {
