@@ -8,6 +8,7 @@ import { ChannelMark } from '../kit/ChannelChip'
 import { sortChannels } from '../kit/channels'
 import { findSkill } from '../skillsStore'
 import { skillDisplayName } from '../skillName'
+import { UNIT_TOTAL } from '../summaryProgress'
 import { formatDayAndTime } from './format'
 
 // How tall each quality is on the little line of a row.
@@ -51,7 +52,7 @@ export function HistoryList({
                 ))}
               </span>
               <span className="text-[0.84rem] text-t4">
-                {t('summary.total', { count: session.repCount })}
+                {t(UNIT_TOTAL[skill?.progress?.unit ?? 'reps'], { count: session.repCount })}
               </span>
               <span>{shape.length >= 2 && <Sparkline values={shape} />}</span>
               <span className="text-right font-display text-lg font-semibold tabular-nums">

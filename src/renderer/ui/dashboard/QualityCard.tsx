@@ -1,9 +1,11 @@
 import { t, type MessageKey } from '@renderer/i18n'
+import type { ProgressUnit } from '@shared/skill/progress'
 import type { SessionDetail } from '@shared/sessions'
 import { EmptyChart } from '../charts/EmptyChart'
 import { QualityBars } from '../charts/QualityBars'
 import { QUALITY_FILL, type Quality } from '../charts/quality'
 import { fatigueStory, repQualities } from '../dashboardData'
+import { QUALITY_WORDS } from '../dashboardUnits'
 import { Card } from '../kit/Card'
 import { skillDisplayName } from '../skillName'
 
@@ -14,8 +16,15 @@ const QUALITY_WORD: Record<Quality, MessageKey> = {
 }
 
 // How each repetition of the last session went, in order: a technique that wears out shows as bars
-// that shrink towards the end.
-export function QualityCard({ detail }: { detail: SessionDetail | undefined }): React.JSX.Element {
+// that shrink towards the end. The words follow the unit of the skill (repetitions, held postures...).
+export function QualityCard({
+  detail,
+  unit
+}: {
+  detail: SessionDetail | undefined
+  unit: ProgressUnit
+}): React.JSX.Element {
+  const words = QUALITY_WORDS[unit]
   const qualities = detail ? repQualities(detail) : []
   const story = fatigueStory(qualities)
   const skill = detail ? skillDisplayName(detail.skillId) : ''
@@ -23,14 +32,14 @@ export function QualityCard({ detail }: { detail: SessionDetail | undefined }): 
   return (
     <Card className="flex flex-col gap-4 p-6">
       <div>
-        <p className="text-[0.8125rem] text-mut">{t('dashboard.quality.label', { skill })}</p>
+        <p className="text-[0.8125rem] text-mut">{t(words.label, { skill })}</p>
         <h2 className="mt-1 text-[1.1875rem] font-semibold">
           {t(
             story.kind === 'wears-out'
               ? 'dashboard.quality.wears'
               : story.kind === 'steady'
                 ? 'dashboard.quality.steady'
-                : 'dashboard.quality.tooFew'
+                : words.tooFew
           )}
         </h2>
         {story.kind === 'wears-out' && (
@@ -45,14 +54,14 @@ export function QualityCard({ detail }: { detail: SessionDetail | undefined }): 
       </div>
 
       {qualities.length === 0 ? (
-        <EmptyChart message={t('dashboard.quality.empty')} />
+        <EmptyChart message={t(words.empty)} />
       ) : (
         <QualityBars
           qualities={qualities}
           labels={qualities.map((quality, index) =>
-            t('dashboard.quality.rep', { n: index + 1, quality: t(QUALITY_WORD[quality]) })
+            t(words.rep, { n: index + 1, quality: t(QUALITY_WORD[quality]) })
           )}
-          summary={t('dashboard.quality.summary', { count: qualities.length })}
+          summary={t(words.summary, { count: qualities.length })}
           height="min-h-36 flex-1"
         />
       )}

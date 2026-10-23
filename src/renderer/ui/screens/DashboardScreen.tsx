@@ -5,6 +5,7 @@ import { ChannelCards } from '../dashboard/ChannelCards'
 import { ConsistencyCard } from '../dashboard/ConsistencyCard'
 import { ErrorsCard } from '../dashboard/ErrorsCard'
 import { HistoryList } from '../dashboard/HistoryList'
+import { MeasuresCards } from '../dashboard/MeasuresCard'
 import { QualityCard } from '../dashboard/QualityCard'
 import { ScoreCard } from '../dashboard/ScoreCard'
 import { StreakStrip } from '../dashboard/StreakStrip'
@@ -17,6 +18,7 @@ import {
   scoreStory,
   streakLength
 } from '../dashboardData'
+import { measureSeries } from '../dashboardUnits'
 import { startWithExpand } from '../expandTransition'
 import { Button } from '../kit/Button'
 import { focusComposer } from '../focusComposer'
@@ -53,6 +55,12 @@ export function DashboardScreen(): React.JSX.Element {
     (session) => skillId === null || session.skillId === skillId
   )
   const details = data.details.filter((detail) => skillId === null || detail.skillId === skillId)
+
+  // The skill being looked at: the one chosen, or the only one that has sessions. Its unit and its
+  // measures shape the cards; with several skills mixed there is no single unit to speak in.
+  const shownId = skillId ?? (choices.length === 1 ? choices[0] : undefined)
+  const progress = skills.find((skill) => skill.id === shownId)?.progress
+  const measures = measureSeries(details, progress?.measures ?? [])
 
   const story = scoreStory(scorePoints(sessions, 'all', now))
   const streak = streakLength(data.sessions, now)
@@ -146,9 +154,10 @@ export function DashboardScreen(): React.JSX.Element {
           <ScoreCard key={skillId ?? 'all'} sessions={sessions} now={now} />
           <ActiveRouteCard current={path} onOpen={() => go('path')} onAsk={askCoach} />
           <ConsistencyCard sessions={sessions} now={now} />
-          <QualityCard detail={details[0]} />
+          <QualityCard detail={details[0]} unit={progress?.unit ?? 'reps'} />
           <ErrorsCard rows={errorRows(details, skills, now)} hasBefore={hasBefore} />
           <ChannelCards series={channelSeries(details, skills)} />
+          {measures.length > 0 && <MeasuresCards series={measures} />}
           <HistoryList sessions={sessions} details={details} />
         </div>
       )}
