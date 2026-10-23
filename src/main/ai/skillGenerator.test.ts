@@ -9,7 +9,8 @@ import {
   EXAMPLE_AUDIO_SKILL,
   EXAMPLE_HAND_SKILL,
   EXAMPLE_OBJECT_SKILL,
-  EXAMPLE_SKILL
+  EXAMPLE_SKILL,
+  skillGeneratorPrompt
 } from './skillPrompts'
 
 const input = (overrides: Partial<GenerateSkillInput> = {}): GenerateSkillInput => ({
@@ -172,6 +173,60 @@ describe('a skill that listens', () => {
 
     expect(result).toMatchObject({ kind: 'skill', skill: { id: 'custom_low_a' } })
     expect(model.requests).toHaveLength(1)
+  })
+
+  describe('and says how its progress is measured', () => {
+    const sustained = {
+      ...tuner,
+      id: 'custom_long_note',
+      rep: { ...tuner.rep, holdMs: 4000 },
+      progress: { unit: 'holds', measures: ['timeWell', 'bestStreak', 'vsPrevious'] }
+    }
+
+    it('keeps the unit and the measures of a sustained note', async () => {
+      const model = scriptedModel(answer(sustained, { channels: ['audio'] }))
+
+      const result = await generateSkill(model, input({ description: 'Quiero tocar flauta' }))
+
+      expect(result.kind === 'skill' && result.skill.progress).toEqual({
+        unit: 'holds',
+        measures: ['timeWell', 'bestStreak', 'vsPrevious']
+      })
+    })
+
+    it('is asked to be fixed when it measures the time done well without holding', async () => {
+      const loose = { ...sustained, rep: tuner.rep }
+      const model = scriptedModel(
+        answer(loose, { channels: ['audio'] }),
+        answer(sustained, { channels: ['audio'] })
+      )
+
+      const result = await generateSkill(model, input())
+
+      expect(result.kind).toBe('skill')
+      expect(model.requests[1]?.messages.at(-1)?.content).toContain('rep.holdMs')
+    })
+
+    it('is asked to be fixed when the hold is too short to be real', async () => {
+      const blink = { ...sustained, rep: { ...tuner.rep, holdMs: 100 } }
+      const model = scriptedModel(
+        answer(blink, { channels: ['audio'] }),
+        answer(sustained, { channels: ['audio'] })
+      )
+
+      const result = await generateSkill(model, input())
+
+      expect(result.kind).toBe('skill')
+      expect(model.requests[1]?.messages.at(-1)?.content).toContain('rep.holdMs: must be between')
+    })
+
+    it('tells the coach about the unit, the measures and the hold in its instructions', () => {
+      const prompt: string = skillGeneratorPrompt('es')
+
+      expect(prompt).toContain('"progress"')
+      expect(prompt).toContain('"timeWell"')
+      expect(prompt).toContain('"holdMs"')
+    })
   })
 
   it('is asked to be fixed when it listens but the coach did not say so', async () => {

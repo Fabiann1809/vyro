@@ -7,6 +7,9 @@ export const GENERATED_ID_PREFIX = 'custom_'
 
 const MIN_REP_MS = 200
 const MAX_REP_MS = 10_000
+// How long a held posture or note must last to count: long enough to be real, short enough to reach.
+const MIN_HOLD_MS = 1000
+const MAX_HOLD_MS = 15_000
 
 // Skills made by the coach are experimental: this is how the app tells them from the ones that
 // come with it.
@@ -83,6 +86,10 @@ export function generatedSkillProblems(skill: SkillConfig): string[] {
   }
   if (skill.rep.minDurationMs < MIN_REP_MS || skill.rep.minDurationMs > MAX_REP_MS) {
     problems.push(`rep.minDurationMs: must be between ${MIN_REP_MS} and ${MAX_REP_MS} milliseconds`)
+  }
+  const hold = skill.rep.holdMs
+  if (hold !== undefined && (hold < MIN_HOLD_MS || hold > MAX_HOLD_MS)) {
+    problems.push(`rep.holdMs: must be between ${MIN_HOLD_MS} and ${MAX_HOLD_MS} milliseconds`)
   }
   return [...problems, ...thresholdProblems(skill)]
 }
