@@ -12,6 +12,7 @@ import {
   scorePoints,
   scoreStory,
   streakLength,
+  weekDays,
   type ScoreStory
 } from './dashboardData'
 
@@ -306,5 +307,33 @@ describe('channelSeries', () => {
     const many = Array.from({ length: 12 }, (_, index) => detail(12 - index, [{ quality: 'good' }]))
 
     expect(channelSeries(many, skills)[0]?.rates).toHaveLength(9)
+  })
+})
+
+describe('weekDays', () => {
+  // Wednesday 21 October 2026.
+  const now = new Date(2026, 9, 21, 12).getTime()
+  const session = (day: number): SessionRow =>
+    ({ id: day, skillId: 'squat', startedAt: new Date(2026, 9, day, 18).getTime() }) as SessionRow
+
+  it('is the seven days of the week, from Monday', () => {
+    const days = weekDays([], now)
+
+    expect(days).toHaveLength(7)
+    expect(new Date(days[0]!.date).getDate()).toBe(19)
+    expect(new Date(days[6]!.date).getDate()).toBe(25)
+  })
+
+  it('marks today and the days with a session', () => {
+    const days = weekDays([session(19), session(21), session(14)], now)
+
+    expect(days.map((day) => day.done)).toEqual([true, false, true, false, false, false, false])
+    expect(days.map((day) => day.today)).toEqual([false, false, true, false, false, false, false])
+  })
+
+  it('counts a Sunday as the last day of its week', () => {
+    const sunday = new Date(2026, 9, 25, 9).getTime()
+
+    expect(new Date(weekDays([], sunday)[0]!.date).getDate()).toBe(19)
   })
 })

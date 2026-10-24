@@ -39,10 +39,8 @@ export function ChatComposer({
         event.preventDefault()
         onSend()
       }}
-      className={`ring-within flex w-full items-center gap-2.5 border border-line/9 bg-card ${
-        hero
-          ? 'max-w-180 rounded-[1.875rem] py-2.5 pr-2.5 pl-6.5 shadow-2xl shadow-black/40'
-          : 'max-w-195 rounded-[1.625rem] py-2 pr-2 pl-5.5'
+      className={`ring-within glass flex w-full items-center gap-2.5 ${
+        hero ? 'rounded-[2rem] py-2 pr-2 pl-6' : 'max-w-195 rounded-[1.875rem] py-2 pr-2 pl-5.5'
       }`}
     >
       <textarea
@@ -71,8 +69,8 @@ export function ChatComposer({
         aria-label={t('coach.send')}
         title={t('coach.send')}
         disabled={disabled || value.trim() === ''}
-        className={`flex shrink-0 items-center justify-center rounded-full bg-brand text-on-brand transition active:scale-95 disabled:opacity-40 ${
-          hero ? 'size-13' : 'size-11'
+        className={`flex shrink-0 items-center justify-center rounded-full bg-grad text-on-brand shadow-[0_10px_30px_-8px_oklch(0.7_0.18_40/0.7)] transition hover:scale-105 active:scale-95 disabled:opacity-40 disabled:shadow-none ${
+          hero ? 'size-13.5' : 'size-11.5'
         }`}
       >
         <Icon name="send" className="size-4.5" strokeWidth={1.8} />

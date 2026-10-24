@@ -753,5 +753,17 @@
   "beat.status.slow": "You are dragging: speed up a little",
   "beat.status.steady": "Steady beat: keep it up",
   "beat.status.fast": "You are rushing: slow down",
-  "nav.tagline": "watches you · listens to you"
+  "nav.tagline": "watches you · listens to you",
+  "home.title.first": "What do you want",
+  "home.title.last": "to learn?",
+  "home.greeting.morning": "Good morning",
+  "home.greeting.afternoon": "Good afternoon",
+  "home.greeting.night": "Good evening",
+  "home.status.on": "your coach is ready",
+  "home.status.off": "free practice mode",
+  "home.channelsReady": "4 channels ready",
+  "home.resume.step": "{title} · step {step} of {total}",
+  "home.resume.none": "You have no path yet",
+  "home.streak": "Streak",
+  "home.library": "Library · {count} skills"
 }

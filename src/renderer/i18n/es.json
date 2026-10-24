@@ -753,5 +753,17 @@
   "beat.status.slow": "Vas despacio: sube un poco el ritmo",
   "beat.status.steady": "Pulso constante: sigue así",
   "beat.status.fast": "Vas deprisa: baja el ritmo",
-  "nav.tagline": "te mira · te escucha"
+  "nav.tagline": "te mira · te escucha",
+  "home.title.first": "¿Qué quieres",
+  "home.title.last": "aprender?",
+  "home.greeting.morning": "Buenos días",
+  "home.greeting.afternoon": "Buenas tardes",
+  "home.greeting.night": "Buenas noches",
+  "home.status.on": "tu coach está listo",
+  "home.status.off": "modo práctica libre",
+  "home.channelsReady": "4 canales listos",
+  "home.resume.step": "{title} · paso {step} de {total}",
+  "home.resume.none": "Aún no tienes una ruta",
+  "home.streak": "Racha",
+  "home.library": "Biblioteca · {count} habilidades"
 }

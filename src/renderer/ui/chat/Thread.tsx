@@ -27,7 +27,7 @@ function CoachMessage({ text, animate }: { text: string; animate: boolean }): Re
   return (
     <div className="flex max-w-[86%] items-start gap-3.5">
       <CoachAvatar />
-      <p className="pt-1.5 text-[1.03rem] leading-relaxed text-t2 text-pretty whitespace-pre-wrap">
+      <p className="rounded-[0.5rem_1.5rem_1.5rem_1.5rem] border border-line/10 bg-(--glass) px-4.5 py-3 text-[1.03rem] leading-relaxed text-t2 text-pretty whitespace-pre-wrap">
         {/* The real text is always there, for screen readers and for copying; while the reply is
             being written the people who can see get the letters that have come so far. */}
         <span className={typing ? 'sr-only' : undefined}>{text}</span>
@@ -39,7 +39,7 @@ function CoachMessage({ text, animate }: { text: string; animate: boolean }): Re
 
 function UserMessage({ text }: { text: string }): React.JSX.Element {
   return (
-    <p className="anim-up max-w-[70%] self-end rounded-[1.375rem_1.375rem_0.375rem_1.375rem] bg-fill px-4.5 py-3 text-base leading-normal whitespace-pre-wrap">
+    <p className="anim-up max-w-[70%] self-end rounded-[1.5rem_1.5rem_0.5rem_1.5rem] border border-brand/30 bg-linear-to-br from-brand/28 to-ch-hands/22 px-5 py-3.5 text-base leading-normal whitespace-pre-wrap">
       {text}
     </p>
   )

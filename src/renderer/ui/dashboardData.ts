@@ -271,3 +271,24 @@ export function channelSeries(
     rates: values.slice(-CHANNEL_SESSIONS)
   }))
 }
+
+export interface WeekDay {
+  // The start of that day.
+  date: number
+  // Whether there was a session that day.
+  done: boolean
+  today: boolean
+}
+
+// The seven days of the week that holds `now`, from Monday, with the ones that had a session.
+export function weekDays(sessions: readonly SessionRow[], now: number): WeekDay[] {
+  const days = new Set(sessions.map((session) => dayKey(session.startedAt)))
+  const today = startOfDay(now)
+  const sinceMonday = (new Date(today).getDay() + 6) % 7
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(today)
+    date.setDate(date.getDate() - sinceMonday + index)
+    const start = startOfDay(date.getTime())
+    return { date: start, done: days.has(String(start)), today: start === today }
+  })
+}

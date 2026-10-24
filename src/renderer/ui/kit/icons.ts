@@ -25,6 +25,8 @@ export const ICON_PATHS = {
   sun: 'M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4',
   moon: 'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z',
   chevron: 'M15 6l-6 6 6 6',
+  arrow: 'M5 12h14M13 6l6 6-6 6',
+  play: 'M8 5.5v13l10.5-6.5z',
   flame:
     'M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 .3 2 1.3 3 2.5 3.2C11.5 8.5 12 6 12 3z'
 } as const
@@ -42,7 +44,9 @@ const LARGE_ICONS: ReadonlySet<IconName> = new Set([
   'sun',
   'moon',
   'chevron',
-  'flame'
+  'flame',
+  'arrow',
+  'play'
 ])
 
 export const iconViewBox = (name: IconName): string =>

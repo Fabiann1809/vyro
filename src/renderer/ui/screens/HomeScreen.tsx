@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react'
 import { t, type MessageKey } from '@renderer/i18n'
+import type { SessionRow } from '@shared/sessions'
 import type { SkillChannel } from '@shared/skill/skillChannels'
 import { CoachErrorNotice } from '../CoachErrorNotice'
+import { ChannelOrb } from '../kit/ChannelOrb'
+import { ChannelOrbit } from '../home/ChannelOrbit'
+import { Shortcuts } from '../home/Shortcuts'
+import { streakLength, weekDays } from '../dashboardData'
+import { useSkills } from '../skillsStore'
 import { Thread, type ThreadActions } from '../chat/Thread'
 import { ChatComposer } from '../chat/ChatComposer'
 import { useCoach } from '../coachStore'
@@ -16,7 +22,7 @@ import {
   useHomeChat
 } from '../homeChatStore'
 import { Button } from '../kit/Button'
-import { ChannelChip } from '../kit/ChannelChip'
+import { Icon } from '../kit/Icon'
 import { CoachAvatar } from '../kit/CoachAvatar'
 import { startWithExpand } from '../expandTransition'
 import { focusComposer } from '../focusComposer'
@@ -31,54 +37,51 @@ import { useReducedMotion } from '../useReducedMotion'
 
 // What the empty screen offers to start with. With the coach on, a suggestion fills the box; with it
 // off, it opens the skill itself, so that the screen is never a dead end.
-const SCOPE_ITEMS: ReadonlyArray<{ channel: SkillChannel; text: MessageKey }> = [
-  { channel: 'body', text: 'home.scope.body' },
-  { channel: 'hands', text: 'home.scope.hands' },
-  { channel: 'audio', text: 'home.scope.audio' }
-]
 
-// What VYRO is good at, said plainly: it coaches what the camera can see and the microphone can
-// hear, and it says so when something is neither.
-function ScopeNote(): React.JSX.Element {
-  return (
-    <div className="mb-6 flex max-w-195 flex-col items-center gap-3">
-      <p className="text-center text-[0.9375rem] leading-normal text-mut2 text-pretty">
-        {t('home.scope.intro')}
-      </p>
-      <ul className="flex flex-wrap justify-center gap-2.5">
-        {SCOPE_ITEMS.map((item) => (
-          <li
-            key={item.channel}
-            className="flex items-center gap-2.5 rounded-full border border-line/8 py-1.5 pr-4 pl-1.5 text-[0.8125rem] text-t3"
-          >
-            <ChannelChip channel={item.channel} />
-            {t(item.text)}
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-const SUGGESTIONS: ReadonlyArray<{ skillId: string; label: MessageKey; prompt: MessageKey }> = [
-  { skillId: 'squat', label: 'home.suggest.squat.label', prompt: 'home.suggest.squat.prompt' },
+const SUGGESTIONS: ReadonlyArray<{
+  skillId: string
+  label: MessageKey
+  prompt: MessageKey
+  channel: SkillChannel
+}> = [
+  {
+    skillId: 'squat',
+    label: 'home.suggest.squat.label',
+    prompt: 'home.suggest.squat.prompt',
+    channel: 'body'
+  },
   {
     skillId: 'guitar_posture',
     label: 'home.suggest.guitar.label',
-    prompt: 'home.suggest.guitar.prompt'
+    prompt: 'home.suggest.guitar.prompt',
+    channel: 'object'
   },
   {
     skillId: 'string_tuning',
     label: 'home.suggest.tuning.label',
-    prompt: 'home.suggest.tuning.prompt'
+    prompt: 'home.suggest.tuning.prompt',
+    channel: 'audio'
   },
   {
     skillId: 'piano_hand',
     label: 'home.suggest.piano.label',
-    prompt: 'home.suggest.piano.prompt'
+    prompt: 'home.suggest.piano.prompt',
+    channel: 'hands'
   },
-  { skillId: 'pushup', label: 'home.suggest.pushup.label', prompt: 'home.suggest.pushup.prompt' }
+  {
+    skillId: 'pushup',
+    label: 'home.suggest.pushup.label',
+    prompt: 'home.suggest.pushup.prompt',
+    channel: 'body'
+  }
 ]
+
+const hourGreeting = (hour: number): MessageKey =>
+  hour < 12
+    ? 'home.greeting.morning'
+    : hour < 20
+      ? 'home.greeting.afternoon'
+      : 'home.greeting.night'
 
 const PLACEHOLDERS: readonly MessageKey[] = [
   'home.placeholder.guitar',
@@ -101,8 +104,16 @@ function usePlaceholder(): string {
 }
 
 // The step to go back to: the one that is next in the path being followed, if there is a path.
-function useResumeStep(): { title: string; skillId: string | null } | null {
-  const [step, setStep] = useState<{ title: string; skillId: string | null } | null>(null)
+interface ResumeStep {
+  title: string
+  skillId: string | null
+  // The number of the step (from 1) and how many the path has.
+  step: number
+  total: number
+}
+
+function useResumeStep(): ResumeStep | null {
+  const [step, setStep] = useState<ResumeStep | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -112,8 +123,14 @@ function useResumeStep(): { title: string; skillId: string | null } | null {
         if (cancelled || !current) return
         const next = current.progress.steps.find((item) => item.state === 'current')
         const found = current.path.steps.find((item) => item.id === next?.stepId)
-        if (found)
-          setStep({ title: found.title, skillId: found.kind === 'skill' ? found.skillId : null })
+        if (found) {
+          setStep({
+            title: found.title,
+            skillId: found.kind === 'skill' ? found.skillId : null,
+            step: current.path.steps.indexOf(found) + 1,
+            total: current.path.steps.length
+          })
+        }
       })
       .catch(() => undefined)
     return () => {
@@ -124,25 +141,22 @@ function useResumeStep(): { title: string; skillId: string | null } | null {
   return step
 }
 
-function QuickLink({
-  label,
-  target,
-  onClick
-}: {
-  label: string
-  target: string
-  onClick: () => void
-}): React.JSX.Element {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex h-11 items-center gap-2.5 rounded-2xl px-4.5 text-sm whitespace-nowrap text-mut transition-colors hover:bg-line/5 hover:text-t1"
-    >
-      {label} <span className="font-semibold text-t1">{target}</span>
-      <span aria-hidden="true">→</span>
-    </button>
-  )
+// The sessions saved so far, for the streak of the shortcuts; none while they load or if they fail.
+function useSessionRows(): SessionRow[] {
+  const [rows, setRows] = useState<SessionRow[]>([])
+  useEffect(() => {
+    let cancelled = false
+    window.api.sessions
+      .list()
+      .then((list) => {
+        if (!cancelled) setRows(list)
+      })
+      .catch(() => undefined)
+    return () => {
+      cancelled = true
+    }
+  }, [])
+  return rows
 }
 
 export function HomeScreen(): React.JSX.Element {
@@ -155,6 +169,9 @@ export function HomeScreen(): React.JSX.Element {
   const [draft, setDraft] = useState('')
   const placeholder = usePlaceholder()
   const resume = useResumeStep()
+  const sessionRows = useSessionRows()
+  const skillCount = useSkills((state) => state.skills.length)
+  const [now] = useState(() => Date.now())
 
   const thread = buildThread({
     plannerTurns: planner.turns,
@@ -234,54 +251,61 @@ export function HomeScreen(): React.JSX.Element {
 
   if (empty) {
     return (
-      <section className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden px-10 pt-10 pb-18">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute top-[-14rem] left-1/2 h-160 w-250 -translate-x-1/2 bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--brand)_9%,transparent),transparent)]"
-        />
-        <CoachAvatar size={84} />
-        <h1 className="mt-5 mb-3 text-center font-display text-[3.625rem] leading-[1.05] font-semibold tracking-tight">
-          {t('home.title')}
-        </h1>
-        <p className="mb-3.5 max-w-135 text-center text-lg leading-normal text-mut text-pretty">
-          {t('home.lead')}
-        </p>
-        <ScopeNote />
-        <ChatComposer
-          variant="hero"
-          value={draft}
-          onChange={setDraft}
-          onSend={send}
-          disabled={pending}
-          placeholder={placeholder}
-        />
-        <ul
-          aria-label={t('home.suggest.label')}
-          className="mt-4.5 flex max-w-190 flex-wrap justify-center gap-2.5"
-        >
-          {SUGGESTIONS.map((suggestion) => (
-            <li key={suggestion.skillId}>
-              <button
-                type="button"
-                onClick={() => suggest(suggestion)}
-                className="h-10 rounded-full border border-line/9 bg-line/3 px-4 text-sm whitespace-nowrap text-t3 transition hover:-translate-y-px hover:border-line/18 hover:bg-line/7"
-              >
-                {t(suggestion.label)}
-              </button>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-11 flex flex-wrap justify-center gap-3">
-          {resume && (
-            <QuickLink label={t('home.resume')} target={resume.title} onClick={resumeNow} />
-          )}
-          <QuickLink
-            label={t('home.practiseFree')}
-            target={t('nav.library')}
-            onClick={() => go('library')}
-          />
+      <section className="flex h-full w-full flex-col gap-5 overflow-x-hidden overflow-y-auto px-8.5 pt-6.5 pb-4.5">
+        <div className="grid flex-1 grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] items-center gap-7">
+          <div className="flex flex-col gap-5.5">
+            <p className="flex h-9 items-center gap-2.5 self-start rounded-full border border-line/10 bg-(--glass) pr-4 pl-3 text-[0.84rem] text-t2">
+              <span
+                aria-hidden="true"
+                className={`size-2 rounded-full ${aiEnabled ? 'bg-good shadow-[0_0_10px_var(--good)]' : 'bg-mut3'}`}
+              />
+              {t(hourGreeting(new Date(now).getHours()))} ·{' '}
+              {t(aiEnabled ? 'home.status.on' : 'home.status.off')}
+            </p>
+            <h1 className="font-display text-[4.25rem] leading-[0.98] font-bold tracking-[-0.035em]">
+              {t('home.title.first')}
+              <br />
+              <span className="text-grad">{t('home.title.last')}</span>
+            </h1>
+            <p className="max-w-125 text-lg leading-normal text-mut text-pretty">
+              {t('home.lead')}
+            </p>
+            <ChatComposer
+              variant="hero"
+              value={draft}
+              onChange={setDraft}
+              onSend={send}
+              disabled={pending}
+              placeholder={placeholder}
+            />
+            <ul aria-label={t('home.suggest.label')} className="flex flex-wrap gap-2.5">
+              {SUGGESTIONS.map((suggestion) => (
+                <li key={suggestion.skillId}>
+                  <button
+                    type="button"
+                    onClick={() => suggest(suggestion)}
+                    className="flex h-10.5 items-center gap-2 rounded-full border border-line/10 bg-line/4 pr-4 pl-2 text-sm whitespace-nowrap text-t2 transition duration-200 hover:-translate-y-0.5 hover:border-line/22 hover:bg-line/9"
+                  >
+                    <ChannelOrb channel={suggestion.channel} size="size-7" />
+                    {t(suggestion.label)}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <ChannelOrbit />
         </div>
-        <p className="absolute right-0 bottom-5.5 left-0 flex items-center justify-center gap-2 text-[0.8rem] text-mut2">
+        <Shortcuts
+          resume={resume}
+          streak={streakLength(sessionRows, now)}
+          week={weekDays(sessionRows, now)}
+          skillCount={skillCount}
+          onResume={resumeNow}
+          onStreak={() => go('dashboard')}
+          onLibrary={() => go('library')}
+        />
+        <p className="flex items-center justify-center gap-2 text-[0.78rem] text-mut2">
+          <Icon name="lock" className="size-3.5" />
           {t('home.privacy')}
         </p>
       </section>
