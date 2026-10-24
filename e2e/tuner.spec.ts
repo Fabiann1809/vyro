@@ -20,13 +20,15 @@ test.afterEach(async () => {
   rmSync(folder, { recursive: true, force: true })
 })
 
-// A 16 bit mono WAV of a quiet sine, a whole number of cycles long so that it loops without a click.
-function sineWav(hz: number, cycles: number): Buffer {
+// A 16 bit mono WAV that is quiet first, so that the calibration measures the room before the note
+// starts, and then a quiet sine of a whole number of cycles, so that it has no click.
+function sineWav(hz: number, quietSeconds: number, cycles: number): Buffer {
   const rate = 48_000
-  const count = Math.round((rate * cycles) / hz)
+  const quiet = Math.round(rate * quietSeconds)
+  const count = quiet + Math.round((rate * cycles) / hz)
   const data = Buffer.alloc(count * 2)
-  for (let index = 0; index < count; index++) {
-    const sample = 0.2 * Math.sin((2 * Math.PI * hz * index) / rate)
+  for (let index = quiet; index < count; index++) {
+    const sample = 0.2 * Math.sin((2 * Math.PI * hz * (index - quiet)) / rate)
     data.writeInt16LE(Math.round(sample * 32767), index * 2)
   }
   const header = Buffer.alloc(44)
@@ -48,7 +50,7 @@ function sineWav(hz: number, cycles: number): Buffer {
 test('tunes a string: shows which one, marks it as done and moves on to the next', async () => {
   test.setTimeout(180_000)
   const wav = join(folder, 'low-e.wav')
-  writeFileSync(wav, sineWav(82.41, 82))
+  writeFileSync(wav, sineWav(82.41, 5, 2060))
   app = await electron.launch({
     args: [
       '.',

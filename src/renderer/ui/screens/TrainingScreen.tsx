@@ -48,6 +48,7 @@ import { useSession } from '../sessionStore'
 import { useSettings } from '../settingsStore'
 import { adjustSkillToPerson, type PersonalOutcome } from '../personalSkill'
 import { useSkills } from '../skillsStore'
+import { phaseLabel } from '../phaseLabel'
 import { useMicrophoneFeatures } from '../useMicrophoneFeatures'
 
 const MESSAGE_VISIBLE_MS = 4000
@@ -62,20 +63,6 @@ const PERSONAL_RESULT: Record<PersonalOutcome, MessageKey> = {
   saved: 'training.personal.done',
   unchanged: 'training.personal.same',
   failed: 'training.personal.failed'
-}
-
-const PHASE_LABEL: Record<string, MessageKey> = {
-  up: 'training.phase.up',
-  down: 'training.phase.down',
-  extended: 'training.phase.extended',
-  curled: 'training.phase.curled',
-  resting: 'training.phase.resting',
-  lifted: 'training.phase.lifted',
-  quiet: 'training.phase.quiet',
-  ringing: 'training.phase.ringing',
-  hit: 'training.phase.hit',
-  posed: 'training.phase.posed',
-  away: 'training.phase.away'
 }
 
 const PRAISE: readonly MessageKey[] = [
@@ -394,7 +381,7 @@ export function TrainingScreen(): React.JSX.Element {
   if (!skill) return <></>
 
   const quality = snapshot.lastQuality ? QUALITY[snapshot.lastQuality] : undefined
-  const phaseKey = snapshot.phase ? PHASE_LABEL[snapshot.phase] : undefined
+  const phaseKey = phaseLabel(snapshot.phase)
   const lost = snapshot.tracking === 'lost'
   const progressLines = liveLines(snapshot.numbers, skill.progress?.measures ?? [])
   // A skill that tunes a note shows the tuner; one that only listens for sound shows how loud it is.
@@ -534,21 +521,17 @@ export function TrainingScreen(): React.JSX.Element {
         </div>
 
         <aside className="flex w-95 shrink-0 flex-col gap-3.5">
-          {!tuner && (
+          {!tuner && (useCamera || phaseKey || quality) && (
             <div className="rounded-3xl border border-line/6 bg-card p-5 text-center">
               <p aria-live="polite" className="min-h-8 text-2xl font-semibold">
                 {phaseKey ? t(phaseKey) : ' '}
               </p>
-              <p className="mt-2 text-lg text-t4">
-                {t('training.last')}{' '}
-                {quality ? (
-                  <>
-                    <span aria-hidden="true">{quality.symbol}</span> {t(quality.label)}
-                  </>
-                ) : (
-                  '—'
-                )}
-              </p>
+              {quality && (
+                <p className="mt-2 text-lg text-t4">
+                  {t('training.last')} <span aria-hidden="true">{quality.symbol}</span>{' '}
+                  {t(quality.label)}
+                </p>
+              )}
             </div>
           )}
           {useAudio &&
