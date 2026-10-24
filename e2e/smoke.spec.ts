@@ -248,9 +248,7 @@ test('a skill of the hands is calibrated with the hands, not the body', async ()
   await nav(page, 'Biblioteca').click()
   await page.getByRole('button', { name: 'Mano al piano' }).click()
 
-  await expect(
-    page.getByRole('heading', { level: 1, name: /Calibración · Mano al piano/ })
-  ).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: /Mano al piano/ })).toBeVisible()
   await expect(page.getByText('Mano completa')).toBeVisible()
   await expect(page.getByText('Muestra tu mano a la cámara')).toBeVisible()
   await expect(page.getByText('Cuerpo completo')).toHaveCount(0)
@@ -262,9 +260,7 @@ test('a skill played with the hand and the sound is calibrated with both', async
   await nav(page, 'Biblioteca').click()
   await page.getByRole('button', { name: 'Nota Do al piano' }).click()
 
-  await expect(
-    page.getByRole('heading', { level: 1, name: /Calibración · Nota Do al piano/ })
-  ).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: /Nota Do al piano/ })).toBeVisible()
   for (const check of ['Mano completa', 'Ruido de la sala']) {
     await expect(page.getByText(check, { exact: true })).toBeVisible()
   }
@@ -438,9 +434,7 @@ test('shows a skill that was saved in the database after the app was built, and 
 
   // It can be practised like any other.
   await page.getByRole('button', { name: 'Yoga suave' }).click()
-  await expect(
-    page.getByRole('heading', { level: 1, name: /Calibración · Yoga suave/ })
-  ).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: /Yoga suave/ })).toBeVisible()
 })
 
 test('suggests the posture before a guitar lesson, without blocking it', async () => {
@@ -467,16 +461,14 @@ test('suggests the posture before a guitar lesson, without blocking it', async (
 
   await page.getByRole('button', { name: 'Cuerda al aire de guitarra' }).click()
   await expect(
-    page.getByRole('heading', { level: 1, name: /Calibración · Cuerda al aire de guitarra/ })
+    page.getByRole('heading', { level: 1, name: /Cuerda al aire de guitarra/ })
   ).toBeVisible()
   await expect(
     page.getByText('Te recomendamos hacer primero la postura con la guitarra')
   ).toBeVisible()
 
   await page.getByRole('button', { name: 'Hacer la postura primero' }).click()
-  await expect(
-    page.getByRole('heading', { level: 1, name: /Calibración · Postura con guitarra/ })
-  ).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: /Postura con guitarra/ })).toBeVisible()
   await expect(page.getByText('Te recomendamos hacer primero la postura')).toHaveCount(0)
 })
 
@@ -642,9 +634,7 @@ test.describe('AI coach screen', () => {
 
     await page.getByRole('button', { name: 'Mejorar mi sentadilla' }).click()
 
-    await expect(
-      page.getByRole('heading', { level: 1, name: /Calibración · Sentadilla/ })
-    ).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /Sentadilla/ })).toBeVisible()
   })
 
   test('fills the box with a suggestion when the coach is on', async () => {
@@ -739,9 +729,7 @@ test.describe('AI coach screen', () => {
     await nav(page, 'Inicio').click()
 
     await page.getByRole('button', { name: 'Empezar ahora' }).click()
-    await expect(
-      page.getByRole('heading', { level: 1, name: /Calibración · Sentadilla/ })
-    ).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /Sentadilla/ })).toBeVisible()
 
     // Leaving the calibration comes back to the chat, where the path is now kept.
     await page.getByRole('button', { name: 'Cancelar' }).click()
@@ -1303,9 +1291,7 @@ test.describe('AI coach screen', () => {
 
     await page.getByRole('button', { name: 'Practicar' }).click()
 
-    await expect(
-      page.getByRole('heading', { level: 1, name: /Calibración · Sentadilla/ })
-    ).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /Sentadilla/ })).toBeVisible()
   })
 
   test('applies only the changes of the weekly review that the person accepts', async () => {

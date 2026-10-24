@@ -16,23 +16,28 @@ export function CorrectionBand({
   channel: SkillChannel | null
   praise: boolean
 }): React.JSX.Element {
-  const fill = praise || !channel ? 'bg-good' : CHANNEL_LOOK[channel].fill
+  const color = praise || !channel ? 'var(--good)' : CHANNEL_LOOK[channel].color
 
   return (
     <div
-      className={`anim-up absolute right-6 bottom-6 left-6 flex items-center gap-4.5 rounded-3xl px-6.5 py-4.5 text-on-brand ${fill}`}
+      className="anim-up absolute right-6 bottom-6 left-6 flex items-center gap-5 rounded-[2rem] border-2 bg-[rgba(20,10,14,0.82)] p-4 pr-7"
+      style={{
+        borderColor: color,
+        boxShadow: `0 0 50px color-mix(in oklab, ${color} 40%, transparent)`
+      }}
     >
       <span
         aria-hidden="true"
-        className="flex size-13 shrink-0 items-center justify-center rounded-2xl bg-bg/15"
+        className="flex size-16 shrink-0 items-center justify-center rounded-full text-[#1a0f0c]"
+        style={{ background: color }}
       >
         {praise || !channel ? (
           <span className="text-3xl">★</span>
         ) : (
-          <Icon name={CHANNEL_LOOK[channel].icon} className="size-7" strokeWidth={1.6} />
+          <Icon name={CHANNEL_LOOK[channel].icon} className="size-8" strokeWidth={1.7} />
         )}
       </span>
-      <p className="text-[2.375rem] leading-tight font-bold tracking-tight">{text}</p>
+      <p className="text-[2.5rem] leading-tight font-bold tracking-tight text-t1">{text}</p>
     </div>
   )
 }

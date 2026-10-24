@@ -144,6 +144,11 @@
   backdrop-filter: blur(24px) saturate(140%);
   box-shadow: var(--glass-shadow);
 }
+/* The screens of the camera keep the glass but not its blur: nothing is behind it but the page, and
+   the camera models are busy (D20). */
+.force-dark .glass {
+  backdrop-filter: none;
+}
 /* The fill of the main action. */
 @utility bg-grad {
   background: var(--grad);

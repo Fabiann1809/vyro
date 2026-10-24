@@ -32,7 +32,8 @@ import { skillChannels, skillInstrument, type SkillChannel } from '@shared/skill
 import { CameraStage } from '../CameraStage'
 import { ChecksPanel, type CheckItem } from '../immersive/ChecksPanel'
 import { Button } from '../kit/Button'
-import { Icon } from '../kit/Icon'
+import { ImmersiveFrame, ImmersiveHeader } from '../immersive/ImmersiveFrame'
+import { sortChannels } from '../kit/channels'
 import { LevelMeter } from '../LevelMeter'
 import { returnTarget, useNavigation } from '../navigation'
 import { SkillGuide } from '../route/SkillGuide'
@@ -197,6 +198,7 @@ export function CalibrationScreen(): React.JSX.Element {
   const skills = useSkills((state) => state.skills)
   const skill = skills.find((candidate) => candidate.id === skillId)
   const channels = skill ? skillChannels(skill) : []
+  const leadChannel = sortChannels(channels)[0]
   const useBody = channels.includes('body')
   const useHands = channels.includes('hands')
   const useObject = channels.includes('object')
@@ -357,32 +359,17 @@ export function CalibrationScreen(): React.JSX.Element {
   )
 
   return (
-    <section className="force-dark anim-fade flex h-full w-full flex-col gap-4 bg-[#0e080b] px-6.5 pt-5 pb-6 text-t1">
-      <header className="flex items-center justify-between gap-5">
-        <div className="flex items-center gap-3.5">
-          <h1 className="text-[0.9375rem] text-t4">
-            {t('screen.calibration.title')} ·{' '}
-            <span className="font-semibold text-t1">{localize(skill.name)}</span>
-          </h1>
-          <span className="rounded-full bg-line/6 px-2.5 py-1 text-xs text-t4">
-            {t('calibration.phase')}
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          {useAudio && (
-            <span className="flex h-9 items-center gap-2 rounded-full bg-line/5 px-3.5 text-[0.8125rem] text-t4">
-              <Icon name="mic" className="size-3.5" strokeWidth={1.4} />
-              {t('training.privacyAudio')}
-            </span>
-          )}
-          <Button variant="secondary" aria-keyshortcuts="Escape" onClick={cancel}>
-            {t('calibration.cancel')} · Esc
-          </Button>
-        </div>
-      </header>
+    <ImmersiveFrame channel={leadChannel}>
+      <ImmersiveHeader
+        name={localize(skill.name)}
+        channel={leadChannel}
+        phase={t('calibration.phase')}
+        audio={useAudio}
+        exit={{ label: t('calibration.cancel'), onClick: cancel, shortcut: 'Esc' }}
+      />
 
       <div className="flex min-h-0 flex-1 gap-5">
-        <div className="relative flex min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[1.875rem] bg-sunk">
+        <div className="relative flex min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[2.25rem] border border-line/10 bg-sunk">
           {useCamera ? (
             <CameraStage
               onFrame={handleFrame}
@@ -461,6 +448,6 @@ export function CalibrationScreen(): React.JSX.Element {
             )}
         </div>
       </div>
-    </section>
+    </ImmersiveFrame>
   )
 }

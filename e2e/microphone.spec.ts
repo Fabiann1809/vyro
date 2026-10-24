@@ -123,9 +123,7 @@ test('a skill that only listens is calibrated with the microphone, not the camer
   await page.getByRole('navigation').getByRole('button', { name: 'Biblioteca' }).click()
   await page.getByRole('button', { name: 'Afinar una cuerda' }).click()
 
-  await expect(
-    page.getByRole('heading', { level: 1, name: /Calibración · Afinar una cuerda/ })
-  ).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: /Afinar una cuerda/ })).toBeVisible()
   await expect(page.getByText('Ruido de la sala', { exact: true })).toBeVisible()
   await expect(page.getByRole('listitem').filter({ hasText: 'Sonido' })).toBeVisible()
   await expect(page.getByText('Cuerpo completo')).toHaveCount(0)

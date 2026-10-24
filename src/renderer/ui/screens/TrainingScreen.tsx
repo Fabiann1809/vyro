@@ -44,9 +44,10 @@ import { TargetNote } from '../immersive/TargetNote'
 import { StringTuner } from '../immersive/StringTuner'
 import { TunerCard } from '../immersive/TunerCard'
 import { Button } from '../kit/Button'
+import { ImmersiveFrame, ImmersiveHeader } from '../immersive/ImmersiveFrame'
+import { sortChannels } from '../kit/channels'
 import { FinishButton } from '../immersive/FinishButton'
 import { useHandPointer } from '../handPointerStore'
-import { Icon } from '../kit/Icon'
 import { LevelMeter } from '../LevelMeter'
 import { useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
@@ -127,6 +128,7 @@ export function TrainingScreen(): React.JSX.Element {
   const [personalResult, setPersonalResult] = useState<PersonalOutcome | null>(null)
 
   const channels = skill ? skillChannels(skill) : []
+  const leadChannel = sortChannels(channels)[0]
   const useCamera =
     channels.includes('body') || channels.includes('hands') || channels.includes('object')
   const useAudio = channels.includes('audio')
@@ -455,24 +457,16 @@ export function TrainingScreen(): React.JSX.Element {
   )
 
   return (
-    <section className="force-dark anim-fade flex h-full w-full flex-col gap-4 bg-[#0e080b] px-6.5 pt-5 pb-6 text-t1">
-      <header className="flex items-center justify-between gap-5">
-        <div className="flex items-center gap-3.5">
-          <h1 className="text-[0.9375rem] font-semibold">{localize(skill.name)}</h1>
-          <span className="rounded-full bg-line/6 px-2.5 py-1 text-xs text-t4">
-            {t('screen.training.title')}
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 items-center gap-2 rounded-full bg-line/5 px-3.5 text-[0.8125rem] text-t4">
-            <Icon name={useAudio ? 'mic' : 'lock'} className="size-3.5" strokeWidth={1.4} />
-            {t(useAudio ? 'training.privacyAudio' : 'training.privacy')}
-          </span>
-          <span className="text-lg tabular-nums">{clock(elapsedMs)}</span>
-        </div>
-      </header>
+    <ImmersiveFrame channel={leadChannel}>
+      <ImmersiveHeader
+        name={localize(skill.name)}
+        channel={leadChannel}
+        phase={t('screen.training.title')}
+        audio={useAudio}
+        clock={clock(elapsedMs)}
+      />
 
-      <p role="status" className="min-h-6 text-center text-lg">
+      <p role="status" className="relative min-h-6 shrink-0 text-center text-lg text-t2">
         {wrongSound && wanted
           ? t('training.wrongSound', { instrument: t(`instrument.${wanted}.a`) })
           : adjusting
@@ -485,7 +479,7 @@ export function TrainingScreen(): React.JSX.Element {
       </p>
 
       <div className="flex min-h-0 flex-1 gap-5">
-        <div className="relative flex min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[1.875rem] bg-sunk">
+        <div className="relative flex min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[2.25rem] border border-line/10 bg-sunk">
           {useCamera ? (
             <CameraStage
               onFrame={handleFrame}
@@ -614,6 +608,6 @@ export function TrainingScreen(): React.JSX.Element {
           </div>
         </aside>
       </div>
-    </section>
+    </ImmersiveFrame>
   )
 }
