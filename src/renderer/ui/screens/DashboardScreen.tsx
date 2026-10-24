@@ -8,7 +8,6 @@ import { HistoryList } from '../dashboard/HistoryList'
 import { MeasuresCards } from '../dashboard/MeasuresCard'
 import { QualityCard } from '../dashboard/QualityCard'
 import { ScoreCard } from '../dashboard/ScoreCard'
-import { StreakStrip } from '../dashboard/StreakStrip'
 import { useDashboardData } from '../dashboard/useDashboardData'
 import {
   channelSeries,
@@ -69,10 +68,6 @@ export function DashboardScreen(): React.JSX.Element {
   const path = data.path
   const nextProgress = path?.progress.steps.find((item) => item.state === 'current')
   const nextStep = path?.path.steps.find((item) => item.id === nextProgress?.stepId)
-  const next =
-    path && nextStep
-      ? { title: nextStep.title, step: nextStep.position, total: path.path.steps.length }
-      : null
 
   const goNext = (card: Element | null): void => {
     if (nextStep?.kind === 'skill') {
@@ -96,13 +91,13 @@ export function DashboardScreen(): React.JSX.Element {
   })
 
   return (
-    <section className="mx-auto flex h-full w-full max-w-[82rem] flex-col gap-5 self-start overflow-y-auto px-8 pt-7 pb-12">
-      <div className="flex flex-wrap items-end justify-between gap-5">
-        <div>
-          <h1 className="font-display text-[2.125rem] leading-tight font-semibold tracking-tight">
+    <section className="mx-auto flex h-full w-full max-w-335 flex-col gap-4 self-start overflow-y-auto px-4.5 pt-3.5 pb-12">
+      <div className="flex shrink-0 flex-wrap items-end justify-between gap-5 px-1 pt-1.5">
+        <h1>
+          <span className="block text-[0.8125rem] font-bold tracking-[0.14em] text-accent uppercase">
             {t('screen.dashboard.title')}
-          </h1>
-          <p className="mt-1.5 text-mut">
+          </span>
+          <span className="mt-2 block font-display text-[2.375rem] leading-tight font-bold tracking-[-0.03em]">
             {t(
               data.sessions.length === 0
                 ? 'dashboard.headline.empty'
@@ -110,13 +105,13 @@ export function DashboardScreen(): React.JSX.Element {
                   ? 'dashboard.headline.rise'
                   : 'dashboard.headline.default'
             )}
-          </p>
-        </div>
+          </span>
+        </h1>
         {choices.length > 1 && (
           <div
             role="group"
             aria-label={t('dashboard.filter.label')}
-            className="flex max-w-full gap-1.5 overflow-x-auto rounded-full border border-line/6 bg-card p-1"
+            className="glass flex max-w-full gap-1 overflow-x-auto rounded-full p-1.25"
           >
             {[null, ...choices].map((choice) => (
               <button
@@ -124,7 +119,7 @@ export function DashboardScreen(): React.JSX.Element {
                 type="button"
                 aria-pressed={skillId === choice}
                 onClick={() => setSkillId(choice)}
-                className="h-8.5 rounded-full px-3.5 text-[0.8125rem] whitespace-nowrap text-mut transition-colors aria-pressed:bg-seg aria-pressed:text-t1"
+                className="h-9 rounded-full px-3.5 text-[0.8125rem] font-semibold whitespace-nowrap text-mut transition-all duration-200 aria-pressed:bg-grad aria-pressed:text-on-brand"
               >
                 {choice === null ? t('dashboard.filter.all') : skillDisplayName(choice)}
               </button>
@@ -142,20 +137,18 @@ export function DashboardScreen(): React.JSX.Element {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4.5 lg:grid-cols-3">
-          <div className="lg:col-span-3">
-            <StreakStrip
-              streak={streak}
-              next={next}
-              onContinue={goNext}
-              onLibrary={() => go('library')}
-            />
-          </div>
+        <div className="grid shrink-0 grid-cols-1 gap-4 lg:grid-cols-12">
           <ScoreCard key={skillId ?? 'all'} sessions={sessions} now={now} />
-          <ActiveRouteCard current={path} onOpen={() => go('path')} onAsk={askCoach} />
-          <ConsistencyCard sessions={sessions} now={now} />
-          <QualityCard detail={details[0]} unit={progress?.unit ?? 'reps'} />
+          <ActiveRouteCard
+            current={path}
+            onContinue={goNext}
+            onOpen={() => go('path')}
+            onAsk={askCoach}
+            onLibrary={() => go('library')}
+          />
+          <ConsistencyCard sessions={sessions} now={now} streak={streak} />
           <ErrorsCard rows={errorRows(details, skills, now)} hasBefore={hasBefore} />
+          <QualityCard detail={details[0]} unit={progress?.unit ?? 'reps'} />
           <ChannelCards series={channelSeries(details, skills)} />
           {measures.length > 0 && <MeasuresCards series={measures} />}
           <HistoryList sessions={sessions} details={details} />

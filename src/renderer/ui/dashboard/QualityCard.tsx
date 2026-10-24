@@ -2,7 +2,7 @@ import { t, type MessageKey } from '@renderer/i18n'
 import type { ProgressUnit } from '@shared/skill/progress'
 import type { SessionDetail } from '@shared/sessions'
 import { EmptyChart } from '../charts/EmptyChart'
-import { QualityBars } from '../charts/QualityBars'
+import { RepNecklace } from '../charts/RepNecklace'
 import { QUALITY_FILL, type Quality } from '../charts/quality'
 import { fatigueStory, repQualities } from '../dashboardData'
 import { QUALITY_WORDS } from '../dashboardUnits'
@@ -56,20 +56,22 @@ export function QualityCard({
       {qualities.length === 0 ? (
         <EmptyChart message={t(words.empty)} />
       ) : (
-        <QualityBars
+        <RepNecklace
           qualities={qualities}
           labels={qualities.map((quality, index) =>
             t(words.rep, { n: index + 1, quality: t(QUALITY_WORD[quality]) })
           )}
           summary={t(words.summary, { count: qualities.length })}
-          height="min-h-36 flex-1"
         />
       )}
 
       <ul className="flex gap-3.5 text-xs text-mut">
         {(['good', 'warn', 'bad'] as const).map((quality) => (
           <li key={quality} className="flex items-center gap-1.5">
-            <span className={`h-3 w-2 rounded-[2px] ${QUALITY_FILL[quality]}`} aria-hidden="true" />
+            <span
+              className={`rounded-full ${QUALITY_FILL[quality]} ${quality === 'good' ? 'size-3.5' : quality === 'warn' ? 'size-2.5' : 'size-2'}`}
+              aria-hidden="true"
+            />
             {t(QUALITY_WORD[quality])}
           </li>
         ))}

@@ -45,13 +45,15 @@ export function ScoreCard({
   const [range, setRange] = useState<ScoreRange>('30')
   const points = scorePoints(sessions, range, now)
   const { title, sub } = headline(scoreStory(points), range)
+  const last = points[points.length - 1]
+  const before = points[points.length - 2]
 
   return (
-    <Card className="flex flex-col gap-4 p-6 lg:col-span-2">
+    <Card className="flex flex-col gap-4 p-6 lg:col-span-8">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-[0.8125rem] text-mut">{t('dashboard.score.label')}</p>
-          <h2 className="mt-1 text-[1.3125rem] font-semibold">{title}</h2>
+          <h2 className="mt-1 text-[1.3125rem] font-bold">{title}</h2>
           <p className="mt-1 text-sm text-mut">{sub}</p>
         </div>
         <div
@@ -65,13 +67,38 @@ export function ScoreCard({
               type="button"
               aria-pressed={range === option}
               onClick={() => setRange(option)}
-              className="h-7.5 rounded-full px-3 text-[0.78rem] whitespace-nowrap text-mut transition-colors aria-pressed:bg-seg aria-pressed:text-t1"
+              className="h-8 rounded-full px-3.5 text-[0.78rem] font-semibold whitespace-nowrap text-mut transition-all duration-200 aria-pressed:bg-grad aria-pressed:text-on-brand"
             >
               {t(`dashboard.range.${option}`)}
             </button>
           ))}
         </div>
       </div>
+
+      {last && (
+        <div className="flex items-end gap-3.5">
+          <p className="font-display text-[4rem] leading-[0.85] font-bold tracking-[-0.04em] tabular-nums">
+            {last.score}
+          </p>
+          <div className="flex flex-col gap-1.5 pb-1">
+            {before && (
+              <span
+                className={`flex h-6.5 items-center self-start rounded-full px-2.5 text-[0.78rem] font-bold ${
+                  last.score >= before.score
+                    ? 'bg-good/18 text-good-text'
+                    : 'bg-bad/18 text-bad-text'
+                }`}
+              >
+                <span aria-hidden="true">{last.score >= before.score ? '↑ ' : '↓ '}</span>
+                {t('dashboard.score.delta', {
+                  delta: `${last.score >= before.score ? '+' : '-'}${Math.abs(last.score - before.score)}`
+                })}
+              </span>
+            )}
+            <span className="text-[0.8125rem] text-mut">{formatShortDay(last.startedAt)}</span>
+          </div>
+        </div>
+      )}
 
       {points.length >= 2 ? (
         <LineChart

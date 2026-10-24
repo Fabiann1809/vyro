@@ -3,7 +3,9 @@ import { skillChannels } from '@shared/skill/skillChannels'
 import type { SessionDetail, SessionRow } from '@shared/sessions'
 import { Sparkline } from '../charts/Sparkline'
 import { repQualities } from '../dashboardData'
+import { ProgressRing } from '../charts/ProgressRing'
 import { Card } from '../kit/Card'
+import { ChannelOrb } from '../kit/ChannelOrb'
 import { ChannelMark } from '../kit/ChannelChip'
 import { sortChannels } from '../kit/channels'
 import { findSkill } from '../skillsStore'
@@ -40,11 +42,12 @@ export function HistoryList({
           return (
             <li
               key={session.id}
-              className="grid grid-cols-[7.5rem_minmax(0,1fr)_6.875rem_7.5rem_5rem] items-center gap-4 rounded-2xl border-t border-line/5 px-4.5 py-3.5"
+              className="grid grid-cols-[3.25rem_7.5rem_minmax(0,1fr)_6.875rem_7.5rem_4.5rem] items-center gap-4 rounded-[1.375rem] px-3.5 py-2.5 transition-colors duration-200 hover:bg-line/6"
             >
+              {channels[0] ? <ChannelOrb channel={channels[0]} size="size-11.5" glow /> : <span />}
               <span className="text-[0.84rem] text-mut">{formatDayAndTime(session.startedAt)}</span>
               <span className="flex min-w-0 items-center gap-2.5">
-                <span className="truncate text-[0.9375rem] font-medium">
+                <span className="truncate text-[0.9375rem] font-semibold">
                   {skillDisplayName(session.skillId)}
                 </span>
                 {channels.map((channel) => (
@@ -55,8 +58,14 @@ export function HistoryList({
                 {t(UNIT_TOTAL[skill?.progress?.unit ?? 'reps'], { count: session.repCount })}
               </span>
               <span>{shape.length >= 2 && <Sparkline values={shape} />}</span>
-              <span className="text-right font-display text-lg font-semibold tabular-nums">
-                {session.score === null ? '—' : session.score}
+              <span className="flex justify-end">
+                {session.score === null ? (
+                  <span className="font-display text-lg font-bold">—</span>
+                ) : (
+                  <ProgressRing share={session.score / 100} size="size-13.5">
+                    {session.score}
+                  </ProgressRing>
+                )}
               </span>
             </li>
           )

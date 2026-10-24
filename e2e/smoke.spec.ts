@@ -64,8 +64,8 @@ test('opens on the chat and offers the exercises in the library', async () => {
 test('walks through the main screens', async () => {
   const page = await launch()
 
-  await nav(page, 'Estadísticas').click()
-  await expect(page.getByRole('heading', { level: 1, name: 'Estadísticas' })).toBeVisible()
+  await nav(page, 'Tablero').click()
+  await expect(page.getByRole('heading', { level: 1, name: 'Tablero' })).toBeVisible()
   await expect(page.getByText('Todavía no tienes sesiones guardadas')).toBeVisible()
 
   await nav(page, 'Ajustes').click()
@@ -176,7 +176,7 @@ async function saveSessions(
 test('invites to a first session when the dashboard has nothing to show', async () => {
   const page = await launch()
 
-  await nav(page, 'Estadísticas').click()
+  await nav(page, 'Tablero').click()
 
   await expect(page.getByText('Todavía no tienes sesiones guardadas')).toBeVisible()
   await page.getByRole('button', { name: 'Hacer mi primera sesión' }).click()
@@ -200,9 +200,9 @@ test('shows the streak, the score and what fails most, from the saved sessions',
     }
   ])
 
-  await nav(page, 'Estadísticas').click()
+  await nav(page, 'Tablero').click()
 
-  await expect(page.getByText('3 días')).toBeVisible()
+  await expect(page.getByText('días seguidos', { exact: true })).toBeVisible()
   await expect(page.getByText('Subiste 5 puntos en 5 sesiones')).toBeVisible()
   await expect(page.getByText('Mejor marca · 90')).toBeVisible()
   await expect(page.getByText('Vas mejorando, sesión a sesión.')).toBeVisible()

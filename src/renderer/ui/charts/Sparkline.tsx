@@ -13,7 +13,7 @@ export function Sparkline({ values }: { values: readonly number[] }): React.JSX.
     >
       <path
         d={path}
-        className="fill-none stroke-mut"
+        className="fill-none stroke-accent"
         strokeWidth={1.6}
         strokeLinecap="round"
         strokeLinejoin="round"

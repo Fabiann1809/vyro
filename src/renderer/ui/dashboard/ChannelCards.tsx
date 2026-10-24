@@ -1,4 +1,5 @@
 import { t } from '@renderer/i18n'
+import { ArcGauge } from '../charts/ArcGauge'
 import { BandChart } from '../charts/BandChart'
 import { EmptyChart } from '../charts/EmptyChart'
 import type { ChannelSeries } from '../dashboardData'
@@ -8,6 +9,8 @@ import { CHANNEL_LOOK } from '../kit/channels'
 
 // The aim: failing at most this share of the repetitions.
 const TARGET = 20
+// The gauge goes up to here: beyond it the needle stays at the end.
+const GAUGE_MAX = 50
 
 function conclusion(rates: readonly number[]): 'better' | 'worse' | 'steady' | 'few' {
   const first = rates[0]
@@ -29,9 +32,22 @@ function ChannelCard({ series }: { series: ChannelSeries }): React.JSX.Element {
       </span>
       <div>
         <p className="text-[0.78rem] text-mut">{t('dashboard.channels.metric')}</p>
-        <h3 className="mt-0.75 text-base font-semibold text-pretty">
+        <h3 className="mt-0.75 text-base font-bold text-pretty">
           {t(`dashboard.channels.${verdict}`)}
         </h3>
+      </div>
+      <div className={look.text}>
+        <ArcGauge
+          value={last}
+          scale={{ min: 0, max: GAUGE_MAX }}
+          zone={{ min: 0, max: TARGET }}
+          display={`${last} %`}
+          summary={t('dashboard.channels.gauge', { channel: name, rate: last })}
+          minLabel="0"
+          maxLabel={`${GAUGE_MAX}`}
+          zoneLabel={t('dashboard.channels.zone', { target: TARGET })}
+          colorClass={look.text}
+        />
       </div>
       {series.rates.length >= 2 ? (
         <div className={look.text}>

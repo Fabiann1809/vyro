@@ -4,13 +4,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BandChart } from './BandChart'
 import { EmptyChart } from './EmptyChart'
 import { pickLabels } from './geometry'
-import { Heatmap } from './Heatmap'
-import { HBars } from './HBars'
+import { ArcGauge } from './ArcGauge'
+import { ErrorBubbles } from './ErrorBubbles'
 import { LineChart } from './LineChart'
 import { NeedleMeter } from './NeedleMeter'
-import { QualityBars } from './QualityBars'
+import { RepNecklace } from './RepNecklace'
 import { Ring } from './Ring'
-import { SegmentedBar } from './SegmentedBar'
+import { Sunburst } from './Sunburst'
 import { Sparkline } from './Sparkline'
 
 // The charts are drawn without a window here; the one thing they ask of it is whether the person
@@ -53,7 +53,7 @@ describe('LineChart', () => {
   })
 
   it('draws one dot for each value', () => {
-    expect(html(LineChart, props).match(/<circle/g)).toHaveLength(props.values.length + 1)
+    expect(html(LineChart, props).match(/<circle/g)).toHaveLength(props.values.length)
   })
 })
 
@@ -69,75 +69,67 @@ describe('pickLabels', () => {
   })
 })
 
-describe('SegmentedBar', () => {
-  it('leaves out the parts that are empty and describes the whole', () => {
-    const markup = html(SegmentedBar, {
-      summary: '14 limpios y 4 fallidos',
-      segments: [
-        { quality: 'good', count: 14, label: '14 limpios' },
-        { quality: 'warn', count: 0, label: '0 mejorables' },
-        { quality: 'bad', count: 4, label: '4 fallidos' }
-      ]
-    })
-
-    expect(markup).toContain('aria-label="14 limpios y 4 fallidos"')
-    expect(markup).not.toContain('0 mejorables')
-    expect(markup).toContain('pattern-bad')
-  })
-})
-
-describe('QualityBars', () => {
-  it('draws one bar for each repetition, as tall as it was good', () => {
-    const markup = html(QualityBars, {
+describe('RepNecklace', () => {
+  it('strings a bead for each repetition, as big as it was good', () => {
+    const markup = html(RepNecklace, {
       qualities: ['good', 'warn', 'bad'],
       labels: ['Repetición 1: bien', 'Repetición 2: mejorable', 'Repetición 3: mal'],
       summary: 'Calidad repetición a repetición'
     })
 
+    expect(markup).toContain('aria-label="Calidad repetición a repetición"')
     expect(markup.match(/title="/g)).toHaveLength(3)
-    expect(markup).toContain('height:100%')
-    expect(markup).toContain('height:56%')
-    expect(markup).toContain('height:20%')
-    expect(markup).toContain('pattern-warn')
+    expect(markup).toContain('width:26px')
+    expect(markup).toContain('width:19px')
+    expect(markup).toContain('width:13px')
+  })
+
+  it('draws no bead when there is nothing to show', () => {
+    const markup = html(RepNecklace, { qualities: [], labels: [], summary: 'Nada' })
+
+    expect(markup).not.toContain('title="')
   })
 })
 
-describe('HBars', () => {
-  it('sizes each bar against the longest one', () => {
-    const markup = html(HBars, {
-      rows: [
-        { key: 'a', label: 'Baja más la cadera', value: '14 veces', count: 14, fill: 'bg-ch-body' },
-        { key: 'b', label: 'Pecho arriba', value: '7 veces', count: 7, fill: 'bg-ch-body' }
-      ]
-    })
+describe('ErrorBubbles', () => {
+  const rows = [
+    { key: 'a', label: 'Baja más la cadera', count: 14, value: '14 veces', tint: 'text-ch-body' },
+    {
+      key: 'b',
+      label: 'Pecho arriba',
+      count: 7,
+      value: '7 veces',
+      tint: 'text-ch-body',
+      change: { text: '3 menos', tone: 'better' as const }
+    }
+  ]
 
-    expect(markup).toContain('width:100%')
-    expect(markup).toContain('width:50%')
+  it('draws a bubble for each error, with its count and what it says', () => {
+    const markup = html(ErrorBubbles, { rows })
+
+    expect(markup.match(/<li/g)).toHaveLength(2)
+    expect(markup).toContain('Baja más la cadera')
+    expect(markup).toContain('>14<')
   })
 
-  it('says how a row changed', () => {
-    const markup = html(HBars, {
-      rows: [
-        {
-          key: 'a',
-          label: 'Pecho arriba',
-          value: '8 veces',
-          count: 8,
-          fill: 'bg-ch-body',
-          change: { text: '3 menos', tone: 'better' }
-        }
-      ]
-    })
+  it('makes the most frequent one the biggest', () => {
+    const markup = html(ErrorBubbles, { rows })
+    const sizes = [...markup.matchAll(/width:(\d+)px/g)].map((match) => Number(match[1]))
 
-    expect(markup).toContain('3 menos')
-    expect(markup).toContain('text-good-text')
+    expect(sizes[0]).toBeGreaterThan(sizes[1]!)
+  })
+
+  it('says the change to a screen reader', () => {
+    expect(html(ErrorBubbles, { rows })).toContain('7 veces, 3 menos')
   })
 })
 
-describe('Heatmap', () => {
-  it('draws a square for each day and rings the days of the streak', () => {
-    const markup = html(Heatmap, {
+describe('Sunburst', () => {
+  it('draws a ray for each day, in the gradient for the days of the streak', () => {
+    const markup = html(Sunburst, {
       summary: '12 sesiones en 4 semanas',
+      big: '3',
+      unit: 'días seguidos',
       cells: [
         { key: 'a', title: '1 oct', level: 0, streak: false },
         { key: 'b', title: '2 oct · 78', level: 3, streak: true }
@@ -145,8 +137,43 @@ describe('Heatmap', () => {
     })
 
     expect(markup.match(/title="/g)).toHaveLength(2)
-    expect(markup).toContain('bg-good ')
-    expect(markup.match(/inset_0_0_0_1.5px/g)).toHaveLength(1)
+    expect(markup).toContain('bg-grad')
+    expect(markup).toContain('>3<')
+    expect(markup).toContain('días seguidos')
+  })
+
+  it('lists only the days with a session for a screen reader', () => {
+    const markup = html(Sunburst, {
+      summary: 'Constancia',
+      big: '0',
+      unit: 'días',
+      cells: [
+        { key: 'a', title: '1 oct', level: 0, streak: false },
+        { key: 'b', title: '2 oct · 78', level: 2, streak: false }
+      ]
+    })
+
+    expect(markup.match(/<li>/g)).toHaveLength(1)
+  })
+})
+
+describe('ArcGauge', () => {
+  it('says what it shows, and writes the value as well as pointing at it', () => {
+    const markup = html(ArcGauge, {
+      value: 12,
+      scale: { min: 0, max: 40 },
+      zone: { min: 0, max: 20 },
+      display: '12 %',
+      summary: 'Fallas del cuerpo: 12 de cada 100',
+      minLabel: '0',
+      maxLabel: '40',
+      zoneLabel: 'meta ≤ 20',
+      colorClass: 'text-ch-body'
+    })
+
+    expect(markup).toContain('aria-label="Fallas del cuerpo: 12 de cada 100"')
+    expect(markup).toContain('>12 %<')
+    expect(markup).toContain('meta ≤ 20')
   })
 })
 

@@ -105,7 +105,7 @@ test('nothing leaves with the AI off, and with it on only numbers and text reach
 
   // The coach off: asking does not reach anything, and neither does using the rest of the app.
   expect(await ask('Hola')).toEqual({ ok: false, error: { kind: 'not-enabled' } })
-  for (const name of ['Estadísticas', 'Ajustes', 'Biblioteca', 'Inicio']) {
+  for (const name of ['Tablero', 'Ajustes', 'Biblioteca', 'Inicio']) {
     await page.getByRole('navigation').getByRole('button', { name }).click()
   }
   expect(recorded()).toEqual([])

@@ -1,12 +1,12 @@
 import { t } from '@renderer/i18n'
 import type { SessionRow } from '@shared/sessions'
 import { EmptyChart } from '../charts/EmptyChart'
-import { Heatmap, type HeatCell } from '../charts/Heatmap'
+import { Sunburst, type HeatCell } from '../charts/Sunburst'
 import { heatmapDays, type HeatDay } from '../dashboardData'
 import { Card } from '../kit/Card'
 import { formatShortDay } from './format'
 
-const WEEKS = 12
+const WEEKS = 4
 
 function cellOf(day: HeatDay): HeatCell {
   const when = formatShortDay(day.date)
@@ -26,10 +26,13 @@ function cellOf(day: HeatDay): HeatCell {
 // A calendar of the last weeks, a square a day: the darker, the better that day went.
 export function ConsistencyCard({
   sessions,
-  now
+  now,
+  streak
 }: {
   sessions: readonly SessionRow[]
   now: number
+  // The days in a row, ending today, with a session.
+  streak: number
 }): React.JSX.Element {
   const days = heatmapDays(sessions, now, WEEKS)
   const active = days.filter((day) => day.sessions > 0).length
@@ -48,25 +51,16 @@ export function ConsistencyCard({
       {total === 0 ? (
         <EmptyChart message={t('dashboard.consistency.empty')} />
       ) : (
-        <Heatmap
+        <Sunburst
           cells={days.map(cellOf)}
+          big={String(streak)}
+          unit={t(
+            streak === 1 ? 'dashboard.consistency.dayInARow' : 'dashboard.consistency.daysInARow'
+          )}
           summary={t('dashboard.consistency.title', { count: total, days: active })}
         />
       )}
-      <div className="flex items-center justify-between text-xs text-mut2">
-        <span className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-[3px] shadow-[inset_0_0_0_1.5px_var(--t1)]" />
-          {t('dashboard.consistency.streak')}
-        </span>
-        <span aria-hidden="true" className="flex items-center gap-1">
-          {t('dashboard.consistency.less')}
-          <span className="size-2.5 rounded-[3px] bg-empty" />
-          <span className="size-2.5 rounded-[3px] bg-good/30" />
-          <span className="size-2.5 rounded-[3px] bg-good/60" />
-          <span className="size-2.5 rounded-[3px] bg-good" />
-          {t('dashboard.consistency.more')}
-        </span>
-      </div>
+      <p className="text-center text-[0.8125rem] text-t4">{t('dashboard.consistency.hover')}</p>
     </Card>
   )
 }

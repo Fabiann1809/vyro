@@ -477,7 +477,7 @@
   "channel.hands": "Hands",
   "channel.object": "Object",
   "channel.audio": "Audio",
-  "nav.dashboard": "Statistics",
+  "nav.dashboard": "Dashboard",
   "nav.library": "Library",
   "nav.how": "How it works",
   "nav.collapse": "Collapse the side bar",
@@ -489,7 +489,7 @@
   "nav.ai.on": "AI coach on",
   "nav.ai.off": "No AI coach · free practice",
   "nav.privacy": "Your video and audio never leave your computer.",
-  "screen.dashboard.title": "Statistics",
+  "screen.dashboard.title": "Dashboard",
   "screen.library.title": "Library",
   "screen.how.title": "How VYRO works",
   "how.lead": "A coach that watches, listens and corrects you while you practise, with nothing leaving your computer.",
@@ -766,5 +766,12 @@
   "home.resume.none": "You have no path yet",
   "home.streak": "Streak",
   "home.library": "Library · {count} skills",
-  "library.channels.label": "Channels it measures"
+  "library.channels.label": "Channels it measures",
+  "dashboard.consistency.dayInARow": "day in a row",
+  "dashboard.consistency.daysInARow": "days in a row",
+  "dashboard.consistency.hover": "Point at each day",
+  "dashboard.next.stepOf": "Step {step} of {total}",
+  "dashboard.score.delta": "{delta} vs. previous",
+  "dashboard.channels.gauge": "{channel}: failed {rate} of every 100 repetitions",
+  "dashboard.channels.zone": "aim ≤ {target}"
 }
