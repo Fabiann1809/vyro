@@ -2,6 +2,10 @@
   "id": "string_tuning",
   "category": "instrument",
   "name": { "es": "Afinar una cuerda", "en": "Tune a string" },
+  "goal": {
+    "es": "Elige una cuerda, tócala y gira la clavija hasta que la aguja quede en el centro.",
+    "en": "Choose a string, pluck it and turn the peg until the needle sits in the middle."
+  },
   "display": "tuner",
   "audio": { "a4": 440, "targets": ["E2", "A2", "D3", "G3", "B3", "E4"] },
   "metrics": {

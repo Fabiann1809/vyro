@@ -736,5 +736,6 @@
   "tuner.tuned": "Lista",
   "tuner.pending": "Pendiente",
   "tuner.count": "{done} de {total} cuerdas afinadas",
-  "tuner.allDone": "¡Todas las cuerdas están afinadas!"
+  "tuner.allDone": "¡Todas las cuerdas están afinadas!",
+  "skill.goal.title": "Qué vas a hacer"
 }

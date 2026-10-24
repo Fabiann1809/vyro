@@ -16,6 +16,13 @@ describe('bundled skills', () => {
     ])
   })
 
+  it('tells what to do in one line, in both languages', () => {
+    for (const skill of bundledSkills.skills) {
+      expect(skill.goal, skill.id).toBeDefined()
+      expect(skill.goal?.es, skill.id).not.toBe(skill.goal?.en)
+    }
+  })
+
   it('gives every exercise a guide, with what the app does not check, in both languages', () => {
     for (const skill of bundledSkills.skills) {
       expect(skill.guide, skill.id).toBeDefined()

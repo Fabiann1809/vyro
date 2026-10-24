@@ -2,6 +2,10 @@
   "id": "steady_beat",
   "category": "instrument",
   "name": { "es": "Pulso constante a 80", "en": "Steady beat at 80" },
+  "goal": {
+    "es": "Marca un golpe seco y claro con cada pulso, siguiendo el ritmo.",
+    "en": "Strike a short, clear beat on every pulse, keeping the rhythm."
+  },
   "metrics": {
     "level": { "type": "level" },
     "pace": { "type": "tempo" }

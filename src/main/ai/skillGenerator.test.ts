@@ -229,6 +229,33 @@ describe('a skill that listens', () => {
     })
   })
 
+  describe('and says what to do', () => {
+    it('keeps the line that tells the person what to do', async () => {
+      const goal = { es: 'Toca la nota y déjala sonar.', en: 'Play the note and let it ring.' }
+      const model = scriptedModel(answer({ ...tuner, goal }, { channels: ['audio'] }))
+
+      const result = await generateSkill(model, input({ description: 'Quiero tocar flauta' }))
+
+      expect(result.kind === 'skill' && result.skill.goal).toEqual(goal)
+    })
+
+    it('is asked to be fixed when the line is not in both languages', async () => {
+      const model = scriptedModel(
+        answer({ ...tuner, goal: { es: 'Toca la nota.' } }, { channels: ['audio'] }),
+        answer(tuner, { channels: ['audio'] })
+      )
+
+      const result = await generateSkill(model, input())
+
+      expect(result.kind).toBe('skill')
+      expect(model.requests[1]?.messages.at(-1)?.content).toContain('goal.en')
+    })
+
+    it('tells the coach to write it', () => {
+      expect(skillGeneratorPrompt('es')).toContain('"goal"')
+    })
+  })
+
   describe('and says how it is displayed', () => {
     it('keeps a tuner for a skill that hears a pitch', async () => {
       const model = scriptedModel(answer({ ...tuner, display: 'tuner' }, { channels: ['audio'] }))

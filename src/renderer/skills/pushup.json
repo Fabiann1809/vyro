@@ -2,6 +2,10 @@
   "id": "pushup",
   "category": "exercise",
   "name": { "es": "Flexión", "en": "Push-up" },
+  "goal": {
+    "es": "Baja el pecho hacia el suelo y sube, con el cuerpo en una línea recta.",
+    "en": "Lower your chest towards the floor and push up, with your body in a straight line."
+  },
   "camera": { "view": "side", "fullBody": true },
   "metrics": {
     "elbow": { "type": "angle", "points": ["shoulder", "elbow", "wrist"] },

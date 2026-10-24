@@ -736,5 +736,6 @@
   "tuner.tuned": "Done",
   "tuner.pending": "Pending",
   "tuner.count": "{done} of {total} strings tuned",
-  "tuner.allDone": "All the strings are in tune!"
+  "tuner.allDone": "All the strings are in tune!",
+  "skill.goal.title": "What you are going to do"
 }

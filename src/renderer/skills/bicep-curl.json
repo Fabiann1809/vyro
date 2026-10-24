@@ -2,6 +2,10 @@
   "id": "bicep_curl",
   "category": "exercise",
   "name": { "es": "Curl de bíceps", "en": "Bicep curl" },
+  "goal": {
+    "es": "Dobla y estira el brazo despacio, con el codo pegado al cuerpo.",
+    "en": "Bend and straighten your arm slowly, with your elbow close to your body."
+  },
   "camera": { "view": "side", "fullBody": false },
   "metrics": {
     "elbow": { "type": "angle", "points": ["shoulder", "elbow", "wrist"] },

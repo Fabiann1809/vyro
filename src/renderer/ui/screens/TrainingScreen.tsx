@@ -444,7 +444,9 @@ export function TrainingScreen(): React.JSX.Element {
             ? t('training.personal.hint')
             : personalResult
               ? t(PERSONAL_RESULT[personalResult])
-              : ''}
+              : skill.goal
+                ? localize(skill.goal)
+                : ''}
       </p>
 
       <div className="flex min-h-0 flex-1 gap-5">

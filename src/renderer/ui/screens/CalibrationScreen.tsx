@@ -443,6 +443,12 @@ export function CalibrationScreen(): React.JSX.Element {
               </Button>
             </div>
           )}
+          {skill.goal && (
+            <div className="rounded-3xl border border-line/6 bg-card p-5">
+              <p className="text-[0.8125rem] text-mut">{t('skill.goal.title')}</p>
+              <p className="mt-1.5 text-lg">{localize(skill.goal)}</p>
+            </div>
+          )}
           <ChecksPanel checks={report.checks} />
           {skill.guide && <SkillGuide guide={skill.guide} open={false} />}
           {useCamera &&

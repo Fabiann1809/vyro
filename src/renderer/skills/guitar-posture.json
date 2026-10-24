@@ -2,6 +2,10 @@
   "id": "guitar_posture",
   "category": "instrument",
   "name": { "es": "Postura con guitarra", "en": "Guitar posture" },
+  "goal": {
+    "es": "Siéntate con la guitarra como para tocar y mantén esa postura unos segundos.",
+    "en": "Sit with the guitar as if to play and hold that posture for a few seconds."
+  },
   "camera": { "view": "side", "fullBody": false },
   "metrics": {
     "torso": { "type": "tilt", "from": "hip", "to": "shoulder" },

@@ -2,6 +2,10 @@
   "id": "squat",
   "category": "exercise",
   "name": { "es": "Sentadilla", "en": "Squat" },
+  "goal": {
+    "es": "Baja como si te sentaras hacia atrás y vuelve a subir, con el pecho alto.",
+    "en": "Lower as if sitting back and come up again, with your chest up."
+  },
   "camera": { "view": "side", "fullBody": true },
   "metrics": {
     "knee": { "type": "angle", "points": ["hip", "knee", "ankle"] },

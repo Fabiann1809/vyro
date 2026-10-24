@@ -2,6 +2,10 @@
   "id": "piano_hand",
   "category": "instrument",
   "name": { "es": "Mano al piano", "en": "Piano hand" },
+  "goal": {
+    "es": "Pon la mano sobre el teclado con los dedos curvados y mantenla así.",
+    "en": "Rest your hand on the keyboard with curved fingers and keep it there."
+  },
   "camera": { "view": "side", "fullBody": false, "hand": "auto" },
   "metrics": {
     "arch": { "type": "angle", "points": ["indexMcp", "indexPip", "indexDip"] },

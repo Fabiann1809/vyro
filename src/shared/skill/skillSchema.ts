@@ -202,6 +202,8 @@ export const skillConfigSchema = z
     id: identifier,
     category: identifier,
     name: localizedText,
+    // One line that says what the person is to do, shown before and while practising.
+    goal: localizedTip.optional(),
     // Skills that only listen have no use for the camera and leave this out.
     camera: z
       .object({
