@@ -746,5 +746,11 @@
   "hold.away": "Get into position",
   "hold.keep": "Hold the posture",
   "hold.reached": "Done! Keep it up",
-  "hold.progress": "{seconds} s of {goal} s"
+  "hold.progress": "{seconds} s of {goal} s",
+  "beat.target": "Pace asked for: {bpm} beats per minute",
+  "beat.unit": "bpm",
+  "beat.status.silent": "Strike the beat with short, clear sounds",
+  "beat.status.slow": "You are dragging: speed up a little",
+  "beat.status.steady": "Steady beat: keep it up",
+  "beat.status.fast": "You are rushing: slow down"
 }

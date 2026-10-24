@@ -27,6 +27,11 @@ const failures = (session: ReturnType<typeof replaySound>): string[][] =>
   session.repResults.map((result) => result.failed.map((outcome) => outcome.ruleId))
 
 describe('steady beat', () => {
+  it('is shown as a pulse at 80 beats per minute, the pace its rules ask for', () => {
+    expect(beat.display).toBe('beat')
+    expect(beat.audio?.bpm).toBe(80)
+  })
+
   it('only listens: it needs no camera', () => {
     expect(beat.camera).toBeUndefined()
     expect(beat.metrics['pace']).toMatchObject({ type: 'tempo' })

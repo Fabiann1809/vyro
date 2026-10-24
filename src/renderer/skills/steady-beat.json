@@ -6,6 +6,8 @@
     "es": "Marca un golpe seco y claro con cada pulso, siguiendo el ritmo.",
     "en": "Strike a short, clear beat on every pulse, keeping the rhythm."
   },
+  "display": "beat",
+  "audio": { "a4": 440, "bpm": 80 },
   "metrics": {
     "level": { "type": "level" },
     "pace": { "type": "tempo" }

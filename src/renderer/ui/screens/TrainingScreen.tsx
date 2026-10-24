@@ -37,6 +37,7 @@ import { CameraStage } from '../CameraStage'
 import { CorrectionBand } from '../immersive/CorrectionBand'
 import { liveLines, unitLabel } from '../liveProgress'
 import { RepCounter } from '../immersive/RepCounter'
+import { BeatMeter } from '../immersive/BeatMeter'
 import { HoldTimer } from '../immersive/HoldTimer'
 import { HoldClock } from '../holdClock'
 import { TargetNote } from '../immersive/TargetNote'
@@ -88,7 +89,8 @@ const EMPTY: TrainingSnapshot = {
   lastQuality: null,
   tracking: 'tracking',
   numbers: sessionNumbers([]),
-  feedback: null
+  feedback: null,
+  metrics: null
 }
 
 interface Banner {
@@ -149,6 +151,12 @@ export function TrainingScreen(): React.JSX.Element {
   const holdGoalMs = skill?.display === 'hold' ? (skill.rep.holdMs ?? null) : null
   const holdClock = useRef(new HoldClock())
   const [heldMs, setHeldMs] = useState<number | null>(null)
+  // A pulse to keep: the pace asked for, and the pace heard (the tempo metric of the skill).
+  const beatTarget = skill?.display === 'beat' ? (skill.audio?.bpm ?? null) : null
+  const tempoMetric = skill
+    ? Object.entries(skill.metrics).find(([, metric]) => metric.type === 'tempo')?.[0]
+    : undefined
+  const [bpm, setBpm] = useState<number | null>(null)
   // A note to play, shown with whether the one that sounds is right.
   const targetNote = skill?.display === 'target-note' && skill ? skillTargetNote(skill) : null
   const [stringIndex, setStringIndex] = useState(0)
@@ -220,6 +228,10 @@ export function TrainingScreen(): React.JSX.Element {
     // The engine smooths on its own, so it gets the raw landmarks.
     runRef.current ??= new TrainingRun(aimedSkill(skill), size)
     const next = runRef.current.processFrame(input)
+    if (beatTarget !== null && tempoMetric) {
+      const heard = next.metrics?.[tempoMetric] ?? null
+      setBpm((previous) => (previous === heard ? previous : heard))
+    }
     if (holdGoalMs !== null) {
       const held = holdClock.current.update(
         next.phase,
@@ -488,7 +500,9 @@ export function TrainingScreen(): React.JSX.Element {
             <>
               <FinishButton onFinish={end} withHand={false} />
               <div className="relative flex w-full max-w-xl flex-col items-center gap-6 p-8">
-                {tuner ? (
+                {beatTarget !== null ? (
+                  <BeatMeter bpm={bpm} targetBpm={beatTarget} />
+                ) : tuner ? (
                   <StringTuner
                     targets={targets}
                     index={stringIndex}

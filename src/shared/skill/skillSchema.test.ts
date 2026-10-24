@@ -109,6 +109,32 @@ describe('how a skill is displayed', () => {
     expect(problemsWith({ rep, display: 'hold' })).toEqual([])
   })
 
+  describe('a pulse', () => {
+    const metrics = { pace: { type: 'tempo' } }
+    const phases = [
+      { id: 'quiet', when: { pace: { lt: 10 } } },
+      { id: 'hit', when: { pace: { gt: 20 } } }
+    ]
+    const rep = { sequence: ['quiet', 'hit', 'quiet'], minDurationMs: 100 }
+    const base = { metrics, phases, rep, rules: [rule], display: 'beat' }
+
+    it('is accepted with a tempo and the pace asked for', () => {
+      expect(problemsWith({ ...base, audio: { bpm: 80 } })).toEqual([])
+    })
+
+    it('needs the pace asked for', () => {
+      expect(problemsWith(base).join()).toContain('audio.bpm')
+    })
+
+    it('needs a tempo to show', () => {
+      expect(problemsWith({ display: 'beat', audio: { bpm: 80 } }).join()).toContain('"tempo"')
+    })
+
+    it.each([20, 300, 80.5])('rejects %s beats per minute', (bpm) => {
+      expect(problemsWith({ ...base, audio: { bpm } }).length).toBeGreaterThan(0)
+    })
+  })
+
   it('rejects a display that does not exist', () => {
     expect(problemsWith({ display: 'radar' }).length).toBeGreaterThan(0)
   })

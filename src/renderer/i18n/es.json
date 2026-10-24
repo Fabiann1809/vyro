@@ -746,5 +746,11 @@
   "hold.away": "Colócate en la posición",
   "hold.keep": "Mantén la postura",
   "hold.reached": "¡Lograda! Sigue así",
-  "hold.progress": "{seconds} s de {goal} s"
+  "hold.progress": "{seconds} s de {goal} s",
+  "beat.target": "Ritmo pedido: {bpm} pulsos por minuto",
+  "beat.unit": "ppm",
+  "beat.status.silent": "Marca el pulso con golpes secos y claros",
+  "beat.status.slow": "Vas despacio: sube un poco el ritmo",
+  "beat.status.steady": "Pulso constante: sigue así",
+  "beat.status.fast": "Vas deprisa: baja el ritmo"
 }

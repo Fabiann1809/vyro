@@ -223,7 +223,9 @@ export const skillConfigSchema = z
         // The pitch of the A above middle C. Some instruments are tuned to 432 or 442.
         a4: z.number().min(400).max(480).default(440),
         // The notes the person can choose to tune to or play, lowest first (the strings of a guitar).
-        targets: z.array(noteName).max(8).optional()
+        targets: z.array(noteName).max(8).optional(),
+        // The pace asked for, in beats per minute, for a skill shown as a pulse.
+        bpm: z.number().int().min(30).max(240).optional()
       })
       .strict()
       .optional(),
@@ -349,6 +351,14 @@ export const skillConfigSchema = z
         code: 'custom',
         path: ['display'],
         message: `"${skill.display}" shows a note, so the skill needs a "pitch" metric`
+      })
+    }
+    const hasTempo = Object.values(skill.metrics).some((item) => item.type === 'tempo')
+    if (skill.display === 'beat' && (!hasTempo || skill.audio?.bpm === undefined)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['display'],
+        message: '"beat" shows a pulse, so the skill needs a "tempo" metric and "audio.bpm"'
       })
     }
     if (skill.display === 'hold' && holdMs === undefined) {

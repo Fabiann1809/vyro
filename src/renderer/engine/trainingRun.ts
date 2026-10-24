@@ -1,5 +1,5 @@
 import type { FeedbackMessage } from './feedback'
-import type { FrameSize } from './metrics'
+import type { FrameSize, MetricValues } from './metrics'
 import type { CompletedRep } from './repCounter'
 import type { RepQuality, RepResult } from './repEvaluator'
 import { SkillSession, type FrameInput } from './skillSession'
@@ -17,6 +17,8 @@ export interface TrainingSnapshot {
   numbers: SessionNumbers
   // A message to show now; null in most frames.
   feedback: FeedbackMessage | null
+  // What the metrics read in this frame, for the screens that show a value as it changes.
+  metrics: MetricValues | null
 }
 
 // How long the body may be out of sight before the user is told.
@@ -36,7 +38,8 @@ export class TrainingRun {
     lastQuality: null,
     tracking: 'tracking',
     numbers: this.numbers,
-    feedback: null
+    feedback: null,
+    metrics: null
   }
 
   constructor(skill: SkillConfig, frame: FrameSize) {
@@ -66,7 +69,8 @@ export class TrainingRun {
       lastQuality,
       tracking,
       numbers: this.numbers,
-      feedback: output.feedback
+      feedback: output.feedback,
+      metrics: output.metrics
     }
     return this.snapshot
   }
