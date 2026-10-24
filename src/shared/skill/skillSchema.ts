@@ -219,7 +219,9 @@ export const skillConfigSchema = z
     audio: z
       .object({
         // The pitch of the A above middle C. Some instruments are tuned to 432 or 442.
-        a4: z.number().min(400).max(480).default(440)
+        a4: z.number().min(400).max(480).default(440),
+        // The notes the person can choose to tune to or play, lowest first (the strings of a guitar).
+        targets: z.array(noteName).max(8).optional()
       })
       .strict()
       .optional(),

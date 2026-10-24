@@ -7,6 +7,7 @@ import {
   addNoise
 } from '@renderer/core/audio/syntheticSound'
 import { replaySound } from '@renderer/engine/audioReplay'
+import { retarget } from '@renderer/engine/retarget'
 import { parseSkillConfig } from '@shared/skill/skillLoader'
 import type { SkillConfig } from '@shared/skill/skillSchema'
 import tuningConfig from './string-tuning.json'
@@ -49,6 +50,23 @@ describe('tune a string', () => {
   it('only listens: it needs no camera', () => {
     expect(tuning.camera).toBeUndefined()
     expect(tuning.metrics['cents']).toMatchObject({ type: 'pitch', target: 'nearest' })
+  })
+
+  it('is shown as a tuner, with the six strings of a guitar to choose from', () => {
+    expect(tuning.display).toBe('tuner')
+    expect(tuning.audio?.targets).toEqual(['E2', 'A2', 'D3', 'G3', 'B3', 'E4'])
+  })
+
+  it('judges against the string that was chosen, not the nearest note', () => {
+    const failed = (target: string, hz: number): string[] => {
+      const session = replaySound(retarget(tuning, target), play(hz))
+      return session.repResults[0]?.failed.map((outcome) => outcome.ruleId) ?? []
+    }
+
+    // A string a little low in tune is still the one meant, even if it is nearer to another note.
+    expect(failed('A2', detuned(110, -40))).toEqual(['too_flat'])
+    expect(failed('A2', 110)).toEqual([])
+    expect(failed('E2', 110)).toEqual(['too_sharp'])
   })
 
   it('counts a pluck that is in tune, with nothing to correct', () => {

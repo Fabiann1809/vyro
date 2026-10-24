@@ -6,19 +6,25 @@ import { percentOn, type Range } from './geometry'
 export function NeedleMeter({
   cents,
   range = { min: -50, max: 50 },
-  zone = 25
+  zone = 25,
+  tall = false
 }: {
   cents: number
   range?: Range
   // How many cents either side of the note still count as in tune.
   zone?: number
+  // A bigger meter, for when it is the centre of the screen.
+  tall?: boolean
 }): React.JSX.Element {
   const left = percentOn(cents, range)
   const zoneStart = percentOn(-zone, range)
   const zoneEnd = percentOn(zone, range)
 
   return (
-    <div className="relative h-14.5 overflow-hidden rounded-2xl bg-sunk" aria-hidden="true">
+    <div
+      className={`relative ${tall ? 'h-24' : 'h-14.5'} overflow-hidden rounded-2xl bg-sunk`}
+      aria-hidden="true"
+    >
       <div
         className="absolute top-0 bottom-0 border-x border-dashed border-brand/50 bg-brand/14"
         style={{ left: `${zoneStart}%`, width: `${zoneEnd - zoneStart}%` }}

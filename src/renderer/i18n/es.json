@@ -726,5 +726,18 @@
   "settings.about.safety": "VYRO te ayuda a mejorar tu técnica, pero no sustituye a un profesional de la salud o del entrenamiento. Si sientes dolor, mareo o molestias, detente. Practica en un espacio libre y seguro.",
   "settings.ai.usage": "Uso de hoy frente al límite diario",
   "settings.ai.usageValue": "{used} de {limit} tokens",
-  "skill.new.placeholder": "Por ejemplo: yoga suave para la espalda…"
+  "skill.new.placeholder": "Por ejemplo: yoga suave para la espalda…",
+  "tuner.pickString": "Elige la cuerda que vas a afinar",
+  "tuner.order": "De la más grave a la más aguda",
+  "tuner.target": "Afina a",
+  "tuner.heard": "Se oye",
+  "tuner.status.silent": "Toca la cuerda {note} y déjala sonar",
+  "tuner.status.flat": "Está baja: aprieta un poco la clavija",
+  "tuner.status.sharp": "Está alta: afloja un poco la clavija",
+  "tuner.status.inTune": "Afinada: no la muevas",
+  "tuner.status.otherString": "Se oye {heard}: ¿tocaste la cuerda {note}?",
+  "tuner.tuned": "Lista",
+  "tuner.pending": "Pendiente",
+  "tuner.count": "{done} de {total} cuerdas afinadas",
+  "tuner.allDone": "¡Todas las cuerdas están afinadas!"
 }

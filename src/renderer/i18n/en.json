@@ -726,5 +726,18 @@
   "settings.about.safety": "VYRO helps you improve your technique, but it does not replace a health or training professional. If you feel pain, dizziness or discomfort, stop. Practise in a free and safe space.",
   "settings.ai.usage": "Today's use against the daily limit",
   "settings.ai.usageValue": "{used} of {limit} tokens",
-  "skill.new.placeholder": "For example: gentle yoga for the back…"
+  "skill.new.placeholder": "For example: gentle yoga for the back…",
+  "tuner.pickString": "Choose the string you are tuning",
+  "tuner.order": "From the lowest to the highest",
+  "tuner.target": "Tune to",
+  "tuner.heard": "Heard",
+  "tuner.status.silent": "Pluck the {note} string and let it ring",
+  "tuner.status.flat": "It is flat: tighten the peg a little",
+  "tuner.status.sharp": "It is sharp: loosen the peg a little",
+  "tuner.status.inTune": "In tune: do not move it",
+  "tuner.status.otherString": "I hear {heard}: did you pluck the {note} string?",
+  "tuner.tuned": "Done",
+  "tuner.pending": "Pending",
+  "tuner.count": "{done} of {total} strings tuned",
+  "tuner.allDone": "All the strings are in tune!"
 }

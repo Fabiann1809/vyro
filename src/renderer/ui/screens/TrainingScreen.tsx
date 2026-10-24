@@ -2,14 +2,23 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { measureSound, type AudioFeatures } from '@renderer/core/audio/capture'
 import { DEFAULT_AUDIO_FRAMING } from '@renderer/core/audio/audioFraming'
 import { OtherSoundWatch } from '@renderer/core/audio/otherSoundWatch'
-import { nearestNote, type Note } from '@renderer/core/audio/pitch'
+import {
+  centsBetween,
+  frequencyOfMidi,
+  nearestNote,
+  noteToMidi,
+  type Note
+} from '@renderer/core/audio/pitch'
+import { InTuneHold, nextUntuned } from '@renderer/core/audio/tuning'
 import type { PoseFrame } from '@renderer/core/detectionLoop'
 import type { Landmark } from '@renderer/core/landmarks'
 import type { FeedbackMessage } from '@renderer/engine/feedback'
-import type { RepQuality } from '@renderer/engine/repEvaluator'
+import type { RepQuality, RepResult } from '@renderer/engine/repEvaluator'
+import { retarget } from '@renderer/engine/retarget'
 import type { CompletedRep } from '@renderer/engine/repCounter'
 import { buildSessionToSave } from '@renderer/engine/sessionSummary'
 import type { FrameInput } from '@renderer/engine/skillSession'
+import type { SkillConfig } from '@shared/skill/skillSchema'
 import type { FrameSize } from '@renderer/engine/metrics'
 import { TrainingRun, type TrainingSnapshot } from '@renderer/engine/trainingRun'
 import { localize, t, type MessageKey } from '@renderer/i18n'
@@ -27,6 +36,7 @@ import { CameraStage } from '../CameraStage'
 import { CorrectionBand } from '../immersive/CorrectionBand'
 import { liveLines, unitLabel } from '../liveProgress'
 import { RepCounter } from '../immersive/RepCounter'
+import { StringTuner } from '../immersive/StringTuner'
 import { TunerCard } from '../immersive/TunerCard'
 import { Button } from '../kit/Button'
 import { FinishButton } from '../immersive/FinishButton'
@@ -141,6 +151,18 @@ export function TrainingScreen(): React.JSX.Element {
   )
   const [wrongSound, setWrongSound] = useState(false)
 
+  // A skill shown as a tuner is tuned string by string: each string is a note to aim at.
+  const targets = skill?.audio?.targets ?? []
+  const tuner = skill?.display === 'tuner' && targets.length > 0
+  const [stringIndex, setStringIndex] = useState(0)
+  const [tuned, setTuned] = useState<ReadonlySet<number>>(new Set())
+  const [targetCents, setTargetCents] = useState<number | null>(null)
+  const [holdProgress, setHoldProgress] = useState(0)
+  const stringRef = useRef({ index: 0, tuned: new Set<number>() })
+  const holdRef = useRef(new InTuneHold())
+  // What was judged on the strings already left behind: each string is a run of its own.
+  const earlierResults = useRef<RepResult[]>([])
+
   const bannerOf = (message: FeedbackMessage, id: number): Banner =>
     message.kind === 'praise'
       ? {
@@ -156,11 +178,49 @@ export function TrainingScreen(): React.JSX.Element {
           channel: skill ? ruleChannel(skill, message.ruleId) : null
         }
 
+  // The skill aimed at the string being tuned, if it is tuned string by string.
+  const aimedSkill = (base: SkillConfig): SkillConfig => {
+    const target = targets[stringRef.current.index]
+    return tuner && target ? retarget(base, target) : base
+  }
+
+  const pickString = (index: number): void => {
+    earlierResults.current.push(...(runRef.current?.results ?? []))
+    runRef.current = null
+    stringRef.current.index = index
+    holdRef.current.reset()
+    setStringIndex(index)
+    setHoldProgress(0)
+  }
+
+  // How far the sound is from the string being tuned, or from the nearest note without strings.
+  const centsOf = (features: AudioFeatures, a4: number): number | null => {
+    if (features.pitchHz <= 0 || features.pitchClarity < MIN_PITCH_CLARITY) return null
+    const midi = noteToMidi(targets[stringRef.current.index] ?? '')
+    return midi === null
+      ? nearestNote(features.pitchHz, a4).cents
+      : centsBetween(features.pitchHz, frequencyOfMidi(midi, a4))
+  }
+
+  const followTuning = (features: AudioFeatures): void => {
+    const cents = centsOf(features, skill?.audio?.a4 ?? 440)
+    setTargetCents(cents)
+    const timestamp = now()
+    if (holdRef.current.update(timestamp, cents)) {
+      const { index } = stringRef.current
+      stringRef.current.tuned = new Set(stringRef.current.tuned).add(index)
+      setTuned(stringRef.current.tuned)
+      const next = nextUntuned(index, stringRef.current.tuned, targets.length)
+      if (next !== null) pickString(next)
+    }
+    setHoldProgress(holdRef.current.progress(timestamp))
+  }
+
   // One step of the session, from the camera, the microphone or both.
   const advance = (input: FrameInput, size: FrameSize): void => {
     if (!skill) return
     // The engine smooths on its own, so it gets the raw landmarks.
-    runRef.current ??= new TrainingRun(skill, size)
+    runRef.current ??= new TrainingRun(aimedSkill(skill), size)
     const next = runRef.current.processFrame(input)
 
     if (next.feedback) {
@@ -241,6 +301,7 @@ export function TrainingScreen(): React.JSX.Element {
         ? nearestNote(features.pitchHz)
         : null
     )
+    if (tuner) followTuning(features)
     if (!useCamera) {
       advance({ timestampMs: now(), landmarks: null, audio: features }, { width: 1, height: 1 })
     }
@@ -267,7 +328,7 @@ export function TrainingScreen(): React.JSX.Element {
 
   const end = useCallback(() => {
     if (skill) {
-      const results = runRef.current?.results ?? []
+      const results = [...earlierResults.current, ...(runRef.current?.results ?? [])]
       finishSession({ skillId: skill.id, startedAt, durationMs: elapsedMs, results })
 
       const toSave = buildSessionToSave(skill.id, startedAt, elapsedMs, results)
@@ -415,11 +476,23 @@ export function TrainingScreen(): React.JSX.Element {
             <>
               <FinishButton onFinish={end} withHand={false} />
               <div className="relative flex w-full max-w-xl flex-col items-center gap-6 p-8">
-                <RepCounter
-                  count={snapshot.repCount}
-                  label={unitLabel(skill)}
-                  lines={progressLines}
-                />
+                {tuner ? (
+                  <StringTuner
+                    targets={targets}
+                    index={stringIndex}
+                    tuned={tuned}
+                    heard={note}
+                    cents={targetCents}
+                    holdProgress={holdProgress}
+                    onPick={pickString}
+                  />
+                ) : (
+                  <RepCounter
+                    count={snapshot.repCount}
+                    label={unitLabel(skill)}
+                    lines={progressLines}
+                  />
+                )}
                 <div role="status" aria-live="assertive" className="relative min-h-24 w-full">
                   {banner && (
                     <CorrectionBand
@@ -461,23 +534,25 @@ export function TrainingScreen(): React.JSX.Element {
         </div>
 
         <aside className="flex w-95 shrink-0 flex-col gap-3.5">
-          <div className="rounded-3xl border border-line/6 bg-card p-5 text-center">
-            <p aria-live="polite" className="min-h-8 text-2xl font-semibold">
-              {phaseKey ? t(phaseKey) : ' '}
-            </p>
-            <p className="mt-2 text-lg text-t4">
-              {t('training.last')}{' '}
-              {quality ? (
-                <>
-                  <span aria-hidden="true">{quality.symbol}</span> {t(quality.label)}
-                </>
-              ) : (
-                '—'
-              )}
-            </p>
-          </div>
+          {!tuner && (
+            <div className="rounded-3xl border border-line/6 bg-card p-5 text-center">
+              <p aria-live="polite" className="min-h-8 text-2xl font-semibold">
+                {phaseKey ? t(phaseKey) : ' '}
+              </p>
+              <p className="mt-2 text-lg text-t4">
+                {t('training.last')}{' '}
+                {quality ? (
+                  <>
+                    <span aria-hidden="true">{quality.symbol}</span> {t(quality.label)}
+                  </>
+                ) : (
+                  '—'
+                )}
+              </p>
+            </div>
+          )}
           {useAudio &&
-            (hasPitch ? (
+            (hasPitch && !tuner ? (
               <TunerCard note={note} levelDb={levelDb} />
             ) : (
               <div className="rounded-3xl border border-line/6 bg-card p-5">

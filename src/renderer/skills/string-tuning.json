@@ -2,6 +2,8 @@
   "id": "string_tuning",
   "category": "instrument",
   "name": { "es": "Afinar una cuerda", "en": "Tune a string" },
+  "display": "tuner",
+  "audio": { "a4": 440, "targets": ["E2", "A2", "D3", "G3", "B3", "E4"] },
   "metrics": {
     "level": { "type": "level" },
     "cents": { "type": "pitch", "target": "nearest" }
@@ -61,8 +63,8 @@
     ],
     "notMeasured": [
       {
-        "es": "Qué cuerda estás tocando: la app oye la nota, no sabe cuál es tu cuerda.",
-        "en": "Which string you are playing: the app hears the note, it does not know which string it is."
+        "es": "Qué cuerda tocas de verdad: la app mide contra la que elegiste y avisa si suena muy lejos de ella, pero no ve tu guitarra.",
+        "en": "Which string you really pluck: the app measures against the one you chose and warns when it sounds far from it, but it cannot see your guitar."
       },
       {
         "es": "Si la cuerda es nueva y aún se estira, se volverá a desafinar.",
