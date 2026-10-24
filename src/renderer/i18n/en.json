@@ -752,5 +752,6 @@
   "beat.status.silent": "Strike the beat with short, clear sounds",
   "beat.status.slow": "You are dragging: speed up a little",
   "beat.status.steady": "Steady beat: keep it up",
-  "beat.status.fast": "You are rushing: slow down"
+  "beat.status.fast": "You are rushing: slow down",
+  "nav.tagline": "watches you · listens to you"
 }

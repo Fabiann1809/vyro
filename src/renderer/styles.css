@@ -181,6 +181,12 @@ body {
     transform: translate(-140px, -60px) scale(0.95);
   }
 }
+/* A line that draws itself: the path is given a dash as long as itself and an offset to match. */
+@keyframes vy-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
 @keyframes vy-up {
   from {
     opacity: 0;

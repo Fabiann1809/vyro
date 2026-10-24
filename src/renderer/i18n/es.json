@@ -752,5 +752,6 @@
   "beat.status.silent": "Marca el pulso con golpes secos y claros",
   "beat.status.slow": "Vas despacio: sube un poco el ritmo",
   "beat.status.steady": "Pulso constante: sigue así",
-  "beat.status.fast": "Vas deprisa: baja el ritmo"
+  "beat.status.fast": "Vas deprisa: baja el ritmo",
+  "nav.tagline": "te mira · te escucha"
 }

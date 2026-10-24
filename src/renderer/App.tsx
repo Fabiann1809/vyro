@@ -71,10 +71,14 @@ function App(): React.JSX.Element {
   }, [go, immersive])
 
   return (
-    <div className="relative flex h-screen overflow-hidden bg-bg text-t1">
+    <div
+      className={`relative flex h-screen overflow-hidden bg-bg text-t1 ${immersive ? '' : 'gap-3.5 p-3.5'}`}
+    >
       <Ambient />
       {!immersive && <Sidebar />}
-      <main className="relative flex min-w-0 flex-1 items-center justify-center overflow-auto">
+      <main
+        className={`relative flex min-w-0 flex-1 items-center justify-center overflow-auto ${immersive ? '' : 'rounded-[1.875rem]'}`}
+      >
         {/* A new key for each screen: the arrival of a screen is a soft slide in, not a jump. */}
         <div key={screen} className="anim-fade flex h-full w-full items-center justify-center">
           <CurrentScreen screen={screen} />
