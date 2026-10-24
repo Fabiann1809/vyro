@@ -742,5 +742,9 @@
   "target.status.silent": "Play the {note} key",
   "target.status.right": "That is a {note}!",
   "target.status.wrong": "I hear {heard}: find the {note} key",
-  "target.count": "{good} of {judged} notes right"
+  "target.count": "{good} of {judged} notes right",
+  "hold.away": "Get into position",
+  "hold.keep": "Hold the posture",
+  "hold.reached": "Done! Keep it up",
+  "hold.progress": "{seconds} s of {goal} s"
 }

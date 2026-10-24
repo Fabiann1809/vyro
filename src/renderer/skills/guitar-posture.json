@@ -6,6 +6,7 @@
     "es": "Siéntate con la guitarra como para tocar y mantén esa postura unos segundos.",
     "en": "Sit with the guitar as if to play and hold that posture for a few seconds."
   },
+  "display": "hold",
   "camera": { "view": "side", "fullBody": false },
   "metrics": {
     "torso": { "type": "tilt", "from": "hip", "to": "shoulder" },

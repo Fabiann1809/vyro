@@ -28,6 +28,11 @@ describe('guitar posture', () => {
     expect(posture.camera).toMatchObject({ view: 'side' })
   })
 
+  it('is shown as a posture that is held, with the time that makes it count', () => {
+    expect(posture.display).toBe('hold')
+    expect(posture.rep.holdMs).toBeGreaterThan(0)
+  })
+
   it('has nothing to correct when the posture is held well', () => {
     expect(judge(0, 100)).toEqual([[]])
   })

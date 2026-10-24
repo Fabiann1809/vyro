@@ -37,6 +37,8 @@ import { CameraStage } from '../CameraStage'
 import { CorrectionBand } from '../immersive/CorrectionBand'
 import { liveLines, unitLabel } from '../liveProgress'
 import { RepCounter } from '../immersive/RepCounter'
+import { HoldTimer } from '../immersive/HoldTimer'
+import { HoldClock } from '../holdClock'
 import { TargetNote } from '../immersive/TargetNote'
 import { StringTuner } from '../immersive/StringTuner'
 import { TunerCard } from '../immersive/TunerCard'
@@ -143,6 +145,10 @@ export function TrainingScreen(): React.JSX.Element {
   // A skill shown as a tuner is tuned string by string: each string is a note to aim at.
   const targets = skill?.audio?.targets ?? []
   const tuner = skill?.display === 'tuner' && targets.length > 0
+  // A posture that is kept: how long it has been held now, against the time that makes it count.
+  const holdGoalMs = skill?.display === 'hold' ? (skill.rep.holdMs ?? null) : null
+  const holdClock = useRef(new HoldClock())
+  const [heldMs, setHeldMs] = useState<number | null>(null)
   // A note to play, shown with whether the one that sounds is right.
   const targetNote = skill?.display === 'target-note' && skill ? skillTargetNote(skill) : null
   const [stringIndex, setStringIndex] = useState(0)
@@ -214,6 +220,16 @@ export function TrainingScreen(): React.JSX.Element {
     // The engine smooths on its own, so it gets the raw landmarks.
     runRef.current ??= new TrainingRun(aimedSkill(skill), size)
     const next = runRef.current.processFrame(input)
+    if (holdGoalMs !== null) {
+      const held = holdClock.current.update(
+        next.phase,
+        skill.rep.sequence[1] ?? '',
+        input.timestampMs
+      )
+      // Quarter seconds are enough to read, and spare a new render on every frame.
+      const shown = held === null ? null : Math.floor(held / 250) * 250
+      setHeldMs((previous) => (previous === shown ? previous : shown))
+    }
 
     if (next.feedback) {
       setBanner(bannerOf(next.feedback, ++bannerId.current))
@@ -387,7 +403,8 @@ export function TrainingScreen(): React.JSX.Element {
   if (!skill) return <></>
 
   const quality = snapshot.lastQuality ? QUALITY[snapshot.lastQuality] : undefined
-  const phaseKey = phaseLabel(snapshot.phase)
+  // A held posture has the timer for where the body is, so the phase is not said twice.
+  const phaseKey = holdGoalMs === null ? phaseLabel(snapshot.phase) : undefined
   const lost = snapshot.tracking === 'lost'
   const progressLines = liveLines(snapshot.numbers, skill.progress?.measures ?? [])
   // A skill that tunes a note shows the tuner; one that only listens for sound shows how loud it is.
@@ -508,11 +525,21 @@ export function TrainingScreen(): React.JSX.Element {
             <>
               {!targetNote && (
                 <div className="absolute top-5 right-5 rounded-3xl bg-bg/85 px-6.5 py-4 text-center">
-                  <RepCounter
-                    count={snapshot.repCount}
-                    label={unitLabel(skill)}
-                    lines={progressLines}
-                  />
+                  {holdGoalMs === null ? (
+                    <RepCounter
+                      count={snapshot.repCount}
+                      label={unitLabel(skill)}
+                      lines={progressLines}
+                    />
+                  ) : (
+                    <HoldTimer
+                      heldMs={heldMs}
+                      goalMs={holdGoalMs}
+                      count={snapshot.repCount}
+                      label={unitLabel(skill)}
+                      lines={progressLines}
+                    />
+                  )}
                 </div>
               )}
               <div role="status" aria-live="assertive">
