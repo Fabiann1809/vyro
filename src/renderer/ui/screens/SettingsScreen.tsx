@@ -255,7 +255,7 @@ export function SettingsScreen(): React.JSX.Element {
   return (
     <section className="anim-fade mx-auto grid h-full w-full max-w-275 grid-cols-1 gap-8 self-start overflow-y-auto px-8 pt-7 pb-12 md:grid-cols-[15rem_minmax(0,1fr)]">
       <div className="flex flex-col gap-0.5">
-        <h1 className="mb-4.5 font-display text-[1.75rem] font-semibold">
+        <h1 className="mb-4.5 font-display text-[2rem] font-bold tracking-[-0.02em]">
           {t('screen.settings.title')}
         </h1>
         <div role="tablist" aria-orientation="vertical" className="flex flex-col gap-0.5">
@@ -268,7 +268,7 @@ export function SettingsScreen(): React.JSX.Element {
               aria-selected={tab === id}
               aria-controls="settings-panel"
               onClick={() => setTab(id)}
-              className="flex h-10 items-center rounded-xl px-3.5 text-left text-sm text-mut transition-colors hover:bg-line/5 hover:text-t1 aria-selected:bg-line/7 aria-selected:text-t1"
+              className="flex h-10.5 items-center rounded-2xl border border-transparent px-4 text-left text-sm font-semibold text-mut transition-colors hover:bg-line/6 hover:text-t1 aria-selected:border-brand/35 aria-selected:bg-linear-to-br aria-selected:from-brand/20 aria-selected:to-ch-hands/10 aria-selected:text-t1"
             >
               {t(TAB_LABEL[id])}
             </button>

@@ -32,6 +32,9 @@ const MAX_MODEL_LENGTH = 100
 
 // The AI coach: off until there is a key (when the provider needs one) and the user turns it on.
 // The key goes to the main process and stays there; this page only learns whether one exists.
+// The day's use as a row of this many pips, so that it reads at a glance.
+const USAGE_PIPS = 20
+
 export function AiSettings(): React.JSX.Element {
   const settings = useSettings()
   const [status, setStatus] = useState<AiKeyStatus | null>(null)
@@ -136,9 +139,9 @@ export function AiSettings(): React.JSX.Element {
   return (
     <div className="flex flex-col gap-4">
       <Card className="flex items-center gap-5 p-6">
-        <CoachAvatar size={44} />
+        <CoachAvatar size={56} />
         <div className="flex-1">
-          <h3 className="text-lg font-semibold">{t('settings.ai')}</h3>
+          <h3 className="text-lg font-bold">{t('settings.ai')}</h3>
           <p className="mt-1 text-sm leading-normal text-mut">{t('settings.ai.sends')}</p>
           <p className="mt-1 text-sm leading-normal text-mut">{t('settings.ai.neverSends')}</p>
         </div>
@@ -325,12 +328,20 @@ export function AiSettings(): React.JSX.Element {
             aria-valuemin={0}
             aria-valuemax={100}
             aria-label={t('settings.ai.usage')}
-            className="mt-2 h-2.5 overflow-hidden rounded-full bg-line/7"
+            className="mt-2.5 flex gap-1"
           >
-            <div
-              className={`h-full rounded-full transition-[width] duration-700 ${percent >= 90 ? 'bg-warn' : 'bg-good'}`}
-              style={{ width: `${percent}%` }}
-            />
+            {Array.from({ length: USAGE_PIPS }, (_, pip) => (
+              <span
+                key={pip}
+                className={`h-3.5 flex-1 rounded-[5px] transition-colors duration-500 ${
+                  pip < Math.round((percent / 100) * USAGE_PIPS)
+                    ? percent >= 90
+                      ? 'bg-warn'
+                      : 'bg-grad'
+                    : 'bg-line/10'
+                }`}
+              />
+            ))}
           </div>
         </div>
         <p className="text-sm text-mut">
