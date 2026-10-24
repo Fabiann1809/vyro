@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { diagramRefSchema, MAX_DIAGRAMS } from '../diagrams'
 import { MAX_TIP_LENGTH, MAX_TIPS } from '../guide'
+import { DISPLAYS } from './display'
 import { PROGRESS_MEASURES, PROGRESS_UNITS } from './progress'
 import { ANY_JOINT_NAMES } from './joints'
 import { DETECTABLE_OBJECTS } from './objects'
@@ -241,7 +242,9 @@ export const skillConfigSchema = z
       .strict(),
     rules: z.array(rule).min(1, 'needs at least one rule'),
     guide: skillGuide.optional(),
-    progress: skillProgress.optional()
+    progress: skillProgress.optional(),
+    // How the practice screen shows the skill; counted when left out.
+    display: z.enum(DISPLAYS).optional()
   })
   .strict()
   .superRefine((skill, ctx) => {
@@ -334,6 +337,21 @@ export const skillConfigSchema = z
         code: 'custom',
         path: ['progress', 'measures'],
         message: '"timeWell" needs "rep.holdMs": it adds up the time of the held attempts'
+      })
+    }
+    const hasPitch = Object.values(skill.metrics).some((item) => item.type === 'pitch')
+    if ((skill.display === 'tuner' || skill.display === 'target-note') && !hasPitch) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['display'],
+        message: `"${skill.display}" shows a note, so the skill needs a "pitch" metric`
+      })
+    }
+    if (skill.display === 'hold' && holdMs === undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['display'],
+        message: '"hold" shows a posture that is kept, so the skill needs "rep.holdMs"'
       })
     }
     if (sequence.length >= 3 && sequence[0] !== sequence[sequence.length - 1]) {

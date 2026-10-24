@@ -229,6 +229,35 @@ describe('a skill that listens', () => {
     })
   })
 
+  describe('and says how it is displayed', () => {
+    it('keeps a tuner for a skill that hears a pitch', async () => {
+      const model = scriptedModel(answer({ ...tuner, display: 'tuner' }, { channels: ['audio'] }))
+
+      const result = await generateSkill(model, input({ description: 'Quiero afinar mi guitarra' }))
+
+      expect(result.kind === 'skill' && result.skill.display).toBe('tuner')
+    })
+
+    it('is asked to be fixed when it shows a hold without holding', async () => {
+      const model = scriptedModel(
+        answer({ ...tuner, display: 'hold' }, { channels: ['audio'] }),
+        answer(tuner, { channels: ['audio'] })
+      )
+
+      const result = await generateSkill(model, input())
+
+      expect(result.kind).toBe('skill')
+      expect(model.requests[1]?.messages.at(-1)?.content).toContain('rep.holdMs')
+    })
+
+    it('tells the coach the displays it can name', () => {
+      const prompt: string = skillGeneratorPrompt('es')
+
+      expect(prompt).toContain('"display"')
+      expect(prompt).toContain('target-note')
+    })
+  })
+
   describe('and asks to hear an instrument', () => {
     const flute = {
       ...tuner,

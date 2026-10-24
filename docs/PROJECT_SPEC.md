@@ -380,6 +380,20 @@ Hoy el canal de audio mide altura, volumen y ritmo, pero no el timbre: una voz, 
 
 Sin verificar sin micrófono real: la confianza mínima y su fiabilidad con ruido de fondo o instrumentos parecidos; se ajustará con grabaciones del usuario.
 
+### Fase 23 — Que cada habilidad se muestre como lo que es
+
+Hoy todas las habilidades se practican en la misma pantalla: un número gigante de "repeticiones", una fase interna ("silencio", "sonando") y "Última: —". Eso sirve para sentadillas y no para afinar una cuerda, tocar una nota o mantener una postura. Decidido con el usuario: cada habilidad declara **cómo se muestra** (`display`) y la pantalla de práctica se arma con eso. El motor sigue sin conocer ningún ejercicio concreto.
+
+- [x] **T23.1 Campo `display` en la habilidad.** Nuevo campo opcional del esquema con cuatro valores: `counter` (el actual, por defecto), `tuner`, `target-note` y `hold`. La IA solo puede elegir entre esos valores, igual que con los objetos y los instrumentos. *Hecho cuando:* el cargador rechaza valores desconocidos, las habilidades sin el campo siguen igual, la validación pide una métrica de altura para `tuner` y `target-note` y `rep.holdMs` para `hold`, y las instrucciones de la IA lo explican (prueba con proveedor falso).
+- [ ] **T23.2 Afinador de cuerdas.** Para `string_tuning`: se elige la cuerda entre 6 botones (Mi grave, La, Re, Sol, Si, Mi agudo) y la afinación se mide contra *esa* nota, no contra la más cercana. La pantalla muestra en grande la nota objetivo, la que se oye, una aguja grande con "baja / afinada / alta" y la indicación "aprieta / afloja". Con la cuerda dentro de ±5 centésimos durante 1 segundo se marca como lista (símbolo y texto, no solo color) y pasa a la siguiente. Sin contador de repeticiones. *Hecho cuando:* pruebas cubren que se mide contra la cuerda elegida, que afinada es sostenida 1 s y no un instante, el paso a la siguiente y los textos en ambos idiomas. Con una guitarra real queda sin probar.
+- [ ] **T23.3 Nota objetivo.** Para `piano_note`: muestra la nota que hay que tocar, la que suena y si coincide. *Hecho cuando:* pruebas del acierto y de los textos.
+- [ ] **T23.4 Mantener.** Para `guitar_posture` y las habilidades de `holds`: cronómetro de "tiempo bien" y mensaje de ajuste, sin contador de intentos. *Hecho cuando:* pruebas con las medidas de `progress`. Con cámara real queda sin probar.
+- [ ] **T23.5 Pulso.** Para `steady_beat`: el tempo que se lleva contra el objetivo, con un indicador de si va rápido o lento, en lugar de un conteo. *Hecho cuando:* pruebas del indicador y los textos.
+- [ ] **T23.6 Limpiar los textos internos.** Quitar de la pantalla de práctica lo que es del motor ("Última: —", nombres de fase como "silencio") y dejar solo lo que se necesita para saber qué hacer ahora. Revisar la calibración y el resumen con el mismo criterio. *Hecho cuando:* ninguna pantalla muestra un identificador de fase y pruebas de texto lo comprueban.
+- [ ] **T23.7 Qué hacer al empezar.** Cada habilidad dice en una línea qué se espera antes de empezar ("Toca la cuerda Mi grave y déjala sonar"), desde un campo `goal` en ambos idiomas. *Hecho cuando:* todas las habilidades incluidas lo tienen y la IA lo escribe al generar.
+
+Sin verificar hasta que lo pruebe el usuario: cómo se siente el afinador con una guitarra real (los ±5 centésimos y el 1 s son estimaciones) y las pantallas de postura con cámara.
+
 ### Aplazado
 Vista frontal, detección de fatiga, clips de errores, modelos propios que juzguen técnica, firma de código y auto-actualización, módulos de comunidad.
 

@@ -73,6 +73,47 @@ describe('the progress of a skill', () => {
   })
 })
 
+describe('how a skill is displayed', () => {
+  const pitch = { type: 'pitch', target: 'nearest' }
+
+  it('is left out for a skill that is counted', () => {
+    expect(skillConfigSchema.parse(validSkill).display).toBeUndefined()
+  })
+
+  it('accepts a counter for any skill', () => {
+    expect(problemsWith({ display: 'counter' })).toEqual([])
+  })
+
+  it.each(['tuner', 'target-note'])('accepts "%s" for a skill that hears a pitch', (display) => {
+    const metrics = { cents: pitch }
+    const phases = [
+      { id: 'quiet', when: { cents: { lt: -50 } } },
+      { id: 'ringing', when: { cents: { gt: -40 } } }
+    ]
+    const rep = { sequence: ['quiet', 'ringing', 'quiet'], minDurationMs: 200 }
+
+    expect(problemsWith({ metrics, phases, rep, display, rules: [rule] })).toEqual([])
+  })
+
+  it.each(['tuner', 'target-note'])('rejects "%s" without a pitch to show', (display) => {
+    expect(problemsWith({ display }).join()).toContain('"pitch" metric')
+  })
+
+  it('rejects "hold" unless the attempts are held', () => {
+    expect(problemsWith({ display: 'hold' }).join()).toContain('rep.holdMs')
+  })
+
+  it('accepts "hold" when the attempts are held', () => {
+    const rep = { sequence: ['up', 'down', 'up'], minDurationMs: 800, holdMs: 3000 }
+
+    expect(problemsWith({ rep, display: 'hold' })).toEqual([])
+  })
+
+  it('rejects a display that does not exist', () => {
+    expect(problemsWith({ display: 'radar' }).length).toBeGreaterThan(0)
+  })
+})
+
 describe('skillConfigSchema', () => {
   it('accepts a valid skill', () => {
     expect(skillConfigSchema.safeParse(validSkill).success).toBe(true)
