@@ -23,6 +23,8 @@ export function HoldTimer({
   const goal = Math.round(goalMs / 1000)
   const reached = heldMs !== null && heldMs >= goalMs
   const share = heldMs === null ? 0 : Math.min(1, heldMs / goalMs)
+  // One segment for each second to hold, never fewer than two nor more than eight.
+  const segments = Math.min(8, Math.max(2, goal))
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -34,17 +36,23 @@ export function HoldTimer({
         <span className="ml-1 text-3xl text-t4">s</span>
       </p>
       <div
-        className="h-2 w-48 overflow-hidden rounded-full bg-line/10"
+        className="flex w-56 gap-1"
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(share * 100)}
         aria-label={t('hold.progress', { seconds, goal })}
       >
-        <div
-          className="h-full rounded-full bg-accent transition-[width] duration-200"
-          style={{ width: `${share * 100}%` }}
-        />
+        {Array.from({ length: segments }, (_, index) => (
+          <span key={index} className="h-2.5 flex-1 overflow-hidden rounded-[5px] bg-line/12">
+            <span
+              className="block h-full rounded-[5px] bg-grad transition-[width] duration-150 ease-linear"
+              style={{
+                width: `${Math.min(1, Math.max(0, ((heldMs ?? 0) / 1000 - index) / (goalMs / 1000 / segments))) * 100}%`
+              }}
+            />
+          </span>
+        ))}
       </div>
       <p className="text-sm text-t4 tabular-nums">{t('hold.progress', { seconds, goal })}</p>
       <p className="mt-1 text-base text-t3 tabular-nums">

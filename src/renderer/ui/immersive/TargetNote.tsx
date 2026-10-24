@@ -41,10 +41,19 @@ export function TargetNote({
   return (
     <Card className="flex flex-col items-center gap-3 p-5 text-center">
       <p className="text-[0.8125rem] text-mut">{t('target.play')}</p>
-      <p className="font-display text-7xl leading-none font-bold">
-        {name}
-        <span className="ml-1 text-3xl text-t4">{octave}</span>
-      </p>
+      <span
+        aria-hidden="true"
+        className="flex size-24 items-center justify-center rounded-full text-[#1a0f0c] transition-shadow duration-300"
+        style={{
+          background:
+            'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.6), var(--ch-hands) 60%)',
+          boxShadow: `0 0 36px color-mix(in oklab, ${status === 'right' ? 'var(--good)' : 'var(--ch-hands)'} 50%, transparent)`
+        }}
+      >
+        <span className="font-display text-4xl font-extrabold">{name}</span>
+        <span className="-mt-6 ml-0.5 font-display text-lg font-bold">{octave}</span>
+      </span>
+      <p className="sr-only">{spoken(target)}</p>
       <p
         role="status"
         aria-live="polite"

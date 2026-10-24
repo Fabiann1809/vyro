@@ -773,5 +773,6 @@
   "dashboard.next.stepOf": "Paso {step} de {total}",
   "dashboard.score.delta": "{delta} vs. anterior",
   "dashboard.channels.gauge": "{channel}: fallas en {rate} de cada 100 repeticiones",
-  "dashboard.channels.zone": "meta ≤ {target}"
+  "dashboard.channels.zone": "meta ≤ {target}",
+  "training.endSession": "Terminar sesión"
 }

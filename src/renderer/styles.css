@@ -413,3 +413,17 @@ body {
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* A string that sounds shakes a little. */
+@keyframes vy-vib {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-1.2px);
+  }
+  75% {
+    transform: translateX(1.2px);
+  }
+}

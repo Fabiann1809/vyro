@@ -39,7 +39,7 @@ export function BeatMeter({
       <p className="text-[0.8125rem] text-mut">{t('beat.target', { bpm: targetBpm })}</p>
       <span
         aria-hidden="true"
-        className="size-6 rounded-full bg-brand"
+        className="size-20 rounded-full bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.6),var(--ch-audio)_60%)] shadow-[0_0_40px_color-mix(in_oklab,var(--ch-audio)_50%,transparent)]"
         style={{ animation: `vy-pulse ${60_000 / targetBpm}ms ease-in-out infinite` }}
       />
       <p className="font-display text-7xl leading-none font-bold tabular-nums">

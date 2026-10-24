@@ -7,18 +7,21 @@ import type { LiveLine } from '../liveProgress'
 export function RepCounter({
   count,
   label,
-  lines
+  lines,
+  compact = false
 }: {
   count: number
   label: MessageKey
   lines: readonly LiveLine[]
+  // Smaller, for the corner over the picture.
+  compact?: boolean
 }): React.JSX.Element {
   return (
     <div className="flex flex-col items-center">
       <p
         key={count}
         aria-live="polite"
-        className="font-display text-[8.5rem] leading-none font-bold tabular-nums"
+        className={`font-display leading-none font-bold tabular-nums ${compact ? 'text-[5.5rem]' : 'text-[8.5rem]'}`}
         style={{ animation: 'vy-beat 300ms ease-out both' }}
       >
         {count}

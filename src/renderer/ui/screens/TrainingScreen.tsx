@@ -488,56 +488,67 @@ export function TrainingScreen(): React.JSX.Element {
               mirrored={handControl}
               videoClassName="max-h-[74vh] rounded-[1.875rem]"
             >
-              <FinishButton onFinish={end} withHand={handControl} />
+              {handControl && <FinishButton onFinish={end} withHand />}
             </CameraStage>
-          ) : (
+          ) : tuner ? (
             <>
-              <FinishButton onFinish={end} withHand={false} />
-              <div className="relative flex w-full max-w-xl flex-col items-center gap-6 p-8">
-                {beatTarget !== null ? (
-                  <BeatMeter bpm={bpm} targetBpm={beatTarget} />
-                ) : tuner ? (
-                  <StringTuner
-                    targets={targets}
-                    index={stringIndex}
-                    tuned={tuned}
-                    heard={note}
-                    cents={targetCents}
-                    holdProgress={holdProgress}
-                    onPick={pickString}
-                  />
-                ) : (
-                  <RepCounter
-                    count={snapshot.repCount}
-                    label={unitLabel(skill)}
-                    lines={progressLines}
+              <StringTuner
+                targets={targets}
+                index={stringIndex}
+                tuned={tuned}
+                heard={note}
+                cents={targetCents}
+                holdProgress={holdProgress}
+                onPick={pickString}
+              />
+              <div role="status" aria-live="assertive">
+                {banner && (
+                  <CorrectionBand
+                    key={banner.id}
+                    text={banner.text}
+                    channel={banner.channel}
+                    praise={banner.praise}
                   />
                 )}
-                <div role="status" aria-live="assertive" className="relative min-h-24 w-full">
-                  {banner && (
-                    <CorrectionBand
-                      key={banner.id}
-                      text={banner.text}
-                      channel={banner.channel}
-                      praise={banner.praise}
-                    />
-                  )}
-                </div>
-                {interruption}
               </div>
+              {interruption}
             </>
+          ) : (
+            <div className="relative flex w-full max-w-xl flex-col items-center gap-6 p-8">
+              {beatTarget !== null ? (
+                <BeatMeter bpm={bpm} targetBpm={beatTarget} />
+              ) : (
+                <RepCounter
+                  count={snapshot.repCount}
+                  label={unitLabel(skill)}
+                  lines={progressLines}
+                />
+              )}
+              <div role="status" aria-live="assertive" className="relative min-h-24 w-full">
+                {banner && (
+                  <CorrectionBand
+                    key={banner.id}
+                    text={banner.text}
+                    channel={banner.channel}
+                    praise={banner.praise}
+                  />
+                )}
+              </div>
+              {interruption}
+            </div>
           )}
 
           {/* These do not depend on the camera: with none, the counter and the messages still show. */}
           {useCamera && (
             <>
               {!targetNote && (
-                <div className="absolute top-5 right-5 rounded-3xl bg-bg/85 px-6.5 py-4 text-center">
+                <div className="absolute top-5 right-5 min-w-44 rounded-[2.25rem] border border-[rgba(255,214,180,0.25)] bg-[rgba(20,10,14,0.78)] px-6.5 py-4 text-center shadow-[0_0_50px_oklch(0.7_0.17_45/0.35)]">
                   {holdGoalMs === null ? (
                     <RepCounter
                       count={snapshot.repCount}
                       label={unitLabel(skill)}
                       lines={progressLines}
+                      compact
                     />
                   ) : (
                     <HoldTimer
@@ -597,6 +608,14 @@ export function TrainingScreen(): React.JSX.Element {
             ))}
 
           <div className="mt-auto flex flex-col gap-3">
+            <Button
+              size="lg"
+              aria-keyshortcuts="F"
+              onClick={end}
+              className="h-14.5 text-[1.0625rem] font-bold"
+            >
+              {t('training.endSession')}
+            </Button>
             {isGeneratedSkillId(skill.id) && (
               <Button
                 variant="secondary"
