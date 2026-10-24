@@ -52,7 +52,7 @@ export function StepRow({
       : t('path.step.number', { n: step.position })
 
   return (
-    <li aria-current={current ? 'step' : undefined} className="flex gap-5">
+    <li id={`step-${step.id}`} aria-current={current ? 'step' : undefined} className="flex gap-5">
       <div className="flex w-13 shrink-0 flex-col items-center">
         <span
           aria-hidden="true"
@@ -61,9 +61,9 @@ export function StepRow({
             auxiliary ? 'mt-3.5 size-7.5' : 'mt-2.5 size-11'
           } ${
             done
-              ? 'bg-brand text-on-brand'
+              ? 'bg-grad text-on-brand'
               : current
-                ? 'border-2 border-brand bg-bg text-good-text'
+                ? 'border-2 border-brand bg-bg text-accent'
                 : auxiliary
                   ? 'border border-dashed border-line/30 bg-bg text-mut'
                   : 'border border-line/10 bg-lock text-mut3'
@@ -75,19 +75,19 @@ export function StepRow({
             strokeWidth={1.8}
           />
         </span>
-        {!last && <span className={`min-h-4.5 w-0.5 flex-1 ${done ? 'bg-brand' : 'bg-line/10'}`} />}
+        {!last && <span className={`min-h-4.5 w-0.5 flex-1 ${done ? 'bg-grad' : 'bg-line/10'}`} />}
       </div>
 
       <div
         data-expand
-        className={`mb-4 flex min-w-0 flex-1 flex-col gap-3 rounded-[1.375rem] ${
-          auxiliary ? 'px-5 py-3.5' : 'p-5'
+        className={`mb-4 flex min-w-0 flex-1 flex-col gap-3 rounded-[1.75rem] ${
+          auxiliary ? 'px-5 py-3.5' : 'p-5.5'
         } ${
           current
-            ? 'border border-brand/45 bg-linear-to-b from-card to-card2'
+            ? 'glass border-brand/45 bg-[radial-gradient(circle_at_0%_0%,oklch(0.7_0.17_45/0.18),transparent_55%)]'
             : auxiliary
-              ? 'border border-dashed border-line/12'
-              : 'border border-line/6 bg-card'
+              ? 'border border-dashed border-line/14'
+              : 'glass'
         } ${locked ? 'opacity-60' : ''}`}
       >
         <div className="flex items-start justify-between gap-3.5">
@@ -136,7 +136,7 @@ export function StepRow({
             className="h-1.5 overflow-hidden rounded-full bg-line/7"
           >
             <div
-              className="h-full rounded-full bg-good transition-[width] duration-700"
+              className="h-full rounded-full bg-grad transition-[width] duration-700"
               style={{ width: `${percent}%` }}
             />
           </div>

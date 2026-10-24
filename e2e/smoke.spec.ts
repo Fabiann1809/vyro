@@ -727,7 +727,7 @@ test.describe('AI coach screen', () => {
 
     const card = page.getByRole('heading', { name: 'Mejorar mi sentadilla' })
     await expect(card).toBeVisible()
-    await expect(page.getByText('Sentadilla lenta')).toBeVisible()
+    await expect(page.getByText('Sentadilla lenta').first()).toBeVisible()
     await expect(page.getByText('Descanso activo')).toBeVisible()
     await expect(page.getByText('Auxiliar')).toBeVisible()
     await expect(page.getByText('2 pasos')).toBeVisible()
@@ -747,7 +747,7 @@ test.describe('AI coach screen', () => {
     await page.getByRole('button', { name: 'Cancelar' }).click()
     await expect(page.getByText('Ruta guardada')).toBeVisible()
     await nav(page, 'Mi ruta').click()
-    await expect(page.getByText('Sentadilla lenta')).toBeVisible()
+    await expect(page.getByText('Sentadilla lenta').first()).toBeVisible()
   })
 
   test('keeps a proposed path and opens it, and goes on chatting afterwards', async () => {
@@ -760,7 +760,7 @@ test.describe('AI coach screen', () => {
 
     await page.getByRole('button', { name: 'Ver ruta completa' }).click()
     await expect(page.getByRole('heading', { level: 1, name: 'Mi ruta' })).toBeVisible()
-    await expect(page.getByText('Sentadilla lenta')).toBeVisible()
+    await expect(page.getByText('Sentadilla lenta').first()).toBeVisible()
 
     // Back in the chat the talk is an ordinary one: the answer is not a path any more.
     provider.setAnswer({ reply: REPLY })
@@ -925,7 +925,7 @@ test.describe('AI coach screen', () => {
     await page.getByLabel('Tu mensaje').fill('Principiante')
     await page.getByLabel('Tu mensaje').press('Enter')
     await page.getByRole('button', { name: 'Ver ruta completa' }).click()
-    await expect(page.getByText('Sentadilla lenta')).toBeVisible()
+    await expect(page.getByText('Sentadilla lenta').first()).toBeVisible()
 
     // A skill made by the AI, approved and offered in the library.
     const squat = JSON.parse(readFileSync('src/renderer/skills/squat.json', 'utf-8')) as object

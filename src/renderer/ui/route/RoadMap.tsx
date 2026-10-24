@@ -13,6 +13,8 @@ export interface Stop {
   tone: string
   // A step of rest or reading, drawn with a dashed edge.
   auxiliary?: boolean
+  // Another icon for the stop when it is done or locked (a check, a lock).
+  stateIcon?: IconName
   // What a screen reader hears after the label (for example that the step is not measured).
   note?: string
 }
@@ -41,9 +43,13 @@ const NODE: Record<StopState, string> = {
 // the step where the person is pulses. It draws itself when it appears.
 export function RoadMap({
   stops,
-  walked
+  walked,
+  onPick
 }: {
   stops: readonly Stop[]
+  // When given, the road is only a picture for the eyes (the steps are listed elsewhere, for the
+  // keyboard and for screen readers) and a click on a stop calls this with its position.
+  onPick?: (index: number) => void
   // How many of the stops the line has walked to, in colour. Left out, the whole line is coloured
   // (a path that is only proposed).
   walked?: number
@@ -54,7 +60,7 @@ export function RoadMap({
     walked === undefined ? road.length : (road.reach[Math.min(walked, stops.length - 1)] ?? 0)
 
   return (
-    <div className="relative pb-9">
+    <div className="relative pb-9" aria-hidden={onPick ? true : undefined}>
       <svg
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         aria-hidden="true"
@@ -91,23 +97,30 @@ export function RoadMap({
           }
         />
       </svg>
-      <ol className="contents">
+      <ol className="contents" role={onPick ? 'presentation' : undefined}>
         {stops.map((stop, index) => {
           const [x, y] = points[index]!
           return (
             <li
               key={stop.key}
+              role={onPick ? 'presentation' : undefined}
               className="absolute size-0"
               style={{ left: `${(x / WIDTH) * 100}%`, top: `calc(${(y / HEIGHT) * 100}% * 0.84)` }}
             >
-              <span
-                className={`absolute -top-5.5 -left-5.5 flex size-11 items-center justify-center rounded-full border-2 bg-bg ${stop.auxiliary ? 'border-dashed' : ''} ${stop.state === 'open' || stop.state === 'current' ? stop.tone : ''} ${NODE[stop.state]}`}
+              <button
+                type="button"
+                tabIndex={-1}
+                disabled={!onPick}
+                onClick={onPick ? () => onPick(index) : undefined}
+                className={`absolute -top-5.5 -left-5.5 flex size-11 items-center justify-center rounded-full border-2 bg-bg enabled:cursor-pointer enabled:hover:scale-110 ${stop.auxiliary ? 'border-dashed' : ''} ${stop.state === 'open' || stop.state === 'current' ? stop.tone : ''} ${NODE[stop.state]}`}
                 style={{
-                  animation: `vy-pop 500ms cubic-bezier(0.2, 0.8, 0.2, 1) ${400 + index * 220}ms both`
+                  animation:
+                    `vy-pop 500ms cubic-bezier(0.2, 0.8, 0.2, 1) ${400 + index * 220}ms both` +
+                    (stop.state === 'current' ? ', vy-node 2.2s 1.6s ease-in-out infinite' : '')
                 }}
               >
-                <Icon name={stop.icon} className="size-5" strokeWidth={1.7} />
-              </span>
+                <Icon name={stop.stateIcon ?? stop.icon} className="size-5" strokeWidth={1.7} />
+              </button>
               <span
                 className="absolute top-7 -left-18.75 block w-37.5 text-center text-[0.78rem] leading-tight text-t2"
                 style={{ animation: `vy-up 400ms ${400 + index * 220}ms both` }}

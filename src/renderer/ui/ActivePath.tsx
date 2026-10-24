@@ -6,7 +6,10 @@ import { skillChannels } from '@shared/skill/skillChannels'
 import { cardOf, startWithExpand } from './expandTransition'
 import { Button } from './kit/Button'
 import { Card } from './kit/Card'
-import { sortChannels } from './kit/channels'
+import { CHANNEL_LOOK, sortChannels } from './kit/channels'
+import { ProgressRing } from './charts/ProgressRing'
+import { RoadMap, type Stop } from './route/RoadMap'
+import { useReducedMotion } from './useReducedMotion'
 import { useNavigation } from './navigation'
 import { PathReviewPanel } from './PathReviewPanel'
 import { SavedPaths } from './route/SavedPaths'
@@ -48,6 +51,7 @@ export function ActivePath({
   const go = useNavigation((state) => state.go)
   const selectSkill = useSession((state) => state.selectSkill)
   const [failed, setFailed] = useState(false)
+  const reduceMotion = useReducedMotion()
 
   const doneCount = progress.steps.filter((step) => step.state === 'done').length
   const percent = Math.round((doneCount / path.steps.length) * 100)
@@ -70,17 +74,42 @@ export function ActivePath({
       .catch(() => setFailed(true))
   }
 
+  // The road above the steps: a stop for each one, in the state the person has it in.
+  const stops: Stop[] = path.steps.map((step) => {
+    const state = progress.steps.find((item) => item.stepId === step.id)?.state ?? 'locked'
+    const main = channelsOf(step)[0]
+    return {
+      key: String(step.id),
+      label: step.title,
+      icon: main ? CHANNEL_LOOK[main].icon : 'book',
+      stateIcon: state === 'done' ? 'check' : state === 'locked' ? 'lock' : undefined,
+      state,
+      tone: main ? CHANNEL_LOOK[main].text : 'text-mut',
+      auxiliary: step.kind === 'auxiliary'
+    }
+  })
+
+  // A click on a stop of the road takes the eyes to the card of that step.
+  const showStep = (index: number): void => {
+    const step = path.steps[index]
+    document
+      .getElementById(`step-${step?.id}`)
+      ?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' })
+  }
+
   // A step can be undone while nothing after it is done.
   const canUndo = (step: PathStep): boolean =>
     !path.steps.some((later) => later.position > step.position && later.doneAt !== null)
 
   return (
     <section className="mx-auto flex h-full w-full max-w-295 flex-col gap-7 self-start overflow-y-auto px-8 pt-7 pb-12">
-      <header className="flex flex-wrap items-end justify-between gap-6">
+      <header className="flex shrink-0 flex-wrap items-end justify-between gap-6">
         <div>
           <h1>
-            <span className="block text-sm font-normal text-mut">{t('route.eyebrow')}</span>
-            <span className="mt-2 block font-display text-[2.375rem] leading-tight font-semibold tracking-tight">
+            <span className="block text-[0.8125rem] font-bold tracking-[0.14em] text-accent uppercase">
+              {t('route.eyebrow')}
+            </span>
+            <span className="mt-2 block font-display text-[2.5rem] leading-tight font-bold tracking-[-0.03em]">
               {path.goal}
             </span>
           </h1>
@@ -90,23 +119,22 @@ export function ActivePath({
           </p>
         </div>
         <div className="flex flex-col items-end gap-3">
-          <div className="min-w-65">
-            <div className="flex justify-between text-[0.8125rem] text-t4">
-              <span>{t('route.total')}</span>
-              <span>{t('path.progress', { done: doneCount, total: path.steps.length })}</span>
-            </div>
-            <div
-              role="progressbar"
-              aria-valuenow={percent}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label={t('route.total')}
-              className="mt-2 h-2 overflow-hidden rounded-full bg-line/7"
-            >
-              <div
-                className="h-full rounded-full bg-good transition-[width] duration-700"
-                style={{ width: `${percent}%` }}
-              />
+          <div
+            role="progressbar"
+            aria-valuenow={percent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={t('route.total')}
+            className="glass flex items-center gap-3.5 rounded-full py-2.5 pr-5 pl-2.5"
+          >
+            <ProgressRing share={doneCount / path.steps.length} size="size-15">
+              {doneCount}/{path.steps.length}
+            </ProgressRing>
+            <div>
+              <p className="text-[0.8125rem] text-mut">{t('route.total')}</p>
+              <p className="text-[0.9375rem] font-bold">
+                {t('path.progress', { done: doneCount, total: path.steps.length })}
+              </p>
             </div>
           </div>
           <Button variant="secondary" onClick={onNewPath} title={t('path.new.note')}>
@@ -114,6 +142,16 @@ export function ActivePath({
           </Button>
         </div>
       </header>
+
+      <Card className="relative shrink-0 overflow-hidden rounded-[2.25rem] px-8 pt-6 pb-2">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-[40%] left-[12%] size-125 rounded-full bg-[radial-gradient(closest-side,oklch(0.7_0.17_45/0.18),transparent)]"
+        />
+        <div className="relative mx-auto max-w-4xl">
+          <RoadMap stops={stops} walked={doneCount} onPick={showStep} />
+        </div>
+      </Card>
 
       {progress.completed && (
         <Card role="status" className="border-brand/40 p-5">
@@ -130,7 +168,7 @@ export function ActivePath({
         </p>
       )}
 
-      <div className="grid grid-cols-1 items-start gap-7 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <div className="grid shrink-0 grid-cols-1 items-start gap-7 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <ol className="flex flex-col">
           {path.steps.map((step, index) => {
             const stepProgress = progress.steps.find((item) => item.stepId === step.id)

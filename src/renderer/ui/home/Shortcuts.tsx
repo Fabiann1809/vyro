@@ -1,6 +1,7 @@
 import { currentLanguage, t } from '@renderer/i18n'
 import type { WeekDay } from '../dashboardData'
 import { CHANNEL_LOOK, CHANNEL_ORDER } from '../kit/channels'
+import { ProgressRing } from '../charts/ProgressRing'
 import { Icon } from '../kit/Icon'
 
 const CARD =
@@ -14,43 +15,6 @@ const Arrow = (): React.JSX.Element => (
     <Icon name="arrow" className="size-4" strokeWidth={2} />
   </span>
 )
-
-// A ring that fills as far as `share` (0 to 1), with a gradient stroke.
-function ProgressRing({ share }: { share: number }): React.JSX.Element {
-  const length = 132
-  return (
-    <svg viewBox="0 0 52 52" aria-hidden="true" className="size-13 shrink-0 -rotate-90">
-      <defs>
-        <linearGradient id="vy-ring-grad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#FFD1A0" />
-          <stop offset="0.5" stopColor="#F27A3E" />
-          <stop offset="1" stopColor="#A8326A" />
-        </linearGradient>
-      </defs>
-      <circle
-        cx="26"
-        cy="26"
-        r="21"
-        fill="none"
-        stroke="currentColor"
-        strokeOpacity="0.12"
-        strokeWidth="5"
-      />
-      <circle
-        cx="26"
-        cy="26"
-        r="21"
-        fill="none"
-        stroke="url(#vy-ring-grad)"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeDasharray={length}
-        strokeDashoffset={length * (1 - share)}
-        style={{ transition: 'stroke-dashoffset 1.2s 0.5s cubic-bezier(0.3, 0.7, 0.2, 1)' }}
-      />
-    </svg>
-  )
-}
 
 // The three ways in under the empty chat: go back to the path, see the streak of the week and
 // practise without talking.
