@@ -6,6 +6,7 @@
     "es": "Toca la nota Do con la mano bien colocada, una vez tras otra.",
     "en": "Play the note C with your hand well placed, again and again."
   },
+  "display": "target-note",
   "camera": { "view": "side", "fullBody": false, "hand": "auto" },
   "metrics": {
     "arch": { "type": "angle", "points": ["indexMcp", "indexPip", "indexDip"] },

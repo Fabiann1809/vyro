@@ -3,6 +3,7 @@ import { pluck, sequence, silence } from '@renderer/core/audio/syntheticSound'
 import { replayHandAndSound } from '@renderer/engine/bothReplay'
 import { pressFrames, restFrames, type HandFrame } from '@renderer/engine/syntheticHand'
 import { FRAME_MS } from '@renderer/engine/syntheticPose'
+import { skillTargetNote } from '@shared/skill/pitchTarget'
 import { skillChannels } from '@shared/skill/skillChannels'
 import { parseSkillConfig } from '@shared/skill/skillLoader'
 import type { SkillConfig } from '@shared/skill/skillSchema'
@@ -79,6 +80,11 @@ function judge(press: Press): { reps: number; failed: string[] } {
 describe('C note on the piano', () => {
   it('looks at the hand and listens to the sound, and needs no body', () => {
     expect(skillChannels(piano)).toEqual(['hands', 'audio'])
+  })
+
+  it('is shown as a note to play, and the note is the middle C', () => {
+    expect(piano.display).toBe('target-note')
+    expect(skillTargetNote(piano)).toBe('C4')
   })
 
   it('counts a good press, with nothing to correct', () => {

@@ -68,3 +68,15 @@ export function nextUntuned(
   }
   return null
 }
+
+// A note played on purpose, such as a key of the piano, is the right one within this many cents.
+export const RIGHT_NOTE_CENTS = 50
+
+export type PlayedNote = 'silent' | 'right' | 'wrong'
+
+// Whether the note that sounds is the one asked for; `cents` is how far it is from it (null when no
+// note is clear).
+export function playedNoteStatus(cents: number | null): PlayedNote {
+  if (cents === null) return 'silent'
+  return Math.abs(cents) <= RIGHT_NOTE_CENTS ? 'right' : 'wrong'
+}

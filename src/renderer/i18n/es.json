@@ -737,5 +737,10 @@
   "tuner.pending": "Pendiente",
   "tuner.count": "{done} de {total} cuerdas afinadas",
   "tuner.allDone": "¡Todas las cuerdas están afinadas!",
-  "skill.goal.title": "Qué vas a hacer"
+  "skill.goal.title": "Qué vas a hacer",
+  "target.play": "Toca la nota",
+  "target.status.silent": "Toca la tecla {note}",
+  "target.status.right": "¡Es un {note}!",
+  "target.status.wrong": "Se oye {heard}: busca la tecla {note}",
+  "target.count": "{good} de {judged} notas bien"
 }

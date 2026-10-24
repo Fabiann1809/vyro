@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { InTuneHold, nextUntuned, tuningStatus } from './tuning'
+import { InTuneHold, nextUntuned, playedNoteStatus, tuningStatus } from './tuning'
 
 describe('tuningStatus', () => {
   it.each([
@@ -88,5 +88,19 @@ describe('nextUntuned', () => {
 
   it('is null when every string is tuned', () => {
     expect(nextUntuned(2, new Set([0, 1, 2]), 3)).toBeNull()
+  })
+})
+
+describe('playedNoteStatus', () => {
+  it.each([
+    [null, 'silent'],
+    [0, 'right'],
+    [-50, 'right'],
+    [50, 'right'],
+    [51, 'wrong'],
+    [-200, 'wrong'],
+    [1200, 'wrong']
+  ] as const)('reads %s cents as %s', (cents, status) => {
+    expect(playedNoteStatus(cents)).toBe(status)
   })
 })

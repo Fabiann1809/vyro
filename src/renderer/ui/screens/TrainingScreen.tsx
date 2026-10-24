@@ -9,6 +9,7 @@ import {
   noteToMidi,
   type Note
 } from '@renderer/core/audio/pitch'
+import { skillTargetNote } from '@shared/skill/pitchTarget'
 import { InTuneHold, nextUntuned } from '@renderer/core/audio/tuning'
 import type { PoseFrame } from '@renderer/core/detectionLoop'
 import type { Landmark } from '@renderer/core/landmarks'
@@ -36,6 +37,7 @@ import { CameraStage } from '../CameraStage'
 import { CorrectionBand } from '../immersive/CorrectionBand'
 import { liveLines, unitLabel } from '../liveProgress'
 import { RepCounter } from '../immersive/RepCounter'
+import { TargetNote } from '../immersive/TargetNote'
 import { StringTuner } from '../immersive/StringTuner'
 import { TunerCard } from '../immersive/TunerCard'
 import { Button } from '../kit/Button'
@@ -141,6 +143,8 @@ export function TrainingScreen(): React.JSX.Element {
   // A skill shown as a tuner is tuned string by string: each string is a note to aim at.
   const targets = skill?.audio?.targets ?? []
   const tuner = skill?.display === 'tuner' && targets.length > 0
+  // A note to play, shown with whether the one that sounds is right.
+  const targetNote = skill?.display === 'target-note' && skill ? skillTargetNote(skill) : null
   const [stringIndex, setStringIndex] = useState(0)
   const [tuned, setTuned] = useState<ReadonlySet<number>>(new Set())
   const [targetCents, setTargetCents] = useState<number | null>(null)
@@ -180,17 +184,18 @@ export function TrainingScreen(): React.JSX.Element {
     setHoldProgress(0)
   }
 
-  // How far the sound is from the string being tuned, or from the nearest note without strings.
-  const centsOf = (features: AudioFeatures, a4: number): number | null => {
+  // How far the sound is from the note aimed at, or from the nearest note when none is.
+  const centsOf = (features: AudioFeatures, a4: number, target: string): number | null => {
     if (features.pitchHz <= 0 || features.pitchClarity < MIN_PITCH_CLARITY) return null
-    const midi = noteToMidi(targets[stringRef.current.index] ?? '')
+    const midi = noteToMidi(target)
     return midi === null
       ? nearestNote(features.pitchHz, a4).cents
       : centsBetween(features.pitchHz, frequencyOfMidi(midi, a4))
   }
 
   const followTuning = (features: AudioFeatures): void => {
-    const cents = centsOf(features, skill?.audio?.a4 ?? 440)
+    const target = targets[stringRef.current.index] ?? ''
+    const cents = centsOf(features, skill?.audio?.a4 ?? 440, target)
     setTargetCents(cents)
     const timestamp = now()
     if (holdRef.current.update(timestamp, cents)) {
@@ -289,6 +294,7 @@ export function TrainingScreen(): React.JSX.Element {
         : null
     )
     if (tuner) followTuning(features)
+    else if (targetNote) setTargetCents(centsOf(features, skill?.audio?.a4 ?? 440, targetNote))
     if (!useCamera) {
       advance({ timestampMs: now(), landmarks: null, audio: features }, { width: 1, height: 1 })
     }
@@ -500,13 +506,15 @@ export function TrainingScreen(): React.JSX.Element {
           {/* These do not depend on the camera: with none, the counter and the messages still show. */}
           {useCamera && (
             <>
-              <div className="absolute top-5 right-5 rounded-3xl bg-bg/85 px-6.5 py-4 text-center">
-                <RepCounter
-                  count={snapshot.repCount}
-                  label={unitLabel(skill)}
-                  lines={progressLines}
-                />
-              </div>
+              {!targetNote && (
+                <div className="absolute top-5 right-5 rounded-3xl bg-bg/85 px-6.5 py-4 text-center">
+                  <RepCounter
+                    count={snapshot.repCount}
+                    label={unitLabel(skill)}
+                    lines={progressLines}
+                  />
+                </div>
+              )}
               <div role="status" aria-live="assertive">
                 {banner && (
                   <CorrectionBand
@@ -537,7 +545,15 @@ export function TrainingScreen(): React.JSX.Element {
             </div>
           )}
           {useAudio &&
-            (hasPitch && !tuner ? (
+            (targetNote ? (
+              <TargetNote
+                target={targetNote}
+                heard={note}
+                cents={targetCents}
+                good={snapshot.numbers.good}
+                judged={snapshot.numbers.judged}
+              />
+            ) : hasPitch && !tuner ? (
               <TunerCard note={note} levelDb={levelDb} />
             ) : (
               <div className="rounded-3xl border border-line/6 bg-card p-5">
