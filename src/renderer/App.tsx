@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { CameraPreview } from './ui/CameraPreview'
+import { Ambient } from './ui/kit/Ambient'
 import { ExpandOverlay } from './ui/ExpandOverlay'
 import { focusComposer } from './ui/focusComposer'
 import { Sidebar } from './ui/Sidebar'
@@ -70,9 +71,10 @@ function App(): React.JSX.Element {
   }, [go, immersive])
 
   return (
-    <div className="flex h-screen bg-bg text-t1">
+    <div className="relative flex h-screen overflow-hidden bg-bg text-t1">
+      <Ambient />
       {!immersive && <Sidebar />}
-      <main className="flex min-w-0 flex-1 items-center justify-center overflow-auto">
+      <main className="relative flex min-w-0 flex-1 items-center justify-center overflow-auto">
         {/* A new key for each screen: the arrival of a screen is a soft slide in, not a jump. */}
         <div key={screen} className="anim-fade flex h-full w-full items-center justify-center">
           <CurrentScreen screen={screen} />

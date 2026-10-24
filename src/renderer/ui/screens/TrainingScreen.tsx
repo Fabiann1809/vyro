@@ -455,7 +455,7 @@ export function TrainingScreen(): React.JSX.Element {
   )
 
   return (
-    <section className="force-dark anim-fade flex h-full w-full flex-col gap-4 bg-[#07080b] px-6.5 pt-5 pb-6 text-t1">
+    <section className="force-dark anim-fade flex h-full w-full flex-col gap-4 bg-[#0e080b] px-6.5 pt-5 pb-6 text-t1">
       <header className="flex items-center justify-between gap-5">
         <div className="flex items-center gap-3.5">
           <h1 className="text-[0.9375rem] font-semibold">{localize(skill.name)}</h1>

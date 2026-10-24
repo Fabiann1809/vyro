@@ -1,4 +1,4 @@
-# VYRO — Sistema de diseño (del prototipo de Claude Design)
+# VYRO — Sistema de diseño (prototipo v2 de Claude Design, D20)
 
 Resumen de lo que fija el prototipo para implementar la fase 16 sin volver a abrirlo. El brief completo está en `UI_REDESIGN.md`.
 
@@ -21,53 +21,40 @@ Resumen de lo que fija el prototipo para implementar la fase 16 sin volver a abr
 
 ## Color
 
-Oscuro (por defecto):
+Es el diseño v2 (D20), de `docs/design/prototipo-v2/`: tonos cálidos, superficies de vidrio y un degradado de marca. Los valores viven en `src/renderer/styles.css` y `tokens.test.ts` comprueba su contraste (AA) en los dos temas.
 
-| Token | Valor |
-|---|---|
-| `bg` | `#0D0F14` |
-| `side` | `#0A0C10` |
-| `card` | `#14171E` (hay variantes `#171A22`, `#1B1F29`) |
-| `card2` | `#151820` |
-| `sunk` | `#0F1217` |
-| `fill` | `#232835` |
-| `seg` | `#262B36` |
-| `track` | `#2A2F3A` |
-| `empty` | `#1B1F27` |
-| `lock` | `#171A21` |
-| `t1` a `t4` | `#ECEEF3`, `#E3E6EC`, `#D5D8E0`, `#C9CDD6` |
-| `mut`, `mut2`, `mut3` | `#9AA1B0`, `#7C8394`, `#6B7281` |
-| `inv` | `#0D0F14` |
-| `line` | `255,255,255` (las líneas son `rgba(line, .06)` a `.14`) |
+Oscuro (por defecto): `bg #140D11`, `side #170E12`, `card #221A1E`, `card2 #292124`, `sunk #1A1417`, `fill #2F2529`, `seg #33292D`, `track #3D3237`, `empty #261D21`, `lock #1E1519`, `t1 #F7EEE9`, `t2 #E6D9D3`, `t3 #DCCFC9`, `t4 #CDBFB9`, `mut #B8A6A1`, `mut2 #968683`, `mut3 #7A6B67`, `inv #140D11`, `line 255,226,214` (las líneas son `rgba(line, .06)` a `.22`).
 
-Claro: `bg #F2F1EC`, `side #EAE9E3`, `card #FFFFFF`, `card2 #F8F7F3`, `sunk #EEEDE7`, `fill #E7E6E0`, `seg #FFFFFF`, `track #D6D5CF`, `empty #E7E6E0`, `lock #EAE9E3`, `t1 #14161B`, `t2 #23262D`, `t3 #2E323A`, `t4 #3D424B`, `mut #5F6573`, `mut2 #6A707D`, `mut3 #757B87`, `inv #FFFFFF`, `line 13,15,20`.
+Claro: `bg #F2E9E3`, `side #F7F1ED`, `card #F9F5F3`, `card2 #FDFBFA`, `sunk #EFE8E4`, `fill #E9DFD9`, `seg #FFFFFF`, `track #D9CBC3`, `empty #E9DFD9`, `lock #ECE4DF`, `t1 #2A1814`, `t2 #3B2722`, `t3 #4A342E`, `t4 #594139`, `mut #6C5650`, `mut2 #745F59`, `mut3 #85726C`, `inv #FFFFFF`, `line 90,45,30`.
 
-Acento (marca): `oklch(0.87 0.18 125)` (lima). Texto de acento: `oklch(0.9 0.14 125)` en oscuro, `oklch(0.48 0.14 130)` en claro. El texto sobre el acento es `#0D0F14`.
+Vidrio: `card`, `side` y `sunk` son el color plano al que equivale el vidrio ya sobre el fondo (lo que usan las pruebas de contraste); lo que se pinta es `--glass` (`rgba(255,236,228,.06)` en oscuro, `rgba(255,255,255,.56)` en claro) con desenfoque de 24 px y sombra suave (utilidad `glass`). Detrás hay tres luces que se mueven despacio (`Ambient`, `--glow-a/b/c`).
 
-Semánticos (también con icono o forma, nunca solo color): correcto = acento, atención `oklch(0.84 0.14 85)`, error `oklch(0.68 0.17 25)`.
+Marca: degradado de 135° `#FFC48A`, `#F27A3E`, `#D2497A` (`--grad`, utilidades `bg-grad` y `text-grad`), color liso `oklch(0.74 0.17 45)`. El texto sobre la marca es `#1A0F0C`. Texto de acento: `oklch(0.82 0.14 55)` en oscuro y `oklch(0.52 0.16 38)` en claro.
 
-Canales (oscuro → claro, el claro baja la luminosidad a 0.52 y sube la croma a 0.15):
+Semánticos (también con icono o forma, nunca solo color): correcto `oklch(0.8 0.15 150)`, atención `oklch(0.83 0.14 75)`, error `oklch(0.68 0.19 25)` (en claro bajan la luminosidad a 0.56, 0.62 y 0.55).
+
+Canales (oscuro; el claro baja la luminosidad a 0.48 a 0.5):
 
 | Canal | Tono | Fondo de chip |
 |---|---|---|
-| Cuerpo | `oklch(0.74 0.13 255)` | mismo color a 14 % |
-| Manos | `oklch(0.74 0.13 310)` | 14 % |
-| Objeto | `oklch(0.74 0.13 60)` | 14 % |
-| Audio | `oklch(0.74 0.13 190)` | 14 % |
+| Cuerpo | `oklch(0.74 0.15 30)` | mismo color a 16 % |
+| Manos | `oklch(0.75 0.13 300)` | 16 % |
+| Objeto | `oklch(0.84 0.13 85)` | 16 % |
+| Audio | `oklch(0.78 0.11 220)` | 16 % |
 
-Iconos de canal (viewBox 16, trazo 1.5, extremos redondos): cuerpo `M8 2.2a1.8 1.8 0 1 0 0.01 0M8 6.5v7.5M4.5 8.5h7`, manos `M4.5 9V5.5M7 8V3.5M9.5 8V4M12 9V6M4.5 9c0 3.5 1.8 5 4.5 5s3-2 3-5`, objeto `M4 3.5h8v9H4zM6.5 6.5h3`, audio `M3 6.5v3M5.75 4v8M8.5 2.5v11M11.25 5v6M14 7v2`.
+Iconos de canal: los de `kit/icons.ts`.
 
 ## Tipografía
 
-Unbounded (500 a 700) para titulares, cifras grandes y la marca; Onest (400 a 700) para todo lo demás. Titular del Inicio 58 px, títulos de pantalla 34 a 44 px, texto 14 a 17 px, "modo de pie" de 34 a 220 px. Siempre empaquetadas.
+Syne (500 a 800) para titulares, cifras grandes y la marca; Instrument Sans (400 a 700) para todo lo demás. Titular del Inicio 68 px, títulos de pantalla 32 a 52 px, texto 14 a 18 px, "modo de pie" de 34 a 220 px. Siempre empaquetadas (`@fontsource-variable`), nunca desde Google Fonts.
 
 ## Formas
 
-Radios: tarjetas 24 a 28 px, botones y chips en píldora (999 px), cajas de datos 14 a 18 px. Tarjetas con borde `rgba(line, .06)`. Botón principal: acento, texto oscuro, 46 a 48 px de alto, se encoge a 0.94 al pulsar. Botón secundario: borde `rgba(line, .14)` y fondo transparente.
+Radios: tarjetas 28 a 36 px, botones y chips en píldora (999 px), cajas de datos 18 a 24 px. Tarjetas de vidrio con borde `rgba(line, .1)`. Botón principal: degradado de marca, texto oscuro, 42 a 58 px de alto, se encoge al pulsar y sube 2 px al pasar el cursor. Botón secundario: borde `rgba(line, .14)` y fondo transparente.
 
 ## Avatar del coach
 
-Esfera con degradado lima (centro `#F6FFE0`), un anillo oscuro interior y dos ondas que se expanden. En reposo respira cada 3.2 s y las ondas cada 2.8 s; "pensando" lo acelera (0.9 s y 1.1 s).
+Esfera con degradado cálido (centro `#FFF3E2`, luego `#FFBE7A`, `#F2763C`, `#B23A63`), un destello que gira, brillo blanco arriba a la izquierda y dos ondas que se expanden. En reposo respira cada 3.4 s; "pensando" lo acelera a 1 s.
 
 ## Movimiento
 

@@ -1,88 +1,108 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/onest';
-@import '@fontsource-variable/unbounded';
+@import '@fontsource-variable/instrument-sans';
+@import '@fontsource-variable/syne';
 
 /* The theme is a data attribute on the root element, set by useAppliedAppearance. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *, .force-dark, .force-dark *));
 
-/* Colours of the interface, from the design in docs/DESIGN_SYSTEM.md. Dark is the default, also before
-   the theme attribute is set. Utilities such as bg-card or text-mut read these through @theme below. */
+/* Colours of the interface, from the second design (docs/design/prototipo-v2, D20): warm, with glass
+   surfaces over lights that drift. Dark is the default, also before the theme attribute is set.
+   Utilities such as bg-card or text-mut read these through @theme below.
+   The surfaces are painted translucent (--glass), but the contrast tests need a flat colour, so
+   --card, --side and --sunk hold what the glass looks like once it is over the page. */
 :root,
 :root[data-theme='dark'],
 .force-dark {
-  --bg: #0d0f14;
-  --side: #0a0c10;
-  --card: #14171e;
-  --card2: #151820;
-  --sunk: #0f1217;
-  --fill: #232835;
-  --seg: #262b36;
-  --track: #2a2f3a;
-  --empty: #1b1f27;
-  --lock: #171a21;
-  --t1: #eceef3;
-  --t2: #e3e6ec;
-  --t3: #d5d8e0;
-  --t4: #c9cdd6;
-  --mut: #9aa1b0;
-  --mut2: #7c8394;
+  --bg: #140d11;
+  --side: #170e12;
+  --card: #221a1e;
+  --card2: #292124;
+  --sunk: #1a1417;
+  --fill: #2f2529;
+  --seg: #33292d;
+  --track: #3d3237;
+  --empty: #261d21;
+  --lock: #1e1519;
+  --t1: #f7eee9;
+  --t2: #e6d9d3;
+  --t3: #dccfc9;
+  --t4: #cdbfb9;
+  --mut: #b8a6a1;
+  --mut2: #968683;
   /* Only for things that carry no text: icons and thin marks (3:1 is enough there). */
-  --mut3: #6b7281;
-  --inv: #0d0f14;
-  --line: #ffffff;
-  --brand: oklch(0.87 0.18 125);
-  --on-brand: #0d0f14;
-  --accent: oklch(0.9 0.14 125);
-  --good: oklch(0.87 0.18 125);
-  --warn: oklch(0.84 0.14 85);
-  --bad: oklch(0.68 0.17 25);
-  --good-text: oklch(0.87 0.18 125);
-  --warn-text: oklch(0.84 0.14 85);
-  --bad-text: oklch(0.74 0.15 25);
-  --ch-body: oklch(0.74 0.13 255);
-  --ch-hands: oklch(0.74 0.13 310);
-  --ch-object: oklch(0.74 0.13 60);
-  --ch-audio: oklch(0.74 0.13 190);
+  --mut3: #7a6b67;
+  --inv: #140d11;
+  --line: #ffe2d6;
+  --brand: oklch(0.74 0.17 45);
+  --on-brand: #1a0f0c;
+  --accent: oklch(0.82 0.14 55);
+  --good: oklch(0.8 0.15 150);
+  --warn: oklch(0.83 0.14 75);
+  --bad: oklch(0.68 0.19 25);
+  --good-text: oklch(0.8 0.15 150);
+  --warn-text: oklch(0.83 0.14 75);
+  --bad-text: oklch(0.74 0.16 25);
+  --ch-body: oklch(0.74 0.15 30);
+  --ch-hands: oklch(0.75 0.13 300);
+  --ch-object: oklch(0.84 0.13 85);
+  --ch-audio: oklch(0.78 0.11 220);
+  --glass: rgba(255, 236, 228, 0.06);
+  --glass-side: rgba(26, 14, 19, 0.55);
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 30px 60px -34px rgba(0, 0, 0, 0.6);
+  --glow-a: oklch(0.56 0.17 40 / 0.42);
+  --glow-b: oklch(0.42 0.14 345 / 0.5);
+  --glow-c: oklch(0.48 0.1 295 / 0.28);
 }
 
 :root[data-theme='light'] {
-  --bg: #f2f1ec;
-  --side: #eae9e3;
-  --card: #ffffff;
-  --card2: #f8f7f3;
-  --sunk: #eeede7;
-  --fill: #e7e6e0;
+  --bg: #f2e9e3;
+  --side: #f7f1ed;
+  --card: #f9f5f3;
+  --card2: #fdfbfa;
+  --sunk: #efe8e4;
+  --fill: #e9dfd9;
   --seg: #ffffff;
-  --track: #d6d5cf;
-  --empty: #e7e6e0;
-  --lock: #eae9e3;
-  --t1: #14161b;
-  --t2: #23262d;
-  --t3: #2e323a;
-  --t4: #3d424b;
-  --mut: #5f6573;
-  --mut2: #646a77;
-  --mut3: #757b87;
+  --track: #d9cbc3;
+  --empty: #e9dfd9;
+  --lock: #ece4df;
+  --t1: #2a1814;
+  --t2: #3b2722;
+  --t3: #4a342e;
+  --t4: #594139;
+  --mut: #6c5650;
+  --mut2: #745f59;
+  --mut3: #85726c;
   --inv: #ffffff;
-  --line: #0d0f14;
-  --brand: oklch(0.87 0.18 125);
-  --on-brand: #0d0f14;
-  --accent: oklch(0.48 0.14 130);
-  --good: oklch(0.62 0.17 130);
-  --warn: oklch(0.65 0.14 75);
-  --bad: oklch(0.58 0.19 25);
-  --good-text: oklch(0.46 0.14 130);
-  --warn-text: oklch(0.5 0.11 70);
+  --line: #5a2d1e;
+  --brand: oklch(0.74 0.17 45);
+  --on-brand: #1a0f0c;
+  --accent: oklch(0.52 0.16 38);
+  --good: oklch(0.56 0.15 150);
+  --warn: oklch(0.62 0.14 65);
+  --bad: oklch(0.55 0.2 25);
+  --good-text: oklch(0.46 0.13 150);
+  --warn-text: oklch(0.5 0.11 65);
   --bad-text: oklch(0.5 0.17 25);
-  --ch-body: oklch(0.5 0.15 255);
-  --ch-hands: oklch(0.5 0.15 310);
-  --ch-object: oklch(0.5 0.12 60);
-  --ch-audio: oklch(0.48 0.1 190);
+  --ch-body: oklch(0.5 0.16 30);
+  --ch-hands: oklch(0.48 0.15 300);
+  --ch-object: oklch(0.5 0.11 70);
+  --ch-audio: oklch(0.48 0.12 235);
+  --glass: rgba(255, 255, 255, 0.56);
+  --glass-side: rgba(255, 255, 255, 0.55);
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 24px 50px -30px rgba(90, 40, 25, 0.35);
+  --glow-a: oklch(0.86 0.1 55 / 0.75);
+  --glow-b: oklch(0.84 0.08 340 / 0.65);
+  --glow-c: oklch(0.9 0.06 90 / 0.6);
+}
+
+/* The colour of the brand: from amber through orange to rose. */
+:root {
+  --grad: linear-gradient(135deg, #ffc48a 0%, #f27a3e 50%, #d2497a 100%);
 }
 
 @theme inline {
-  --font-sans: 'Onest Variable', system-ui, sans-serif;
-  --font-display: 'Unbounded Variable', 'Onest Variable', system-ui, sans-serif;
+  --font-sans: 'Instrument Sans Variable', system-ui, sans-serif;
+  --font-display: 'Syne Variable', 'Instrument Sans Variable', system-ui, sans-serif;
   --color-bg: var(--bg);
   --color-side: var(--side);
   --color-card: var(--card);
@@ -117,6 +137,25 @@
   --color-ch-audio: var(--ch-audio);
 }
 
+/* A surface of glass: translucent, blurred, with a faint border and a soft shadow. */
+@utility glass {
+  background: var(--glass);
+  border: 1px solid color-mix(in oklab, var(--line) 10%, transparent);
+  backdrop-filter: blur(24px) saturate(140%);
+  box-shadow: var(--glass-shadow);
+}
+/* The fill of the main action. */
+@utility bg-grad {
+  background: var(--grad);
+}
+/* The brand colour on text, such as a big word of a title. */
+@utility text-grad {
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 body {
   background: var(--bg);
   color: var(--t1);
@@ -126,6 +165,22 @@ body {
 
 /* Movement of the interface. Each one is a short entrance or a sign of life; with less motion asked
    for, the rules at the end of this file switch every animation off. */
+@keyframes vy-drift-1 {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(120px, 80px) scale(1.15);
+  }
+}
+@keyframes vy-drift-2 {
+  from {
+    transform: translate(0, 0) scale(1.1);
+  }
+  to {
+    transform: translate(-140px, -60px) scale(0.95);
+  }
+}
 @keyframes vy-up {
   from {
     opacity: 0;

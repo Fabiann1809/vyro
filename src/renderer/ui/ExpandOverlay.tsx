@@ -17,7 +17,7 @@ export function ExpandOverlay(): React.JSX.Element | null {
         width: full ? '100vw' : from.width,
         height: full ? '100vh' : from.height,
         borderRadius: full ? 0 : 28,
-        background: full ? '#07080b' : 'var(--card)',
+        background: full ? '#0e080b' : 'var(--card)',
         opacity: phase === 'leaving' ? 0 : 1,
         transition:
           phase === 'leaving' ? 'opacity 300ms ease-out' : 'all 460ms cubic-bezier(0.4, 0, 0.2, 1)'

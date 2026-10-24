@@ -3,10 +3,10 @@ export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'light' | 'dange
 export type ButtonSize = 'md' | 'lg'
 
 const VARIANT: Record<ButtonVariant, string> = {
-  primary: 'bg-brand text-on-brand font-semibold',
+  primary: 'bg-grad text-on-brand font-semibold shadow-[0_10px_30px_-12px_oklch(0.7_0.18_40/0.7)]',
   secondary: 'border border-line/14 bg-transparent text-t1 hover:bg-line/5',
   ghost: 'bg-transparent text-mut hover:bg-line/5 hover:text-t1',
-  light: 'bg-t1 text-inv font-semibold hover:bg-brand hover:text-on-brand',
+  light: 'bg-t1 text-inv font-semibold hover:bg-grad hover:text-on-brand',
   // For what cannot be undone.
   danger: 'bg-bad text-on-brand font-semibold'
 }

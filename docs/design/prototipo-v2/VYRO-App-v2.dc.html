@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&amp;family=Instrument+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;background:var(--bg,#140D11);color:var(--t1,#F7EEE9);font-family:'Instrument Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:var(--accT,oklch(0.82 0.14 55));text-decoration:none}a:hover{text-decoration:underline}
+button{font-family:inherit}
+input::placeholder{color:var(--mut2,#8F7F7B)}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:rgba(var(--lr,255,226,214),0.16);border-radius:10px;border:3px solid transparent;background-clip:padding-box}
+::view-transition-old(root),::view-transition-new(root){animation-duration:420ms}
+@keyframes vyIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes vyUp{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes vyPop{0%{opacity:0;transform:scale(.4)}70%{transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+@keyframes vyBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes vyRing{0%{transform:scale(.9);opacity:.75}100%{transform:scale(1.75);opacity:0}}
+@keyframes vyDot{0%,80%,100%{opacity:.25}40%{opacity:1}}
+@keyframes vyDraw{to{stroke-dashoffset:0}}
+@keyframes vyBeat{0%{transform:scale(1.3);opacity:0}35%{opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes vySpin{to{transform:rotate(360deg)}}
+@keyframes vySpinR{to{transform:rotate(-360deg)}}
+@keyframes vyFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes vyDrift1{0%{transform:translate(0,0) scale(1)}100%{transform:translate(120px,80px) scale(1.15)}}
+@keyframes vyDrift2{0%{transform:translate(0,0) scale(1.1)}100%{transform:translate(-140px,-60px) scale(0.95)}}
+@keyframes vyBlob{0%,100%{border-radius:58% 42% 55% 45% / 45% 55% 45% 55%;transform:rotate(0deg)}33%{border-radius:42% 58% 38% 62% / 58% 40% 60% 42%}66%{border-radius:55% 45% 62% 38% / 40% 62% 38% 60%;transform:rotate(180deg)}}
+@keyframes vyNode{0%,100%{box-shadow:0 0 0 0 oklch(0.74 0.17 45 / .55),0 0 40px oklch(0.74 0.17 45 / .5)}50%{box-shadow:0 0 0 14px oklch(0.74 0.17 45 / 0),0 0 40px oklch(0.74 0.17 45 / .5)}}
+@keyframes vyCheck{from{stroke-dashoffset:24}to{stroke-dashoffset:0}}
+@keyframes vyVib{0%,100%{transform:translateX(0)}25%{transform:translateX(-1.2px)}75%{transform:translateX(1.2px)}}
+@keyframes vyPulse{0%{transform:scale(1.12);filter:brightness(1.25)}100%{transform:scale(1);filter:brightness(1)}}
+@keyframes vyShine{0%{transform:translateX(-120%)}60%,100%{transform:translateX(220%)}}
+@media (prefers-reduced-motion: reduce){*{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:1ms!important}}
+</style>
+</helmet>
+<div style="position:fixed;inset:0;overflow:auto;background:var(--bg,#140D11)">
+<div style="display:flex;width:100%;height:100%;min-width:1280px;min-height:720px;overflow:hidden;position:relative;padding:14px;gap:14px">
+  <div aria-hidden="true" style="position:absolute;inset:0;overflow:hidden;pointer-events:none">
+    <div style="position:absolute;width:980px;height:980px;left:-280px;top:-420px;border-radius:50%;background:radial-gradient(closest-side,var(--glowA,oklch(0.56 0.17 40 / 0.42)),transparent);animation:vyDrift1 26s ease-in-out infinite alternate"></div>
+    <div style="position:absolute;width:1100px;height:1100px;right:-380px;bottom:-520px;border-radius:50%;background:radial-gradient(closest-side,var(--glowB,oklch(0.42 0.14 345 / 0.5)),transparent);animation:vyDrift2 32s ease-in-out infinite alternate"></div>
+    <div style="position:absolute;width:640px;height:640px;left:42%;top:26%;border-radius:50%;background:radial-gradient(closest-side,var(--glowC,oklch(0.48 0.1 295 / 0.28)),transparent);animation:vyDrift1 38s ease-in-out infinite alternate-reverse"></div>
+  </div>
+
+<sc-if value="{{ showNav }}" hint-placeholder-val="{{ true }}">
+<aside style="position:relative;z-index:2;width:{{ sideW }};flex-shrink:0;display:flex;flex-direction:column;gap:6px;padding:16px 12px;border-radius:30px;background:var(--side,rgba(26,14,19,0.55));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(28px) saturate(150%);-webkit-backdrop-filter:blur(28px) saturate(150%);transition:width 280ms cubic-bezier(.2,.8,.2,1);overflow:hidden">
+  <div style="display:flex;align-items:center;gap:12px;padding:2px 7px 22px">
+    <svg viewBox="0 0 40 40" style="width:38px;height:38px;flex-shrink:0;filter:drop-shadow(0 6px 16px oklch(0.65 0.18 40 / 0.55))">
+      <defs><linearGradient id="vyLogo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:#FFD1A0"></stop><stop offset="0.5" style="stop-color:#F27A3E"></stop><stop offset="1" style="stop-color:#A8326A"></stop></linearGradient></defs>
+      <rect x="1" y="1" width="38" height="38" rx="13" style="fill:url(#vyLogo)"></rect>
+      <circle cx="20" cy="20" r="10" style="fill:none;stroke:#2A0F1A;stroke-width:2.6"></circle>
+      <path d="M5.5 20h6.5l2.2-4.5 3.6 10 3.4-12 3 8.5 1.6-2h8.7" style="fill:none;stroke:#FFF6EE;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60;animation:vyDraw 1.4s 200ms cubic-bezier(.3,.7,.2,1) forwards"></path>
+    </svg>
+    <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column"><span style="font-family:Syne;font-weight:800;font-size:20px;letter-spacing:0.16em;line-height:1">VYRO</span><span style="font-size:11px;color:var(--mut,#B8A6A1);margin-top:4px;letter-spacing:0.04em">te mira · te escucha</span></div></sc-if>
+  </div>
+  <sc-for list="{{ nav }}" as="n" hint-placeholder-count="5">
+    <button onClick="{{ n.go }}" title="{{ n.label }}" style="white-space:nowrap;display:flex;align-items:center;gap:12px;height:50px;padding:0 8px;border-radius:18px;border:1px solid {{ n.bd }};background:{{ n.bg }};color:{{ n.fg }};cursor:pointer;font-size:14.5px;font-weight:600;text-align:left;transition:all 240ms cubic-bezier(.2,.8,.2,1)" style-hover="background:rgba(var(--lr,255,226,214),0.07);color:var(--t1,#F7EEE9)">
+      <span style="width:34px;height:34px;flex-shrink:0;border-radius:12px;display:flex;align-items:center;justify-content:center;background:{{ n.orb }};color:{{ n.ic }};box-shadow:{{ n.sh }};transition:all 240ms"><svg viewBox="0 0 24 24" style="width:19px;height:19px"><path d="{{ n.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ n.s }}" style="fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"></path></svg></span>
+      <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}"><span>{{ n.label }}</span></sc-if>
+    </button>
+  </sc-for>
+  <div style="flex:1"></div>
+  <sc-for list="{{ navBottom }}" as="n" hint-placeholder-count="2">
+    <button onClick="{{ n.go }}" title="{{ n.label }}" style="white-space:nowrap;display:flex;align-items:center;gap:12px;height:44px;padding:0 8px;border-radius:16px;border:1px solid {{ n.bd }};background:{{ n.bg }};color:{{ n.fg }};cursor:pointer;font-size:13.5px;font-weight:500;text-align:left;transition:all 240ms" style-hover="background:rgba(var(--lr,255,226,214),0.07);color:var(--t1,#F7EEE9)">
+      <span style="width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:19px;height:19px"><path d="{{ n.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ n.s }}" style="fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"></path></svg></span>
+      <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}"><span>{{ n.label }}</span></sc-if>
+    </button>
+  </sc-for>
+  <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}">
+    <div style="margin:8px 0 6px;padding:12px 14px;border-radius:20px;background:rgba(var(--lr,255,226,214),0.05);border:1px solid rgba(var(--lr,255,226,214),0.08);display:flex;align-items:center;gap:10px">
+      {{ avatarXs }}
+      <div style="min-width:0"><div style="font-size:12.5px;font-weight:600;white-space:nowrap">{{ aiLabel }}</div><div style="font-size:11.5px;color:var(--mut,#B8A6A1);margin-top:2px;line-height:1.35">Tu video y audio no salen de tu equipo</div></div>
+    </div>
+  </sc-if>
+  <button onClick="{{ toggleSide }}" title="Colapsar barra" style="display:flex;align-items:center;justify-content:center;height:34px;border:0;border-radius:12px;background:transparent;color:var(--mut2,#8F7F7B);cursor:pointer" style-hover="color:var(--t1,#F7EEE9)">
+    <svg viewBox="0 0 24 24" style="width:18px;height:18px;transform:{{ collapseRot }};transition:transform 260ms"><path d="M15 6l-6 6 6 6" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"></path></svg>
+  </button>
+</aside>
+</sc-if>
+
+<main style="flex:1;min-width:0;position:relative;z-index:1;overflow:hidden;display:flex;flex-direction:column;border-radius:30px">
+
+<sc-if value="{{ isInicio }}" hint-placeholder-val="{{ true }}">
+<div data-screen-label="Inicio" style="flex:1;min-height:0;display:flex;flex-direction:column;animation:vyIn 420ms cubic-bezier(.2,.8,.2,1) both">
+
+  <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;padding:26px 34px 18px;gap:22px">
+    <div style="flex:1;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,0.92fr);gap:28px;align-items:center">
+      <div style="display:flex;flex-direction:column;gap:22px">
+        <div style="align-self:flex-start;display:flex;align-items:center;gap:10px;height:36px;padding:0 16px 0 12px;border-radius:999px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));font-size:13.5px;color:var(--t2,#E6D9D3);white-space:nowrap"><span style="width:8px;height:8px;border-radius:50%;background:{{ aiDot }};box-shadow:0 0 10px {{ aiDot }}"></span><span>{{ greeting }} · {{ aiShortLabel }}</span></div>
+        <h1 style="font-family:Syne;font-weight:700;font-size:68px;letter-spacing:-0.035em;line-height:0.98;margin:0">¿Qué quieres<br><span style="background:linear-gradient(100deg,#FFC98F 0%,#F27A3E 45%,#D14F86 100%);-webkit-background-clip:text;background-clip:text;color:transparent">aprender?</span></h1>
+        <p style="margin:0;color:var(--mut,#B8A6A1);font-size:18px;line-height:1.5;max-width:500px;text-wrap:pretty">Cuéntame y armo tu ruta. Yo te miro y te escucho mientras practicas.</p>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 8px 8px 24px;border-radius:32px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.12));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:var(--gsh,inset 0 1px 0 rgba(255,255,255,0.07),0 30px 60px -34px rgba(0,0,0,0.6))">
+          <input value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onKey }}" placeholder="{{ placeholder }}" aria-label="Escribe lo que quieres aprender" style="flex:1;min-width:0;height:54px;background:transparent;border:0;outline:none;color:var(--t1,#F7EEE9);font-size:17px;font-family:inherit">
+          <button title="Dictar" style="width:54px;height:54px;border-radius:50%;border:1px solid rgba(var(--lr,255,226,214),0.12);background:rgba(var(--lr,255,226,214),0.06);color:var(--t2,#E6D9D3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 200ms" style-hover="background:rgba(var(--lr,255,226,214),0.12)"><svg viewBox="0 0 24 24" style="width:21px;height:21px"><path d="{{ ic.mic.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ ic.mic.s }}" style="fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"></path></svg></button>
+          <button onClick="{{ sendDraft }}" title="Enviar" style="width:54px;height:54px;border-radius:50%;border:0;background:linear-gradient(135deg,#FFC48A 0%,#F27A3E 50%,#D2497A 100%);color:#1A0F0C;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px -8px oklch(0.7 0.18 40 / 0.7);transition:transform 160ms" style-hover="transform:scale(1.05)" style-active="transform:scale(0.94)"><svg viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M12 19V5M6 11l6-6 6 6" style="fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"></path></svg></button>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+          <sc-for list="{{ chips }}" as="c" hint-placeholder-count="5">
+            <button onClick="{{ c.pick }}" style="white-space:nowrap;display:flex;align-items:center;gap:8px;height:42px;padding:0 16px 0 8px;border-radius:999px;border:1px solid rgba(var(--lr,255,226,214),0.1);background:rgba(var(--lr,255,226,214),0.04);color:var(--t2,#E6D9D3);font-size:14px;cursor:pointer;transition:all 220ms cubic-bezier(.2,.8,.2,1)" style-hover="background:rgba(var(--lr,255,226,214),0.09);border-color:rgba(var(--lr,255,226,214),0.22);transform:translateY(-2px)">
+              <span style="width:28px;height:28px;border-radius:50%;background:{{ c.bg }};color:{{ c.color }};display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="{{ c.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ c.s }}" style="fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"></path></svg></span>{{ c.label }}
+            </button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="position:relative;height:500px;display:flex;align-items:center;justify-content:center">
+        <div style="position:absolute;width:440px;height:440px;border-radius:50%;border:1px dashed rgba(var(--lr,255,226,214),0.16)"></div>
+        <div style="position:absolute;width:316px;height:316px;border-radius:50%;border:1px solid rgba(var(--lr,255,226,214),0.08)"></div>
+        <div style="position:absolute;width:252px;height:252px;border-radius:50%;background:radial-gradient(circle at 50% 40%, oklch(0.7 0.17 45 / 0.25), transparent 70%), var(--glass,rgba(255,236,228,0.05));border:1px solid rgba(255,214,180,0.22);box-shadow:inset 0 0 40px oklch(0.75 0.16 50 / 0.18),0 0 80px oklch(0.65 0.17 40 / 0.25);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center">{{ avatarHero }}</div>
+        <div style="position:absolute;width:440px;height:440px;animation:vySpin 70s linear infinite">
+          <sc-for list="{{ sats }}" as="s" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ s.x }};top:{{ s.y }};transform:translate(-50%,-50%)">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px;animation:vySpinR 70s linear infinite">
+                <div style="width:62px;height:62px;border-radius:50%;background:var(--glass,rgba(255,236,228,0.07));border:1px solid {{ s.bd }};backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:{{ s.color }};display:flex;align-items:center;justify-content:center;box-shadow:0 0 34px {{ s.glow }}"><svg viewBox="0 0 24 24" style="width:26px;height:26px"><path d="{{ s.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ s.s }}" style="fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round"></path></svg></div>
+                <span style="font-size:12px;font-weight:600;color:var(--t2,#E6D9D3);padding:3px 10px;border-radius:999px;background:var(--sunk,rgba(0,0,0,0.25))">{{ s.name }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="position:absolute;right:4%;top:12%;display:flex;align-items:center;gap:8px;height:38px;padding:0 14px;border-radius:999px;background:var(--glass,rgba(255,236,228,0.08));border:1px solid var(--line,rgba(255,226,214,0.12));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);font-size:13px;color:var(--t2,#E6D9D3);animation:vyFloat 5s ease-in-out infinite"><span style="display:flex;gap:2px;align-items:center;height:14px"><span style="width:3px;height:6px;border-radius:2px;background:var(--accT,oklch(0.82 0.14 55));animation:vyDot 1.1s infinite"></span><span style="width:3px;height:12px;border-radius:2px;background:var(--accT,oklch(0.82 0.14 55));animation:vyDot 1.1s .15s infinite"></span><span style="width:3px;height:8px;border-radius:2px;background:var(--accT,oklch(0.82 0.14 55));animation:vyDot 1.1s .3s infinite"></span></span>4 canales listos</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px">
+      <button onClick="{{ goRuta }}" style="display:flex;align-items:center;gap:16px;padding:14px 16px;border-radius:26px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);color:var(--t1,#F7EEE9);cursor:pointer;text-align:left;transition:all 240ms cubic-bezier(.2,.8,.2,1);animation:vyUp 500ms 120ms both" style-hover="transform:translateY(-3px);border-color:rgba(var(--lr,255,226,214),0.22)">
+        <svg viewBox="0 0 52 52" style="width:52px;height:52px;flex-shrink:0;transform:rotate(-90deg)"><circle cx="26" cy="26" r="21" style="fill:none;stroke:rgba(var(--lr,255,226,214),0.1);stroke-width:5"></circle><circle cx="26" cy="26" r="21" style="fill:none;stroke:url(#vyLogo);stroke-width:5;stroke-linecap:round;stroke-dasharray:132;stroke-dashoffset:132;animation:vyDraw 1.2s 500ms cubic-bezier(.3,.7,.2,1) forwards;--x:0"></circle></svg>
+        <div style="flex:1;min-width:0"><div style="font-size:12.5px;color:var(--mut,#B8A6A1)">Retomar donde lo dejé</div><div style="font-size:15.5px;font-weight:600;margin-top:3px">Sentadilla · paso 3 de 5</div></div>
+        <span style="width:36px;height:36px;border-radius:50%;background:rgba(var(--lr,255,226,214),0.08);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12h14M13 6l6 6-6 6" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"></path></svg></span>
+      </button>
+      <button onClick="{{ goTablero }}" style="display:flex;align-items:center;gap:16px;padding:14px 16px;border-radius:26px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);color:var(--t1,#F7EEE9);cursor:pointer;text-align:left;transition:all 240ms cubic-bezier(.2,.8,.2,1);animation:vyUp 500ms 200ms both" style-hover="transform:translateY(-3px);border-color:rgba(var(--lr,255,226,214),0.22)">
+        <span style="width:52px;height:52px;flex-shrink:0;border-radius:18px;background:linear-gradient(135deg,#FFC48A 0%,#F27A3E 50%,#D2497A 100%);color:#2A0F1A;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 26px -10px oklch(0.7 0.18 40 / 0.8)"><svg viewBox="0 0 24 24" style="width:24px;height:24px"><path d="{{ ic.flame.f }}" style="fill:currentColor;opacity:0.35"></path><path d="{{ ic.flame.s }}" style="fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"></path></svg></span>
+        <div style="flex:1;min-width:0"><div style="font-size:12.5px;color:var(--mut,#B8A6A1)">Racha</div><div style="font-size:15.5px;font-weight:600;margin-top:3px">3 días seguidos</div></div>
+        <div style="display:flex;gap:4px"><sc-for list="{{ weekDots }}" as="w" hint-placeholder-count="7"><div style="display:flex;flex-direction:column;align-items:center;gap:3px"><span style="width:8px;height:22px;border-radius:6px;background:{{ w.bg }}"></span><span style="font-size:9.5px;color:var(--mut2,#8F7F7B)">{{ w.l }}</span></div></sc-for></div>
+      </button>
+      <button onClick="{{ goBiblio }}" style="display:flex;align-items:center;gap:16px;padding:14px 16px;border-radius:26px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);color:var(--t1,#F7EEE9);cursor:pointer;text-align:left;transition:all 240ms cubic-bezier(.2,.8,.2,1);animation:vyUp 500ms 280ms both" style-hover="transform:translateY(-3px);border-color:rgba(var(--lr,255,226,214),0.22)">
+        <div style="display:flex;flex-shrink:0"><sc-for list="{{ stackOrbs }}" as="o" hint-placeholder-count="4"><span style="width:30px;height:30px;margin-right:-8px;border-radius:50%;background:{{ o.solid }};border:2px solid var(--bg,#140D11);color:#1A0F0C;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:15px;height:15px"><path d="{{ o.s }}" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"></path></svg></span></sc-for></div>
+        <div style="flex:1;min-width:0;padding-left:10px"><div style="font-size:12.5px;color:var(--mut,#B8A6A1)">Practicar sin chat</div><div style="font-size:15.5px;font-weight:600;margin-top:3px">Biblioteca · 9 habilidades</div></div>
+        <span style="width:36px;height:36px;border-radius:50%;background:rgba(var(--lr,255,226,214),0.08);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12h14M13 6l6 6-6 6" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"></path></svg></span>
+      </button>
+    </div>
+    <div style="display:flex;justify-content:center;gap:8px;align-items:center;font-size:12.5px;color:var(--mut2,#8F7F7B)">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px"><path d="{{ ic.shield.s }}" style="fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"></path></svg>
+      Tu video y tu audio nunca salen de tu equipo · La conversación no se guarda al cerrar VYRO
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ hasMsgs }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px 12px 18px;border-radius:26px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)">
+      <div style="display:flex;align-items:center;gap:12px">{{ avatarSm }}<div><div style="font-weight:700;font-size:15px;font-family:Syne">Coach VYRO</div><div style="font-size:12.5px;color:var(--mut,#B8A6A1);white-space:nowrap">{{ aiLabel }}</div></div></div>
+      <button onClick="{{ newChat }}" style="white-space:nowrap;height:40px;padding:0 18px;border-radius:999px;border:1px solid rgba(var(--lr,255,226,214),0.14);background:rgba(var(--lr,255,226,214),0.05);color:var(--t1,#F7EEE9);font-size:13.5px;cursor:pointer" style-hover="background:rgba(var(--lr,255,226,214),0.1)">Nueva conversación</button>
+    </div>
+    <div ref="{{ threadRef }}" aria-live="polite" style="flex:1;min-height:0;overflow-y:auto;padding:20px 30px">
+      <div style="max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:20px">
+        <sc-for list="{{ msgs }}" as="m" hint-placeholder-count="0">
+          <sc-if value="{{ m.isUser }}" hint-placeholder-val="{{ false }}">
+            <div style="align-self:flex-end;max-width:70%;padding:14px 20px;border-radius:24px 24px 8px 24px;background:linear-gradient(135deg, oklch(0.74 0.17 45 / 0.28), oklch(0.6 0.16 350 / 0.22));border:1px solid oklch(0.78 0.15 50 / 0.3);font-size:16px;line-height:1.5;animation:vyUp 280ms ease-out both">{{ m.text }}</div>
+          </sc-if>
+          <sc-if value="{{ m.isCoach }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:14px;align-items:flex-start;max-width:86%">{{ avatarSm }}<div style="padding:12px 18px;border-radius:8px 24px 24px 24px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));font-size:16.5px;line-height:1.6;color:var(--t2,#E6D9D3);text-wrap:pretty">{{ m.text }}</div></div>
+          </sc-if>
+          <sc-if value="{{ m.isRoute }}" hint-placeholder-val="{{ false }}">
+            <div data-card="route" style="margin-left:54px;border-radius:32px;background:var(--glass,rgba(255,236,228,0.07));border:1px solid var(--line,rgba(255,226,214,0.12));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:var(--gsh,inset 0 1px 0 rgba(255,255,255,0.07),0 30px 60px -34px rgba(0,0,0,0.6));padding:24px 26px 22px;display:flex;flex-direction:column;gap:14px;animation:vyUp 480ms cubic-bezier(.2,.8,.2,1) both;position:relative;overflow:hidden">
+              <div style="position:absolute;right:-80px;top:-120px;width:300px;height:300px;border-radius:50%;background:radial-gradient(closest-side, oklch(0.72 0.17 45 / 0.25), transparent);pointer-events:none"></div>
+              <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;position:relative">
+                <div>
+                  <div style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--accT,oklch(0.82 0.14 55));font-weight:700">Ruta de aprendizaje</div>
+                  <div style="font-family:Syne;font-weight:700;font-size:26px;margin-top:8px;letter-spacing:-0.01em">Postura con la guitarra</div>
+                  <div style="color:var(--mut,#B8A6A1);font-size:14.5px;margin-top:6px">Tocar sentado con tu acústica, cómodo y sin tensión.</div>
+                </div>
+                <div style="display:flex;gap:8px;flex-shrink:0">
+                  <div style="padding:10px 14px;border-radius:18px;background:var(--sunk,rgba(0,0,0,0.22));text-align:center"><div style="font-family:Syne;font-size:22px;font-weight:700;line-height:1">5</div><div style="font-size:11.5px;color:var(--mut,#B8A6A1);margin-top:4px">pasos</div></div>
+                  <div style="padding:10px 14px;border-radius:18px;background:var(--sunk,rgba(0,0,0,0.22));text-align:center"><div style="font-family:Syne;font-size:22px;font-weight:700;line-height:1">~3</div><div style="font-size:11.5px;color:var(--mut,#B8A6A1);margin-top:4px">semanas</div></div>
+                </div>
+              </div>
+              <div style="position:relative;padding-bottom:30px">
+                <svg viewBox="0 0 640 160" style="width:100%;display:block;overflow:visible">
+                  <path d="{{ rc.d }}" style="fill:none;stroke:rgba(var(--lr,255,226,214),0.1);stroke-width:14;stroke-linecap:round"></path>
+                  <path d="{{ rc.d }}" style="fill:none;stroke:url(#vyLogo);stroke-width:3;stroke-linecap:round;stroke-dasharray:{{ rc.len }};stroke-dashoffset:{{ rc.len }};animation:vyDraw 1.6s 250ms cubic-bezier(.3,.7,.2,1) forwards"></path>
+                </svg>
+                <sc-for list="{{ rnodes }}" as="n" hint-placeholder-count="5">
+                  <div style="position:absolute;left:{{ n.l }};top:{{ n.t }};width:0;height:0">
+                    <div style="position:absolute;left:-22px;top:-22px;width:44px;height:44px;border-radius:50%;background:var(--bg,#140D11);border:2px solid {{ n.color }};color:{{ n.color }};display:flex;align-items:center;justify-content:center;box-shadow:0 0 22px {{ n.glow }};animation:vyPop 500ms cubic-bezier(.2,.8,.2,1) both;animation-delay:{{ n.delay }}"><svg viewBox="0 0 24 24" style="width:20px;height:20px"><path d="{{ n.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ n.s }}" style="fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"></path></svg></div>
+                    <div style="position:absolute;left:-75px;top:28px;width:150px;text-align:center;font-size:12.5px;line-height:1.3;color:var(--t2,#E6D9D3);animation:vyIn 400ms both;animation-delay:{{ n.delay }}"><span style="color:var(--mut2,#8F7F7B)">{{ n.n }} · </span>{{ n.name }}</div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;position:relative">
+                <button onClick="{{ startFromCard }}" style="white-space:nowrap;height:48px;padding:0 24px;border-radius:999px;border:0;background:linear-gradient(135deg,#FFC48A 0%,#F27A3E 50%,#D2497A 100%);color:#1A0F0C;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 10px 30px -10px oklch(0.7 0.18 40 / 0.7);transition:transform 160ms" style-hover="transform:translateY(-2px)" style-active="transform:scale(0.96)">Empezar ahora</button>
+                <button onClick="{{ goRuta }}" style="white-space:nowrap;height:48px;padding:0 22px;border-radius:999px;border:1px solid rgba(var(--lr,255,226,214),0.16);background:rgba(var(--lr,255,226,214),0.05);color:var(--t1,#F7EEE9);font-size:15px;cursor:pointer" style-hover="background:rgba(var(--lr,255,226,214),0.1)">Ver ruta completa</button>
+                <button style="white-space:nowrap;height:48px;padding:0 16px;border-radius:999px;border:0;background:transparent;color:var(--mut,#B8A6A1);font-size:15px;cursor:pointer" style-hover="color:var(--t1,#F7EEE9)">Ajustar</button>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ m.isInvite }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-left:54px;border-radius:28px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));padding:24px;display:flex;flex-direction:column;gap:12px;animation:vyUp 380ms cubic-bezier(.2,.8,.2,1) both">
+              <div style="font-size:18px;font-weight:600;line-height:1.4;text-wrap:pretty">Aún no tengo cerebro de IA, pero puedes practicar desde la Biblioteca.</div>
+              <div style="font-size:14.5px;color:var(--mut,#B8A6A1);line-height:1.5">Activa el coach con IA para conversar. Mientras tanto puedes practicar cualquier habilidad desde la Biblioteca.</div>
+              <div style="display:flex;gap:10px;margin-top:6px">
+                <button onClick="{{ goAjustes }}" style="white-space:nowrap;height:44px;padding:0 22px;border-radius:999px;border:0;background:linear-gradient(135deg,#FFC48A 0%,#F27A3E 50%,#D2497A 100%);color:#1A0F0C;font-size:14.5px;font-weight:700;cursor:pointer">Activar IA</button>
+                <button onClick="{{ goBiblio }}" style="white-space:nowrap;height:44px;padding:0 20px;border-radius:999px;border:1px solid rgba(var(--lr,255,226,214),0.16);background:transparent;color:var(--t1,#F7EEE9);font-size:14.5px;cursor:pointer">Ver habilidades</button>
+              </div>
+            </div>
+          </sc-if>
+        </sc-for>
+        <sc-if value="{{ thinking }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:14px;align-items:center">{{ avatarThink }}<div style="display:flex;gap:5px;align-items:center;color:var(--mut,#B8A6A1);font-size:14px">Pensando<span style="animation:vyDot 1.2s infinite">●</span><span style="animation:vyDot 1.2s 0.2s infinite">●</span><span style="animation:vyDot 1.2s 0.4s infinite">●</span></div></div>
+        </sc-if>
+        <sc-if value="{{ hasQuick }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:10px;justify-content:flex-end;animation:vyUp 260ms ease-out both">
+            <sc-for list="{{ quick }}" as="q" hint-placeholder-count="2"><button onClick="{{ q.pick }}" style="white-space:nowrap;height:42px;padding:0 18px;border-radius:999px;border:1px solid oklch(0.78 0.15 50 / 0.45);background:oklch(0.74 0.17 45 / 0.12);color:var(--accT,oklch(0.82 0.14 55));font-size:14px;font-weight:600;cursor:pointer;transition:all 200ms" style-hover="background:oklch(0.74 0.17 45 / 0.22)">{{ q.label }}</button></sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+    <div style="padding:0 30px 4px">
+      <div style="max-width:820px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 22px;border-radius:30px;background:var(--glass,rgba(255,236,228,0.07));border:1px solid var(--line,rgba(255,226,214,0.12));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)">
+        <input value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onKey }}" placeholder="Escribe al coach…" aria-label="Mensaje al coach" style="flex:1;min-width:0;height:46px;background:transparent;border:0;outline:none;color:var(--t1,#F7EEE9);font-size:16px;font-family:inherit">
+        <button onClick="{{ sendDraft }}" title="Enviar" style="width:46px;height:46px;border-radius:50%;border:0;background:linear-gradient(135deg,#FFC48A 0%,#F27A3E 50%,#D2497A 100%);color:#1A0F0C;cursor:pointer;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:19px;height:19px"><path d="M12 19V5M6 11l6-6 6 6" style="fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"></path></svg></button>
+      </div>
+      <div style="text-align:center;font-size:12px;color:var(--mut2,#8F7F7B);margin-top:10px">La conversación no se guarda al cerrar VYRO. Al coach solo le llega texto y números.</div>
+    </div>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isTablero }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Tablero" style="flex:1;min-height:0;overflow-y:auto;padding:14px 18px 40px;animation:vyIn 420ms cubic-bezier(.2,.8,.2,1) both">
+<div style="max-width:1340px;margin:0 auto;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px">
+  <div style="grid-column:span 12;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:6px 4px 4px">
+    <div><div style="font-size:13px;color:var(--accT,oklch(0.82 0.14 55));font-weight:700;letter-spacing:0.14em;text-transform:uppercase">Tablero</div><h1 style="font-family:Syne;font-weight:700;font-size:38px;letter-spacing:-0.03em;margin:8px 0 0">Vas mejorando, sesión a sesión.</h1></div>
+    <div style="display:flex;gap:4px;padding:5px;border-radius:999px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1))">
+      <sc-for list="{{ dashSkills }}" as="k" hint-placeholder-count="4"><button onClick="{{ k.pick }}" style="white-space:nowrap;height:36px;padding:0 15px;border-radius:999px;border:0;background:{{ k.bg }};color:{{ k.fg }};font-size:13px;font-weight:600;cursor:pointer;transition:all 220ms">{{ k.label }}</button></sc-for>
+    </div>
+  </div>
+
+  <div style="grid-column:span 8;border-radius:32px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px) saturate(140%);-webkit-backdrop-filter:blur(24px) saturate(140%);box-shadow:var(--gsh,inset 0 1px 0 rgba(255,255,255,0.07),0 30px 60px -34px rgba(0,0,0,0.6));padding:24px 26px 18px;display:flex;flex-direction:column;gap:8px;animation:vyUp 520ms 40ms both">
+    <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start">
+      <div><div style="font-size:13px;color:var(--mut,#B8A6A1)">Puntuación por sesión</div><div style="font-size:21px;font-weight:700;margin-top:4px">{{ sc.title }}</div><div style="font-size:14px;color:var(--mut,#B8A6A1);margin-top:4px">{{ sc.sub }}</div></div>
+      <div style="display:flex;gap:4px;padding:4px;border-radius:999px;background:var(--sunk,rgba(0,0,0,0.22))">
+        <sc-for list="{{ ranges }}" as="r" hint-placeholder-count="3"><button onClick="{{ r.pick }}" style="white-space:nowrap;height:32px;padding:0 13px;border-radius:999px;border:0;background:{{ r.bg }};color:{{ r.fg }};font-size:12.5px;font-weight:600;cursor:pointer;transition:all 220ms">{{ r.label }}</button></sc-for>
+      </div>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:14px;margin-top:6px">
+      <div style="font-family:Syne;font-size:66px;font-weight:700;line-height:0.85;letter-spacing:-0.04em">{{ hv.val }}</div>
+      <div style="padding-bottom:4px;display:flex;flex-direction:column;gap:6px"><span style="align-self:flex-start;white-space:nowrap;height:26px;padding:0 10px;border-radius:999px;background:{{ hv.dBg }};color:{{ hv.dFg }};font-size:12.5px;font-weight:700;display:flex;align-items:center">{{ hv.delta }}</span><span style="font-size:13px;color:var(--mut,#B8A6A1)">{{ hv.date }}</span></div>
+    </div>
+    <div onMouseMove="{{ chartMove }}" onMouseLeave="{{ chartLeave }}" style="position:relative;cursor:crosshair">
+      <svg viewBox="0 0 720 230" style="width:100%;height:auto;display:block;overflow:visible">
+        <defs><linearGradient id="vyArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:oklch(0.74 0.17 45);stop-opacity:0.38"></stop><stop offset="1" style="stop-color:oklch(0.74 0.17 45);stop-opacity:0"></stop></linearGradient></defs>
+        <path d="{{ sc.grid }}" style="stroke:rgba(var(--lr,255,226,214),0.14);stroke-width:1;stroke-dasharray:2 6;fill:none"></path>
+        <path d="{{ sc.area }}" style="fill:url(#vyArea);opacity:{{ sc.op }};transition:opacity 900ms 300ms"></path>
+        <path d="{{ sc.trend }}" style="stroke:var(--mut,#B8A6A1);stroke-width:1.4;stroke-dasharray:4 6;fill:none;opacity:0.55"></path>
+        <path d="{{ sc.d }}" style="stroke:url(#vyLogo);stroke-width:3.5;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:{{ sc.len }};stroke-dashoffset:{{ sc.off }};transition:stroke-dashoffset 1300ms cubic-bezier(.3,.7,.2,1)"></path>
+        <path d="{{ sc.dots }}" style="fill:var(--bg,#140D11);stroke:oklch(0.8 0.14 55);stroke-width:2;opacity:{{ sc.op }};transition:opacity 500ms 900ms"></path>
+      </svg>
+      <sc-for list="{{ sc.ticks }}" as="t" hint-placeholder-count="3"><div style="position:absolute;left:0;top:{{ t.top }};transform:translateY(-50%);font-size:11px;color:var(--mut2,#8F7F7B)">{{ t.label }}</div></sc-for>
+      <div style="position:absolute;left:{{ hv.l }};top:{{ hv.t }};bottom:0;width:36px;margin-left:-18px;border-radius:18px;background:linear-gradient(180deg, oklch(0.74 0.17 45 / 0.32), oklch(0.74 0.17 45 / 0));transition:left 280ms cubic-bezier(.2,.8,.2,1), top 280ms cubic-bezier(.2,.8,.2,1);pointer-events:none"></div>
+      <div style="position:absolute;left:{{ hv.l }};top:{{ hv.t }};width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#FFF4EA;box-shadow:0 0 0 5px oklch(0.74 0.17 45 / 0.35),0 0 24px oklch(0.74 0.17 45 / 0.8);transition:left 280ms cubic-bezier(.2,.8,.2,1), top 280ms cubic-bezier(.2,.8,.2,1);pointer-events:none"></div>
+      <div style="position:absolute;left:{{ hv.l }};top:{{ hv.t }};transform:translate(-50%,-190%);padding:5px 12px;border-radius:999px;background:var(--t1,#F7EEE9);color:var(--bg,#140D11);font-size:13px;font-weight:700;white-space:nowrap;transition:left 280ms cubic-bezier(.2,.8,.2,1), top 280ms cubic-bezier(.2,.8,.2,1);pointer-events:none">{{ hv.tag }}</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding-left:40px;font-size:11.5px;color:var(--mut2,#8F7F7B)"><sc-for list="{{ sc.xl }}" as="x" hint-placeholder-count="4"><span>{{ x }}</span></sc-for></div>
+  </div>
+
+  <div data-card="next" style="grid-column:span 4;border-radius:32px;background:radial-gradient(circle at 50% 0%, oklch(0.7 0.17 45 / 0.28), transparent 60%), var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:var(--gsh,inset 0 1px 0 rgba(255,255,255,0.07),0 30px 60px -34px rgba(0,0,0,0.6));padding:22px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;animation:vyUp 520ms 120ms both">
+    <div style="font-size:13px;color:var(--mut,#B8A6A1)">Tu próxima sesión</div>
+    <div style="position:relative;width:176px;height:176px">
+      <svg viewBox="0 0 176 176" style="position:absolute;inset:0;width:176px;height:176px;transform:rotate(-90deg)"><circle cx="88" cy="88" r="82" style="fill:none;stroke:rgba(var(--lr,255,226,214),0.1);stroke-width:6"></circle><circle cx="88" cy="88" r="82" style="fill:none;stroke:url(#vyLogo);stroke-width:6;stroke-linecap:round;stroke-dasharray:515.2;stroke-dashoffset:{{ nxOff }}"></circle></svg>
+      <div style="position:absolute;inset:16px;border-radius:50%;overflow:hidden;background:repeating-linear-gradient(135deg, rgba(var(--lr,255,226,214),0.06) 0 8px, rgba(var(--lr,255,226,214),0.02) 8px 16px), radial-gradient(circle at 50% 30%, oklch(0.7 0.15 30 / 0.35), transparent 70%);border:1px solid rgba(255,214,180,0.25);box-shadow:inset 0 0 30px oklch(0.7 0.17 45 / 0.3)"><img src="assets/illus/sentadilla.svg" alt="Sentadilla" style="width:100%;height:100%;display:block;object-fit:cover"></div>
+      <span style="position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);white-space:nowrap;height:28px;padding:0 12px;border-radius:999px;background:var(--t1,#F7EEE9);color:var(--bg,#140D11);font-size:12.5px;font-weight:700;display:flex;align-items:center">Paso 3 de 5</span>
+    </div>
+    <div><div style="font-family:Syne;font-size:24px;font-weight:700;margin-top:6px">Sentadilla</div><div style="font-size:13.5px;color:var(--mut,#B8A6A1);margin-top:4px">Profundidad y espalda recta · ~6 min</div></div>
+    <button onClick="{{ startSquat }}" style="white-space:nowrap;width:100%;height:50px;border-radius:999px;border:0;background:linear-gradient(135deg,#FFC48A 0%,#F27A3E 50%,#D2497A 100%);color:#1A0F0C;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 12px 30px -12px oklch(0.7 0.18 40 / 0.8);transition:transform 160ms" style-hover="transform:translateY(-2px)" style-active="transform:scale(0.97)"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="{{ ic.play.s }}" style="fill:currentColor"></path></svg>Continuar</button>
+  </div>
+
+  <div style="grid-column:span 4;border-radius:32px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:var(--gsh,inset 0 1px 0 rgba(255,255,255,0.07),0 30px 60px -34px rgba(0,0,0,0.6));padding:22px;display:flex;flex-direction:column;gap:14px;animation:vyUp 520ms 180ms both">
+    <div><div style="font-size:13px;color:var(--mut,#B8A6A1)">Constancia · 4 semanas</div><div style="font-size:18px;font-weight:700;margin-top:4px">Pasa el cursor por cada día</div></div>
+    <div onMouseLeave="{{ clearHd }}" style="position:relative;width:230px;height:230px;margin:4px auto 0">
+      <div style="position:absolute;inset:58px;background:radial-gradient(circle at 35% 30%, #FFC98F, #F27A3E 45%, #A8326A);opacity:0.85;animation:vyBlob 16s ease-in-out infinite;box-shadow:0 0 60px oklch(0.7 0.17 45 / 0.5)"></div>
+      <div style="position:absolute;inset:58px;background:radial-gradient(circle at 60% 70%, oklch(0.6 0.15 300 / 0.8), transparent 60%);animation:vyBlob 11s ease-in-out infinite reverse;mix-blend-mode:screen"></div>
+      <sc-for list="{{ days }}" as="d" hint-placeholder-count="28">
+        <div onMouseEnter="{{ d.enter }}" title="{{ d.title }}" style="position:absolute;left:50%;top:50%;width:10px;height:{{ d.h }};margin:-12px 0 0 -5px;border-radius:6px;background:{{ d.bg }};transform:rotate({{ d.rot }}) translateY(-100px);transform-origin:50% 12px;transition:height 200ms, background 200ms;cursor:pointer;animation:vyIn 400ms both;animation-delay:{{ d.delay }}"></div>
+      </sc-for>
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;color:#2A0F1A"><div style="font-family:Syne;font-size:40px;font-weight:800;line-height:1">{{ ringC.big }}</div><div style="font-size:12px;font-weight:700;margin-top:2px">{{ ringC.unit }}</div></div>
+    </div>
+    <div style="text-align:center;font-size:13.5px;color:var(--t2,#E6D9D3);min-height:20px">{{ ringC.sub }}</div>
+  </div>
+
+  <div style="grid-column:span 4;border-radius:32px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:var(--gsh,inset 0 1px 0 rgba(255,255,255,0.07),0 30px 60px -34px rgba(0,0,0,0.6));padding:22px;display:flex;flex-direction:column;gap:12px;animation:vyUp 520ms 240ms both">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+      <div><div style="font-size:13px;color:var(--mut,#B8A6A1)">Métricas por canal</div><div style="font-size:18px;font-weight:700;margin-top:4px">{{ g.name }}</div></div>
+      <div style="display:flex;gap:6px">
+        <sc-for list="{{ chTabs }}" as="t" hint-placeholder-count="4"><button onClick="{{ t.pick }}" title="{{ t.name }}" style="width:38px;height:38px;border-radius:50%;border:1px solid {{ t.bd }};background:{{ t.bgc }};color:{{ t.fgc }};cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:{{ t.sh }};transition:all 240ms"><svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="{{ t.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ t.s }}" style="fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"></path></svg></button></sc-for>
+      </div>
+    </div>
+    <div style="position:relative">
+      <svg viewBox="0 0 280 160" style="width:100%;height:auto;display:block;overflow:visible">
+        <path d="{{ g.track }}" style="fill:none;stroke:rgba(var(--lr,255,226,214),0.08);stroke-width:18;stroke-linecap:round"></path>
+        <path d="{{ g.zone }}" style="fill:none;stroke:{{ g.zoneC }};stroke-width:18;transition:all 500ms"></path>
+        <path d="{{ g.ticks }}" style="fill:none;stroke:rgba(var(--lr,255,226,214),0.3);stroke-width:1.5;stroke-linecap:round"></path>
+        <g style="transform-origin:140px 140px;transform:rotate({{ g.rot }});transition:transform 1000ms cubic-bezier(.3,1.35,.45,1)"><path d="M140 140L222 140" style="stroke:var(--t1,#F7EEE9);stroke-width:3.5;stroke-linecap:round"></path><circle cx="222" cy="140" r="6" style="fill:{{ g.color }};stroke:var(--t1,#F7EEE9);stroke-width:2"></circle></g>
+        <circle cx="140" cy="140" r="11" style="fill:{{ g.color }};stroke:var(--bg,#140D11);stroke-width:4"></circle>
+      </svg>
+      <div style="position:absolute;left:0;right:0;top:46%;text-align:center"><div style="font-family:Syne;font-size:32px;font-weight:700;line-height:1">{{ g.val }}</div></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--mut2,#8F7F7B);margin-top:-6px"><span>{{ g.minL }}</span><span style="color:{{ g.color }};font-weight:600">{{ g.zoneL }}</span><span>{{ g.maxL }}</span></div>
+    <div style="font-size:14.5px;font-weight:600;text-align:center;text-wrap:pretty">{{ g.title }}</div>
+    <svg viewBox="0 0 260 50" style="width:100%;height:auto;display:block;overflow:visible"><rect x="0" y="{{ g.bandY }}" width="260" height="{{ g.bandH }}" rx="6" style="fill:{{ g.band }}"></rect><path d="{{ g.spark }}" style="fill:none;stroke:{{ g.color }};stroke-width:2.2;stroke-linecap:round"></path></svg>
+  </div>
+
+  <div style="grid-column:span 4;border-radius:32px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:var(--gsh,inset 0 1px 0 rgba(255,255,255,0.07),0 30px 60px -34px rgba(0,0,0,0.6));padding:22px;display:flex;flex-direction:column;gap:12px;animation:vyUp 520ms 300ms both">
+    <div><div style="font-size:13px;color:var(--mut,#B8A6A1)">Errores más frecuentes · sentadilla</div><div style="font-size:18px;font-weight:700;margin-top:4px">La profundidad sigue siendo tu reto</div></div>
+    <div style="position:relative;width:290px;height:214px;margin:0 auto">
+      <sc-for list="{{ bubbles }}" as="b" hint-placeholder-count="3">
+        <div onMouseEnter="{{ b.enter }}" style="position:absolute;left:{{ b.x }};top:{{ b.y }};width:{{ b.size }};height:{{ b.size }};border-radius:50%;background:{{ b.bg }};border:1px solid {{ b.bd }};box-shadow:{{ b.sh }};display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px;cursor:pointer;transition:transform 320ms cubic-bezier(.2,.8,.2,1), box-shadow 320ms;animation:vyPop 600ms cubic-bezier(.2,.8,.2,1) both;animation-delay:{{ b.delay }}" style-hover="transform:scale(1.07)">
+          <div style="font-family:Syne;font-size:{{ b.fs }};font-weight:800;line-height:1;color:#2A0F1A">{{ b.count }}</div>
+          <div style="font-size:11.5px;font-weight:700;line-height:1.2;margin-top:4px;color:#2A0F1A">{{ b.msg }}</div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="padding:12px 14px;border-radius:18px;background:var(--sunk,rgba(0,0,0,0.22));font-size:13.5px;line-height:1.45;color:var(--t2,#E6D9D3);min-height:62px"><span style="font-weight:700;color:{{ bTip.c }}">{{ bTip.delta }}</span> · {{ bTip.text }}</div>
+  </div>
+
+  <div style="grid-column:span 12;border-radius:32px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:var(--gsh,inset 0 1px 0 rgba(255,255,255,0.07),0 30px 60px -34px rgba(0,0,0,0.6));padding:22px 26px;display:flex;flex-direction:column;gap:6px;animation:vyUp 520ms 360ms both">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap">
+      <div><div style="font-size:13px;color:var(--mut,#B8A6A1)">Calidad por repetición · última sentadilla</div><div style="font-size:18px;font-weight:700;margin-top:4px">Tu técnica baja al final</div><div style="font-size:13.5px;color:var(--mut,#B8A6A1);margin-top:4px">Las 6 primeras salieron sin fallos; en las 6 últimas fallaste 2.</div></div>
+      <div style="display:flex;gap:16px;font-size:12.5px;color:var(--mut,#B8A6A1);align-items:center"><sc-for list="{{ qLegend }}" as="q" hint-placeholder-count="3"><span style="display:flex;align-items:center;gap:7px"><span style="width:{{ q.s }};height:{{ q.s }};border-radius:50%;background:{{ q.c }}"></span>{{ q.l }}</span></sc-for></div>
+    </div>
+    <div onMouseLeave="{{ neckT.leave }}" style="position:relative;height:150px">
+      <svg viewBox="0 0 1100 150" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible"><path d="{{ neckT.d }}" style="fill:none;stroke:rgba(var(--lr,255,226,214),0.2);stroke-width:2;stroke-dasharray:{{ neckT.len }};stroke-dashoffset:{{ neckT.len }};animation:vyDraw 1.4s 300ms ease-out forwards"></path></svg>
+      <sc-for list="{{ neckT.beads }}" as="b" hint-placeholder-count="24">
+        <div onMouseEnter="{{ b.enter }}" style="position:absolute;left:{{ b.l }};top:{{ b.t }};width:{{ b.size }};height:{{ b.size }};margin-left:{{ b.m }};margin-top:{{ b.m }};border-radius:50%;background:{{ b.bg }};box-shadow:{{ b.sh }};cursor:pointer;transition:transform 220ms cubic-bezier(.2,.8,.2,1), box-shadow 220ms;animation:vyPop 500ms cubic-bezier(.2,.8,.2,1) both;animation-delay:{{ b.delay }}" style-hover="transform:scale(1.35)"></div>
+      </sc-for>
+      <sc-if value="{{ neckT.show }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;left:{{ neckT.tl }};top:{{ neckT.tt }};transform:translate(-50%,calc(-100% - 22px));padding:8px 14px;border-radius:16px;background:var(--t1,#F7EEE9);color:var(--bg,#140D11);white-space:nowrap;pointer-events:none;animation:vyIn 180ms both"><div style="font-size:12px;font-weight:700">{{ neckT.title }}</div><div style="font-size:12px">{{ neckT.text }}</div></div>
+      </sc-if>
+    </div>
+  </div>
+
+  <div style="grid-column:span 12;border-radius:32px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);padding:10px;animation:vyUp 520ms 420ms both">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;padding:12px 16px 10px"><div style="font-size:18px;font-weight:700">Historial de sesiones</div><div style="font-size:13px;color:var(--mut,#B8A6A1)">12 sesiones</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <sc-for list="{{ hist }}" as="h" hint-placeholder-count="5">
+        <div onClick="{{ goResumen }}" style="display:grid;grid-template-columns:52px minmax(0,1.4fr) minmax(0,1fr) 140px 64px 28px;align-items:center;gap:16px;padding:10px 14px;border-radius:22px;background:rgba(var(--lr,255,226,214),0.03);cursor:pointer;transition:all 220ms" style-hover="background:rgba(var(--lr,255,226,214),0.08);transform:translateX(4px)">
+          <div style="width:46px;height:46px;border-radius:50%;background:{{ h.orb }};color:#2A0F1A;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px -6px {{ h.glow }}"><svg viewBox="0 0 24 24" style="width:21px;height:21px"><path d="{{ h.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ h.s }}" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"></path></svg></div>
+          <div style="min-width:0"><div style="font-size:15px;font-weight:600">{{ h.skill }}</div><div style="font-size:12.5px;color:var(--mut,#B8A6A1);margin-top:2px">{{ h.date }} · {{ h.reps }}</div></div>
+          <div style="display:flex;gap:5px"><sc-for list="{{ h.chs }}" as="c" hint-placeholder-count="1"><span title="{{ c.name }}" style="width:26px;height:26px;border-radius:50%;background:{{ c.bg }};color:{{ c.color }};display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:14px;height:14px"><path d="{{ c.s }}" style="fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round"></path></svg></span></sc-for></div>
+          <svg viewBox="0 0 140 32" style="width:140px;height:32px;overflow:visible"><path d="{{ h.spark }}" style="fill:none;stroke:{{ h.sc }};stroke-width:2;stroke-linecap:round"></path></svg>
+          <div style="position:relative;width:54px;height:54px"><svg viewBox="0 0 54 54" style="width:54px;height:54px;transform:rotate(-90deg)"><circle cx="27" cy="27" r="23" style="fill:none;stroke:rgba(var(--lr,255,226,214),0.1);stroke-width:4"></circle><circle cx="27" cy="27" r="23" style="fill:none;stroke:{{ h.sc }};stroke-width:4;stroke-linecap:round;stroke-dasharray:144.5;stroke-dashoffset:{{ h.off }}"></circle></svg><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:Syne;font-weight:700;font-size:16px">{{ h.score }}</div></div>
+          <div style="color:var(--mut2,#8F7F7B)"><svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M9 6l6 6-6 6" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"></path></svg></div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isRuta }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Mi ruta" style="flex:1;min-height:0;overflow-y:auto;padding:14px 18px 40px;animation:vyIn 420ms cubic-bezier(.2,.8,.2,1) both">
+<div style="max-width:1340px;margin:0 auto;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px">
+  <div style="grid-column:span 12;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;padding:6px 4px 4px">
+    <div><div style="font-size:13px;color:var(--accT,oklch(0.82 0.14 55));font-weight:700;letter-spacing:0.14em;text-transform:uppercase">Mi ruta · creada con el coach</div><h1 style="font-family:Syne;font-weight:700;font-size:40px;letter-spacing:-0.03em;margin:8px 0 0">Postura con la guitarra</h1><div style="font-size:15px;color:var(--mut,#B8A6A1);margin-top:8px">5 pasos · Paso 2 en curso · ~3 semanas</div></div>
+    <div style="display:flex;align-items:center;gap:14px;padding:10px 18px 10px 10px;border-radius:999px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1))">
+      <div style="position:relative;width:60px;height:60px"><svg viewBox="0 0 60 60" style="width:60px;height:60px;transform:rotate(-90deg)"><circle cx="30" cy="30" r="25" style="fill:none;stroke:rgba(var(--lr,255,226,214),0.1);stroke-width:6"></circle><circle cx="30" cy="30" r="25" style="fill:none;stroke:url(#vyLogo);stroke-width:6;stroke-linecap:round;stroke-dasharray:157.1;stroke-dashoffset:{{ rutaOff }}"></circle></svg><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:Syne;font-weight:700;font-size:15px">1/5</div></div>
+      <div><div style="font-size:12.5px;color:var(--mut,#B8A6A1)">Avance total</div><div style="font-size:15px;font-weight:700">1 paso cumplido</div></div>
+    </div>
+  </div>
+
+  <div style="grid-column:span 12;border-radius:36px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:var(--gsh,inset 0 1px 0 rgba(255,255,255,0.07),0 30px 60px -34px rgba(0,0,0,0.6));padding:24px 30px;position:relative;overflow:hidden;animation:vyUp 520ms 60ms both">
+    <div style="position:absolute;left:12%;top:-40%;width:500px;height:500px;border-radius:50%;background:radial-gradient(closest-side, oklch(0.7 0.17 45 / 0.18), transparent);pointer-events:none"></div>
+    <div style="position:relative">
+      <svg viewBox="0 0 1100 300" style="width:100%;display:block;overflow:visible">
+        <path d="{{ road.d }}" style="fill:none;stroke:rgba(var(--lr,255,226,214),0.07);stroke-width:34;stroke-linecap:round"></path>
+        <path d="{{ road.d }}" style="fill:none;stroke:rgba(var(--lr,255,226,214),0.22);stroke-width:2;stroke-dasharray:2 12;stroke-linecap:round"></path>
+        <path d="{{ road.d }}" style="fill:none;stroke:oklch(0.74 0.17 45);stroke-width:16;stroke-linecap:round;opacity:0.35;filter:blur(8px);stroke-dasharray:{{ road.dash }};stroke-dashoffset:{{ road.done }};animation:vyDraw 1.6s 300ms cubic-bezier(.3,.7,.2,1) forwards"></path>
+        <path d="{{ road.d }}" style="fill:none;stroke:url(#vyLogo);stroke-width:6;stroke-linecap:round;stroke-dasharray:{{ road.dash }};stroke-dashoffset:{{ road.done }};animation:vyDraw 1.6s 300ms cubic-bezier(.3,.7,.2,1) forwards"></path>
+      </svg>
+      <sc-for list="{{ rsteps }}" as="n" hint-placeholder-count="6">
+        <div style="position:absolute;left:{{ n.l }};top:{{ n.t }};width:0;height:0">
+          <button onClick="{{ n.pick }}" title="{{ n.name }}" style="position:absolute;left:{{ n.m }};top:{{ n.m }};width:{{ n.size }};height:{{ n.size }};border-radius:50%;border:{{ n.bd }};background:{{ n.bg }};color:{{ n.fg }};display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:{{ n.sh }};animation:{{ n.anim }};transition:transform 260ms cubic-bezier(.2,.8,.2,1);opacity:{{ n.op }}" style-hover="transform:scale(1.1)">
+            <svg viewBox="0 0 24 24" style="width:{{ n.is }};height:{{ n.is }}"><path d="{{ n.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ n.s }}" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"></path></svg>
+          </button>
+          <div style="position:absolute;left:-95px;top:{{ n.lt }};width:190px;text-align:center;pointer-events:none"><div style="font-size:11.5px;color:var(--mut,#B8A6A1);letter-spacing:0.06em;text-transform:uppercase;font-weight:700">{{ n.kicker }}</div><div style="font-size:14px;font-weight:{{ n.fw }};margin-top:3px;color:var(--t1,#F7EEE9);line-height:1.25">{{ n.name }}</div></div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="grid-column:span 7;border-radius:32px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:var(--gsh,inset 0 1px 0 rgba(255,255,255,0.07),0 30px 60px -34px rgba(0,0,0,0.6));padding:26px;display:flex;flex-direction:column;gap:16px;animation:vyUp 520ms 140ms both">
+    <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start">
+      <div style="animation:vyIn 300ms both"><div style="font-size:12px;color:var(--accT,oklch(0.82 0.14 55));letter-spacing:0.12em;text-transform:uppercase;font-weight:700">{{ sel.kicker }}</div><div style="font-family:Syne;font-size:28px;font-weight:700;margin-top:6px;letter-spacing:-0.02em">{{ sel.name }}</div><div style="font-size:14.5px;color:var(--mut,#B8A6A1);margin-top:6px;line-height:1.5;max-width:520px">{{ sel.desc }}</div></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+        <sc-for list="{{ sel.chs }}" as="c" hint-placeholder-count="1"><span style="white-space:nowrap;display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px 0 6px;border-radius:999px;background:{{ c.bg }};color:{{ c.color }};font-size:12.5px;font-weight:600"><svg viewBox="0 0 24 24" style="width:17px;height:17px"><path d="{{ c.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ c.s }}" style="fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"></path></svg>{{ c.name }}</span></sc-for>
+      </div>
+    </div>
+    <sc-if value="{{ sel.hasSess }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--mut,#B8A6A1)"><span>Criterio del paso · <span style="color:var(--t1,#F7EEE9);font-weight:600">{{ sel.crit }}</span></span><span>{{ sel.count }}</span></div>
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+          <sc-for list="{{ sel.sess }}" as="x" hint-placeholder-count="3">
+            <div style="height:86px;border-radius:22px;border:{{ x.bd }};background:{{ x.bg }};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ x.fg }};animation:vyPop 420ms both;animation-delay:{{ x.delay }}"><div style="font-family:Syne;font-size:26px;font-weight:700;line-height:1">{{ x.score }}</div><div style="font-size:12px;font-weight:600">{{ x.date }}</div></div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ sel.isCur }}" hint-placeholder-val="{{ false }}">
+      <div data-card="step" style="display:flex;gap:12px;align-items:center"><button onClick="{{ startFromCard }}" style="white-space:nowrap;height:50px;padding:0 26px;border-radius:999px;border:0;background:linear-gradient(135deg,#FFC48A 0%,#F27A3E 50%,#D2497A 100%);color:#1A0F0C;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 12px 30px -12px oklch(0.7 0.18 40 / 0.8);display:flex;align-items:center;gap:10px" style-hover="transform:translateY(-2px)"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="{{ ic.play.s }}" style="fill:currentColor"></path></svg>Practicar ahora</button><span style="font-size:13px;color:var(--mut,#B8A6A1)">Calibración · ~5 min</span></div>
+    </sc-if>
+    <sc-if value="{{ sel.isAux }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ toggleAux }}" style="align-self:flex-start;white-space:nowrap;height:46px;padding:0 22px;border-radius:999px;border:1px solid rgba(var(--lr,255,226,214),0.16);background:{{ auxBg }};color:{{ auxFg }};font-size:14.5px;font-weight:600;cursor:pointer;transition:all 240ms">{{ auxLabel }}</button>
+    </sc-if>
+    <sc-if value="{{ sel.isLock }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:20px;background:var(--sunk,rgba(0,0,0,0.22));font-size:14px;color:var(--t2,#E6D9D3)"><svg viewBox="0 0 24 24" style="width:20px;height:20px;flex-shrink:0;color:var(--mut,#B8A6A1)"><path d="{{ ic.lock.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ ic.lock.s }}" style="fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"></path></svg>{{ sel.lockText }}</div>
+    </sc-if>
+  </div>
+
+  <div style="grid-column:span 5;border-radius:32px;background:radial-gradient(circle at 0% 0%, oklch(0.7 0.17 45 / 0.2), transparent 55%), var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:var(--gsh,inset 0 1px 0 rgba(255,255,255,0.07),0 30px 60px -34px rgba(0,0,0,0.6));padding:24px;display:flex;flex-direction:column;gap:16px;animation:vyUp 520ms 200ms both">
+    <div style="display:flex;align-items:center;gap:12px">{{ avatarMd }}<div><div style="font-size:13px;color:var(--mut,#B8A6A1)">Revisión semanal del coach</div><div style="font-size:18px;font-weight:700;margin-top:2px">Propongo ajustar el paso 2</div></div></div>
+    <div style="font-size:14.5px;line-height:1.55;color:var(--t2,#E6D9D3);text-wrap:pretty">Tus sesiones de esta semana rondan 72–78 y van subiendo. Bajar el criterio una semana te deja avanzar sin perder exigencia.</div>
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center">
+      <div style="padding:14px;border-radius:20px;background:var(--sunk,rgba(0,0,0,0.22));opacity:{{ beforeOp }};transition:opacity 300ms"><div style="font-size:11px;color:var(--mut,#B8A6A1);text-transform:uppercase;letter-spacing:0.1em;font-weight:700">Antes</div><div style="font-size:15px;margin-top:6px;text-decoration:{{ beforeDeco }}">3 sesiones con 80+</div></div>
+      <div style="width:34px;height:34px;border-radius:50%;background:rgba(var(--lr,255,226,214),0.08);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12h14M13 6l6 6-6 6" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"></path></svg></div>
+      <div style="padding:14px;border-radius:20px;background:oklch(0.74 0.17 45 / 0.14);border:1px solid oklch(0.78 0.15 50 / 0.4)"><div style="font-size:11px;color:var(--accT,oklch(0.82 0.14 55));text-transform:uppercase;letter-spacing:0.1em;font-weight:700">Después</div><div style="font-size:15px;margin-top:6px">3 sesiones con 75+</div></div>
+    </div>
+    <sc-if value="{{ reviewOpen }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;gap:10px"><button onClick="{{ acceptReview }}" style="white-space:nowrap;height:44px;padding:0 22px;border-radius:999px;border:0;background:linear-gradient(135deg,#FFC48A 0%,#F27A3E 50%,#D2497A 100%);color:#1A0F0C;font-size:14px;font-weight:700;cursor:pointer">Aceptar</button><button onClick="{{ rejectReview }}" style="white-space:nowrap;height:44px;padding:0 20px;border-radius:999px;border:1px solid rgba(var(--lr,255,226,214),0.16);background:transparent;color:var(--t1,#F7EEE9);font-size:14px;cursor:pointer">Mantener como está</button></div>
+    </sc-if>
+    <sc-if value="{{ reviewClosed }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--t2,#E6D9D3);animation:vyUp 300ms both"><span style="width:28px;height:28px;border-radius:50%;background:{{ reviewC }};color:#1A0F0C;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M5 12.5l4.5 4.5L19 7.5" style="fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;animation:vyCheck 400ms both"></path></svg></span>{{ reviewMsg }}</div></sc-if>
+  </div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isBiblio }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Biblioteca" style="flex:1;min-height:0;overflow-y:auto;padding:14px 18px 40px;animation:vyIn 420ms cubic-bezier(.2,.8,.2,1) both">
+<div style="max-width:1340px;margin:0 auto;display:flex;flex-direction:column;gap:20px">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:6px 4px 0">
+    <div><div style="font-size:13px;color:var(--accT,oklch(0.82 0.14 55));font-weight:700;letter-spacing:0.14em;text-transform:uppercase">Biblioteca</div><h1 style="font-family:Syne;font-weight:700;font-size:38px;letter-spacing:-0.03em;margin:8px 0 0">Todo lo que VYRO puede medir</h1></div>
+    <button onClick="{{ createSkill }}" style="white-space:nowrap;height:52px;padding:0 22px 0 10px;border-radius:999px;border:1px solid oklch(0.78 0.15 50 / 0.5);background:oklch(0.74 0.17 45 / 0.12);color:var(--accT,oklch(0.82 0.14 55));font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all 220ms" style-hover="background:oklch(0.74 0.17 45 / 0.22)">{{ avatarXs }}Crear una habilidad con el coach</button>
+  </div>
+  <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+    <div style="display:flex;gap:4px;padding:5px;border-radius:999px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1))">
+      <sc-for list="{{ libChs }}" as="f" hint-placeholder-count="5"><button onClick="{{ f.pick }}" style="white-space:nowrap;display:flex;align-items:center;gap:7px;height:36px;padding:0 14px 0 8px;border-radius:999px;border:0;background:{{ f.bg }};color:{{ f.fg }};font-size:13px;font-weight:600;cursor:pointer;transition:all 220ms"><span style="width:22px;height:22px;border-radius:50%;background:{{ f.dotBg }};color:{{ f.dot }};display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:13px;height:13px"><path d="{{ f.s }}" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"></path></svg></span>{{ f.label }}</button></sc-for>
+    </div>
+    <div style="display:flex;gap:4px;padding:5px;border-radius:999px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1))">
+      <sc-for list="{{ libCats }}" as="f" hint-placeholder-count="4"><button onClick="{{ f.pick }}" style="white-space:nowrap;height:36px;padding:0 15px;border-radius:999px;border:0;background:{{ f.bg }};color:{{ f.fg }};font-size:13px;font-weight:600;cursor:pointer;transition:all 220ms">{{ f.label }}</button></sc-for>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px">
+    <sc-for list="{{ lib }}" as="k" hint-placeholder-count="0">
+      <div data-card="skill" style="border-radius:200px 200px 32px 32px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:var(--gsh,inset 0 1px 0 rgba(255,255,255,0.07),0 30px 60px -34px rgba(0,0,0,0.6));padding:16px 16px 18px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;transition:transform 300ms cubic-bezier(.2,.8,.2,1), border-color 300ms;animation:vyUp 480ms both;animation-delay:{{ k.delay }}" style-hover="transform:translateY(-6px);border-color:rgba(var(--lr,255,226,214),0.24)">
+        <div style="position:relative;width:100%;max-width:200px;aspect-ratio:1/1;margin-bottom:10px">
+          <div style="position:absolute;inset:0;border-radius:50%;background:repeating-linear-gradient(135deg, rgba(var(--lr,255,226,214),0.06) 0 8px, rgba(var(--lr,255,226,214),0.015) 8px 16px), radial-gradient(circle at 50% 35%, {{ k.tint }}, transparent 70%);border:1px solid {{ k.rim }};box-shadow:inset 0 0 40px {{ k.tint }}, 0 0 46px {{ k.glow }};overflow:hidden"><div role="img" aria-label="{{ k.name }}" style="width:100%;height:100%;background-image:{{ k.bgImg }};background-size:cover;background-position:center"></div></div>
+          <sc-if value="{{ k.exp }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:6px;left:50%;transform:translateX(-50%);white-space:nowrap;height:24px;padding:0 10px;border-radius:999px;border:1px dashed oklch(0.83 0.14 75);color:oklch(0.86 0.12 75);background:var(--bg,#140D11);font-size:11px;font-weight:700;display:flex;align-items:center">Experimental</span></sc-if>
+          <div style="position:absolute;left:50%;bottom:-14px;transform:translateX(-50%);display:flex;gap:4px">
+            <sc-for list="{{ k.chs }}" as="c" hint-placeholder-count="1"><span title="{{ c.name }}" style="width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.55), {{ c.color }} 60%);color:#2A0F1A;border:3px solid var(--bg,#140D11);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="{{ c.s }}" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"></path></svg></span></sc-for>
+          </div>
+        </div>
+        <div style="font-size:11.5px;color:var(--mut,#B8A6A1);letter-spacing:0.1em;text-transform:uppercase;font-weight:700">{{ k.cat }}</div>
+        <div style="font-family:Syne;font-size:19px;font-weight:700;margin-top:-6px">{{ k.name }}</div>
+        <div style="font-size:13.5px;color:var(--mut,#B8A6A1);line-height:1.45;text-wrap:pretty;flex:1">{{ k.line }}</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut2,#8F7F7B)"><svg viewBox="0 0 24 24" style="width:14px;height:14px"><path d="{{ ic.camera.s }}" style="fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"></path></svg>{{ k.needs }}</div>
+        <button onClick="{{ k.start }}" style="white-space:nowrap;width:100%;height:44px;border-radius:999px;border:1px solid rgba(var(--lr,255,226,214),0.14);background:rgba(var(--lr,255,226,214),0.06);color:var(--t1,#F7EEE9);font-size:14.5px;font-weight:700;cursor:pointer;transition:all 240ms" style-hover="background:linear-gradient(135deg,#FFC48A 0%,#F27A3E 50%,#D2497A 100%);color:#1A0F0C;border-color:transparent">Empezar</button>
+      </div>
+    </sc-for>
+  </div>
+  <sc-if value="{{ libEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:60px;text-align:center;color:var(--mut,#B8A6A1);border:1px dashed rgba(var(--lr,255,226,214),0.16);border-radius:32px">Ninguna habilidad con ese filtro todavía.</div></sc-if>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isResumen }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Resumen de sesión" style="flex:1;min-height:0;overflow-y:auto;padding:14px 18px 40px;animation:vyIn 420ms cubic-bezier(.2,.8,.2,1) both">
+<div style="max-width:1340px;margin:0 auto;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px">
+  <div style="grid-column:span 12;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:6px 4px 4px">
+    <div><div style="font-size:13px;color:var(--accT,oklch(0.82 0.14 55));font-weight:700;letter-spacing:0.14em;text-transform:uppercase">Resumen de sesión · Hoy · 5 min 12 s</div><h1 style="font-family:Syne;font-weight:700;font-size:38px;letter-spacing:-0.03em;margin:8px 0 0">{{ resTitle }}</h1><div style="display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 16px;margin-top:12px;border-radius:999px;background:oklch(0.74 0.17 45 / 0.14);border:1px solid oklch(0.78 0.15 50 / 0.35);color:var(--accT,oklch(0.82 0.14 55));font-size:14px;font-weight:700">{{ resStat }}</div></div>
+    <div style="display:flex;gap:10px">
+      <button onClick="{{ repeatSkill }}" style="white-space:nowrap;height:48px;padding:0 24px;border-radius:999px;border:0;background:linear-gradient(135deg,#FFC48A 0%,#F27A3E 50%,#D2497A 100%);color:#1A0F0C;font-size:15px;font-weight:700;cursor:pointer">Repetir</button>
+      <button onClick="{{ goTablero }}" style="white-space:nowrap;height:48px;padding:0 22px;border-radius:999px;border:1px solid rgba(var(--lr,255,226,214),0.16);background:rgba(var(--lr,255,226,214),0.05);color:var(--t1,#F7EEE9);font-size:15px;cursor:pointer">Ver tablero</button>
+      <button onClick="{{ goInicio }}" style="white-space:nowrap;height:48px;padding:0 18px;border-radius:999px;border:0;background:transparent;color:var(--mut,#B8A6A1);font-size:15px;cursor:pointer">Inicio</button>
+    </div>
+  </div>
+  <div style="grid-column:span 5;grid-row:span 2;border-radius:36px;background:radial-gradient(circle at 50% 30%, oklch(0.7 0.17 45 / 0.3), transparent 60%), var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:var(--gsh,inset 0 1px 0 rgba(255,255,255,0.07),0 30px 60px -34px rgba(0,0,0,0.6));padding:30px;display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;animation:vyUp 520ms 60ms both">
+    <div style="position:relative;width:250px;height:250px">
+      <div style="position:absolute;inset:22px;border-radius:50%;border:2px solid oklch(0.8 0.15 55);animation:vyRing 1s ease-out 1200ms both"></div>
+      <div style="position:absolute;inset:30px;border-radius:50%;background:radial-gradient(circle at 40% 30%, oklch(0.74 0.17 45 / 0.35), transparent 70%);box-shadow:inset 0 0 40px oklch(0.74 0.17 45 / 0.3)"></div>
+      <svg viewBox="0 0 250 250" style="position:absolute;inset:0;width:250px;height:250px;transform:rotate(-90deg);filter:drop-shadow(0 0 14px oklch(0.72 0.18 45 / 0.6))"><circle cx="125" cy="125" r="108" style="fill:none;stroke:rgba(var(--lr,255,226,214),0.08);stroke-width:16"></circle><circle cx="125" cy="125" r="108" style="fill:none;stroke:url(#vyLogo);stroke-width:16;stroke-linecap:round;stroke-dasharray:678.6;stroke-dashoffset:{{ ringOff }}"></circle></svg>
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-family:Syne;font-size:76px;font-weight:800;line-height:0.9;letter-spacing:-0.04em">{{ ringN }}</div><div style="font-size:13px;color:var(--mut,#B8A6A1);margin-top:6px">de 100</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 16px;border-radius:999px;background:{{ goodBg }};color:{{ goodC }};font-size:14px;font-weight:700">↑ +13 vs. sesión anterior (71)</div>
+    <div style="font-size:15px;color:var(--t2,#E6D9D3)">Nueva mejor marca en este paso.</div>
+    <div style="margin-top:auto;width:100%;padding:16px;border-radius:24px;background:var(--sunk,rgba(0,0,0,0.22));border:1px solid oklch(0.78 0.15 50 / 0.35);display:flex;align-items:center;gap:14px;text-align:left;animation:vyUp 420ms 1300ms both">
+      <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#FFC48A 0%,#F27A3E 50%,#D2497A 100%);color:#1A0F0C;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M5 12.5l4.5 4.5L19 7.5" style="fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;animation:vyCheck 500ms 1500ms both"></path></svg></div>
+      <div><div style="font-size:15px;font-weight:700">Sesión válida para el paso 2</div><div style="font-size:13px;color:var(--mut,#B8A6A1)">2 de 3 sesiones con 80+</div></div>
+    </div>
+  </div>
+  <div style="grid-column:span 7;border-radius:32px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:var(--gsh,inset 0 1px 0 rgba(255,255,255,0.07),0 30px 60px -34px rgba(0,0,0,0.6));padding:24px 26px;display:flex;flex-direction:column;gap:8px;animation:vyUp 520ms 140ms both">
+    <div><div style="font-size:13px;color:var(--mut,#B8A6A1)">24 rasgueos · pasa el cursor por cada uno</div><div style="font-size:19px;font-weight:700;margin-top:4px">Los fallos se concentran al final</div></div>
+    <div onMouseLeave="{{ neckR.leave }}" style="position:relative;height:150px;margin-top:10px">
+      <svg viewBox="0 0 1100 150" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible"><path d="{{ neckR.d }}" style="fill:none;stroke:rgba(var(--lr,255,226,214),0.2);stroke-width:2;stroke-dasharray:{{ neckR.len }};stroke-dashoffset:{{ neckR.len }};animation:vyDraw 1.4s 300ms ease-out forwards"></path></svg>
+      <sc-for list="{{ neckR.beads }}" as="b" hint-placeholder-count="24">
+        <div onMouseEnter="{{ b.enter }}" style="position:absolute;left:{{ b.l }};top:{{ b.t }};width:{{ b.size }};height:{{ b.size }};margin-left:{{ b.m }};margin-top:{{ b.m }};border-radius:50%;background:{{ b.bg }};box-shadow:{{ b.sh }};cursor:pointer;transition:transform 220ms cubic-bezier(.2,.8,.2,1);animation:vyPop 500ms cubic-bezier(.2,.8,.2,1) both;animation-delay:{{ b.delay }}" style-hover="transform:scale(1.35)"></div>
+      </sc-for>
+      <sc-if value="{{ neckR.show }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;left:{{ neckR.tl }};top:{{ neckR.tt }};transform:translate(-50%,calc(-100% - 22px));padding:8px 14px;border-radius:16px;background:var(--t1,#F7EEE9);color:var(--bg,#140D11);white-space:nowrap;pointer-events:none;animation:vyIn 180ms both"><div style="font-size:12px;font-weight:700">{{ neckR.title }}</div><div style="font-size:12px">{{ neckR.text }}</div></div>
+      </sc-if>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:6px">
+      <sc-for list="{{ breakdown }}" as="b" hint-placeholder-count="3">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:22px;background:var(--sunk,rgba(0,0,0,0.22))"><span style="width:{{ b.sz }};height:{{ b.sz }};border-radius:50%;background:{{ b.c }};box-shadow:0 0 16px {{ b.g }};flex-shrink:0"></span><div><div style="font-family:Syne;font-size:26px;font-weight:700;line-height:1">{{ b.n }}</div><div style="font-size:12.5px;color:var(--mut,#B8A6A1)">{{ b.l }}</div></div></div>
+      </sc-for>
+    </div>
+  </div>
+  <div style="grid-column:span 3;border-radius:32px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);padding:22px;display:flex;flex-direction:column;gap:14px;animation:vyUp 520ms 220ms both">
+    <div style="font-size:13px;color:var(--mut,#B8A6A1)">Correcciones</div>
+    <sc-for list="{{ rErrs }}" as="e" hint-placeholder-count="2">
+      <div style="display:flex;align-items:center;gap:12px"><span style="width:40px;height:40px;border-radius:50%;background:{{ e.bg }};color:{{ e.color }};display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" style="width:20px;height:20px"><path d="{{ e.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ e.s }}" style="fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"></path></svg></span><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600"><span>{{ e.msg }}</span><span>{{ e.n }}</span></div><div style="display:flex;gap:3px;margin-top:6px"><sc-for list="{{ e.pips }}" as="p" hint-placeholder-count="4"><span style="flex:1;height:6px;border-radius:4px;background:{{ p }}"></span></sc-for></div></div></div>
+    </sc-for>
+  </div>
+  <div style="grid-column:span 4;border-radius:32px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);padding:22px;display:flex;flex-direction:column;gap:12px;animation:vyUp 520ms 280ms both">
+    <div style="display:flex;align-items:center;gap:10px">{{ avatarSm }}<div style="font-size:13px;color:var(--mut,#B8A6A1)">{{ summaryLabel }}</div></div>
+    <div style="font-size:15px;line-height:1.6;color:var(--t2,#E6D9D3);text-wrap:pretty;animation:vyIn 600ms 700ms both">{{ summaryText }}</div>
+  </div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isComo }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Cómo funciona" style="flex:1;min-height:0;overflow-y:auto;padding:20px 24px 48px;animation:vyIn 420ms cubic-bezier(.2,.8,.2,1) both">
+<div style="max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:28px">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px"><h1 style="font-family:Syne;font-weight:700;font-size:52px;letter-spacing:-0.035em;margin:0;line-height:1">Cómo funciona<br><span style="background:linear-gradient(100deg,#FFC98F 0%,#F27A3E 45%,#D14F86 100%);-webkit-background-clip:text;background-clip:text;color:transparent">VYRO</span></h1><button onClick="{{ goInicio }}" style="white-space:nowrap;height:50px;padding:0 24px;border-radius:999px;border:0;background:linear-gradient(135deg,#FFC48A 0%,#F27A3E 50%,#D2497A 100%);color:#1A0F0C;font-size:15px;font-weight:700;cursor:pointer">Hablar con el coach</button></div>
+  <div style="position:relative;border-radius:36px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);padding:36px 30px 30px">
+    <svg viewBox="0 0 1000 120" preserveAspectRatio="none" style="position:absolute;left:30px;right:30px;top:36px;width:calc(100% - 60px);height:120px;overflow:visible"><path d="M125 60 C 250 0, 250 120, 375 60 S 500 0, 625 60 S 750 120, 875 60" style="fill:none;stroke:url(#vyLogo);stroke-width:2.5;stroke-dasharray:4 8;opacity:0.7"></path></svg>
+    <div style="position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px">
+      <sc-for list="{{ como }}" as="c" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;animation:vyUp 500ms both;animation-delay:{{ c.delay }}">
+          <div style="position:relative;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.3), {{ c.color }} 60%);color:#2A0F1A;display:flex;align-items:center;justify-content:center;box-shadow:0 0 50px {{ c.glow }}, inset 0 -10px 20px rgba(60,10,30,0.25);animation:vyFloat 6s ease-in-out infinite;animation-delay:{{ c.fd }}"><svg viewBox="0 0 24 24" style="width:46px;height:46px"><path d="{{ c.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ c.s }}" style="fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"></path></svg><span style="position:absolute;top:-4px;right:-4px;width:34px;height:34px;border-radius:50%;background:var(--t1,#F7EEE9);color:var(--bg,#140D11);font-family:Syne;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center">{{ c.n }}</span></div>
+          <div><div style="font-family:Syne;font-size:19px;font-weight:700">{{ c.t }}</div><div style="font-size:14px;color:var(--mut,#B8A6A1);margin-top:6px">{{ c.s2 }}</div></div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
+    <sc-for list="{{ promises }}" as="p" hint-placeholder-count="3">
+      <div style="border-radius:32px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);padding:26px;display:flex;flex-direction:column;gap:12px;transition:transform 260ms" style-hover="transform:translateY(-4px)">
+        <span style="width:52px;height:52px;border-radius:18px;background:oklch(0.74 0.17 45 / 0.16);color:var(--accT,oklch(0.82 0.14 55));display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:26px;height:26px"><path d="{{ p.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ p.s }}" style="fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round"></path></svg></span>
+        <div style="font-size:19px;font-weight:700">{{ p.t }}</div><div style="font-size:14.5px;color:var(--mut,#B8A6A1);line-height:1.55">{{ p.d }}</div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isAjustes }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Ajustes" style="flex:1;min-height:0;overflow-y:auto;padding:14px 18px 40px;animation:vyIn 420ms cubic-bezier(.2,.8,.2,1) both">
+<div style="max-width:1140px;margin:0 auto;display:grid;grid-template-columns:250px minmax(0,1fr);gap:24px">
+  <div style="display:flex;flex-direction:column;gap:4px">
+    <h1 style="font-family:Syne;font-weight:700;font-size:32px;letter-spacing:-0.02em;margin:6px 4px 18px">Ajustes</h1>
+    <sc-for list="{{ setNav }}" as="n" hint-placeholder-count="8"><div style="height:42px;padding:0 16px;border-radius:16px;display:flex;align-items:center;font-size:14px;font-weight:600;background:{{ n.bg }};color:{{ n.fg }};border:1px solid {{ n.bd }}">{{ n.label }}</div></sc-for>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:16px;padding-top:62px">
+        <div style="border-radius:32px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);padding:24px;display:flex;align-items:center;gap:18px">
+      {{ avatarMd }}
+      <div style="flex:1"><div style="font-size:18px;font-weight:700">Coach con IA</div><div style="font-size:14px;color:var(--mut,#B8A6A1);margin-top:4px;line-height:1.5">Solo envío al proveedor el texto del chat y los números de tus sesiones. Nunca video ni audio.</div></div>
+      <button onClick="{{ toggleAi }}" role="switch" aria-checked="{{ aiOn }}" style="display:flex;align-items:center;gap:12px;border:0;background:transparent;color:var(--t1,#F7EEE9);cursor:pointer;font-size:14px;font-weight:600">
+        <span>{{ aiShort }}</span>
+        <span style="width:58px;height:34px;border-radius:999px;background:{{ trackBg }};position:relative;transition:background 220ms;box-shadow:inset 0 1px 3px rgba(0,0,0,0.3)"><span style="position:absolute;top:4px;left:{{ knobL }};width:26px;height:26px;border-radius:50%;background:#FFF6EE;box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:left 240ms cubic-bezier(.3,1.4,.5,1)"></span></span>
+      </button>
+    </div>
+    <div style="border-radius:32px;background:var(--glass,rgba(255,236,228,0.06));border:1px solid var(--line,rgba(255,226,214,0.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:18px;opacity:{{ aiOp }};transition:opacity 300ms">
+      <div><div style="font-size:13px;color:var(--mut,#B8A6A1);margin-bottom:8px">Proveedor</div><div style="height:48px;border-radius:16px;background:var(--sunk,rgba(0,0,0,0.22));display:flex;align-items:center;padding:0 16px;font-size:14.5px">Claude (Anthropic)</div></div>
+      <div><div style="font-size:13px;color:var(--mut,#B8A6A1);margin-bottom:8px">Clave de API</div><div style="height:48px;border-radius:16px;background:var(--sunk,rgba(0,0,0,0.22));display:flex;align-items:center;padding:0 16px;font-size:14.5px;font-family:ui-monospace,Menlo,monospace;color:var(--t2,#E6D9D3)">sk-ant-••••••••••••3f9a</div></div>
+      <div style="grid-column:span 2"><div style="display:flex;justify-content:space-between;font-size:13px;color:var(--mut,#B8A6A1);margin-bottom:10px"><span>Gasto de hoy frente al límite diario</span><span style="color:var(--t1,#F7EEE9);font-weight:600">0,12 US$ de 0,50 US$</span></div><div style="display:flex;gap:4px"><sc-for list="{{ spend }}" as="p" hint-placeholder-count="20"><span style="flex:1;height:14px;border-radius:5px;background:{{ p }}"></span></sc-for></div></div>
+    </div>
+  </div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCalib }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;inset:0;z-index:20;background:#0E080B;overflow:auto"><div data-screen-label="Práctica" style="position:relative;width:100%;height:100%;min-width:1280px;min-height:720px;color:#F7EEE9;display:flex;flex-direction:column;padding:18px 22px 22px;gap:14px;animation:vyIn 360ms ease-out both;overflow:hidden">
+  <div style="position:absolute;width:800px;height:800px;left:-300px;top:-420px;border-radius:50%;background:radial-gradient(closest-side, oklch(0.5 0.16 40 / 0.35), transparent);pointer-events:none"></div>
+  <div style="position:absolute;width:900px;height:900px;right:-360px;bottom:-480px;border-radius:50%;background:radial-gradient(closest-side, {{ pr.glow }}, transparent);pointer-events:none;transition:background 600ms"></div>
+  <div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:20px">
+    <div style="display:flex;align-items:center;gap:14px;min-width:0">
+      <span style="width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.55), {{ pr.color }} 60%);color:#1A0F0C;display:flex;align-items:center;justify-content:center;box-shadow:0 0 28px {{ pr.glowS }};flex-shrink:0"><svg viewBox="0 0 24 24" style="width:24px;height:24px;flex-shrink:0"><path d="{{ pr.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ pr.s }}" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"></path></svg></span>
+      <div style="min-width:0;display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:10px"><span style="font-family:Syne;font-size:22px;font-weight:700;white-space:nowrap">{{ pr.name }}</span><span style="height:28px;padding:0 12px;border-radius:999px;background:{{ phaseBg }};color:#1A0F0C;font-size:12px;font-weight:800;display:flex;align-items:center;white-space:nowrap;transition:background 300ms">{{ phaseLabel }}</span></div>
+        <div role="status" style="align-self:flex-start;display:flex;align-items:center;gap:8px;height:32px;padding:0 14px 0 10px;border-radius:999px;background:{{ st.bg }};border:1px solid {{ st.bd }};color:{{ st.fg }};font-size:14px;font-weight:500;white-space:nowrap;transition:background 300ms, color 300ms, border-color 300ms"><svg viewBox="0 0 24 24" style="width:16px;height:16px;flex-shrink:0"><path d="{{ st.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ st.s }}" style="fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round"></path></svg><span>{{ st.text }}</span></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div title="Tu video y tu audio no salen de tu equipo" aria-label="Privado: tu video y tu audio no salen de tu equipo" style="width:40px;height:40px;border-radius:50%;background:rgba(255,236,228,0.05);border:1px solid rgba(255,226,214,0.1);color:#E6D9D3;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:17px;height:17px;flex-shrink:0"><path d="{{ ic.lock.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ ic.lock.s }}" style="fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"></path></svg></div>
+      <div style="display:flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-radius:999px;background:rgba(255,236,228,0.05);border:1px solid rgba(255,226,214,0.1);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums"><span style="width:8px;height:8px;border-radius:50%;background:oklch(0.68 0.19 25);animation:vyDot 1.6s infinite"></span>{{ clock }}</div>
+      <button onClick="{{ exitCalib }}" style="white-space:nowrap;height:40px;padding:0 18px;border-radius:999px;border:1px solid rgba(255,226,214,0.18);background:transparent;color:#F7EEE9;font-size:13.5px;cursor:pointer" style-hover="background:rgba(255,236,228,0.08)">Salir · Esc</button>
+    </div>
+  </div>
+  <div style="position:relative;flex:1;min-height:0;display:flex;gap:18px">
+    <div style="flex:1;min-width:0;position:relative;border-radius:36px;overflow:hidden;background:{{ stageBg }};border:1px solid rgba(255,226,214,0.1)">
+      <sc-if value="{{ pr.cam }}" hint-placeholder-val="{{ true }}">
+        <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg, rgba(255,236,228,0.03) 0 12px, rgba(255,236,228,0.008) 12px 24px)"></div>
+        <div style="position:absolute;top:20px;left:22px;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#8F7F7B">vista de cámara · 16:9</div>
+        <div style="position:absolute;inset:26px;pointer-events:none;background:linear-gradient(#F7EEE9,#F7EEE9) left top / 30px 2px no-repeat, linear-gradient(#F7EEE9,#F7EEE9) left top / 2px 30px no-repeat, linear-gradient(#F7EEE9,#F7EEE9) right top / 30px 2px no-repeat, linear-gradient(#F7EEE9,#F7EEE9) right top / 2px 30px no-repeat, linear-gradient(#F7EEE9,#F7EEE9) left bottom / 30px 2px no-repeat, linear-gradient(#F7EEE9,#F7EEE9) left bottom / 2px 30px no-repeat, linear-gradient(#F7EEE9,#F7EEE9) right bottom / 30px 2px no-repeat, linear-gradient(#F7EEE9,#F7EEE9) right bottom / 2px 30px no-repeat;opacity:0.4"></div>
+        <sc-if value="{{ ovl.skel }}" hint-placeholder-val="{{ true }}">
+          <svg viewBox="0 0 160 90" preserveAspectRatio="xMidYMid meet" style="position:absolute;inset:0;width:100%;height:100%">
+            <path d="M70 17a5 5 0 1 0 0.01 0M70 27L70 52M58 30L82 30M58 30L52 46L60 54M82 30L92 42M70 52L60 54L62 72M70 52L84 56L86 72" style="fill:none;stroke:oklch(0.74 0.15 30);stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round;opacity:0.95;filter:drop-shadow(0 0 2px oklch(0.74 0.15 30))"></path>
+            <path d="M70 17a.6.6 0 1 0 .01 0M58 30a.6.6 0 1 0 .01 0M82 30a.6.6 0 1 0 .01 0M70 52a.6.6 0 1 0 .01 0M60 54a.6.6 0 1 0 .01 0M84 56a.6.6 0 1 0 .01 0" style="fill:none;stroke:#FFF6EE;stroke-width:2;stroke-linecap:round"></path>
+            <path d="M92 41.5a1 1 0 1 0 0.01 0M95 40a1 1 0 1 0 0.01 0M97.5 41a1 1 0 1 0 0.01 0M99 43.5a1 1 0 1 0 0.01 0M60 53a1 1 0 1 0 0.01 0" style="fill:none;stroke:oklch(0.75 0.13 300);stroke-width:1.8;stroke-linecap:round"></path>
+          </svg>
+        </sc-if>
+        <sc-if value="{{ ovl.guitar }}" hint-placeholder-val="{{ true }}">
+          <div style="position:absolute;left:34%;top:50%;width:36%;height:22%;border:3px solid {{ guitarColor }};border-radius:24px;transform:rotate(-16deg);transition:border-color 240ms, box-shadow 240ms;box-shadow:0 0 30px {{ guitarGlow }}, inset 0 0 30px {{ guitarGlow }}">
+            <span style="position:absolute;top:-15px;left:18px;height:26px;padding:0 12px;border-radius:999px;background:{{ guitarColor }};color:#1A0F0C;font-size:12px;font-weight:800;display:flex;align-items:center;transform:rotate(16deg)">Guitarra</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ ovl.piano }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;left:12%;right:12%;bottom:14%;height:30%;display:flex;gap:4px;padding:8px;border-radius:20px;border:2px solid oklch(0.75 0.13 300 / 0.6);box-shadow:0 0 30px oklch(0.75 0.13 300 / 0.25)">
+            <sc-for list="{{ pkeys }}" as="k" hint-placeholder-count="14"><div style="flex:1;border-radius:0 0 8px 8px;background:{{ k.bg }};box-shadow:{{ k.sh }};transition:all 240ms;position:relative"><sc-if value="{{ k.lbl }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:12px;font-weight:800;color:#1A0F0C">Do</span></sc-if></div></sc-for>
+          </div>
+          <div style="position:absolute;left:30%;right:30%;bottom:40%;height:16%">
+            <svg viewBox="0 0 100 30" preserveAspectRatio="none" style="width:100%;height:100%;overflow:visible"><path d="M4 26 C20 4, 80 4, 96 26" style="fill:none;stroke:oklch(0.75 0.13 300);stroke-width:1.4;stroke-dasharray:2 3"></path><path d="M10 22a2 2 0 1 0 .01 0M28 10a2 2 0 1 0 .01 0M50 6a2 2 0 1 0 .01 0M72 10a2 2 0 1 0 .01 0M90 22a2 2 0 1 0 .01 0" style="fill:none;stroke:oklch(0.75 0.13 300);stroke-width:3.4;stroke-linecap:round"></path></svg>
+          </div>
+        </sc-if>
+        <sc-if value="{{ showCounter }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:24px;right:24px;width:196px;height:196px;border-radius:50%;background:rgba(20,10,14,0.72);border:1px solid rgba(255,214,180,0.25);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 50px oklch(0.7 0.17 45 / 0.35);animation:vyPop 420ms both">{{ repEl }}<div style="font-size:13px;color:#E6D9D3;margin-top:4px;text-align:center;line-height:1.3;max-width:130px">{{ pr.unit }}</div></div>
+        </sc-if>
+        <sc-if value="{{ showHold }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:24px;right:24px;width:270px;padding:20px 22px;border-radius:30px;background:rgba(20,10,14,0.76);border:1px solid {{ hold.bd }};backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 0 50px {{ hold.glow }};transition:border-color 300ms, box-shadow 300ms;animation:vyPop 420ms both">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:800;color:{{ hold.lc }};transition:color 300ms"><span style="width:8px;height:8px;border-radius:50%;background:{{ hold.lc }}"></span>{{ hold.label }}</span><span style="display:flex;gap:4px"><sc-for list="{{ hold.heldDots }}" as="d" hint-placeholder-count="3"><span style="width:10px;height:10px;border-radius:50%;background:{{ d }}"></span></sc-for></span></div>
+            <div style="font-family:Syne;font-size:76px;font-weight:800;line-height:1;margin-top:8px;font-variant-numeric:tabular-nums;letter-spacing:-0.03em">{{ hold.big }}<span style="font-size:26px;color:#B8A6A1;letter-spacing:0"> s</span></div>
+            <div style="display:flex;gap:4px;margin-top:14px"><sc-for list="{{ hold.segs }}" as="g" hint-placeholder-count="5"><div style="flex:1;height:10px;border-radius:5px;background:rgba(255,226,214,0.12);overflow:hidden"><div style="width:{{ g.w }};height:100%;border-radius:5px;background:linear-gradient(90deg,#FFC48A,#F27A3E);transition:width 160ms linear"></div></div></sc-for></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:8px"><span style="color:#E6D9D3;font-weight:600">{{ hold.bar }}</span><span style="color:#B8A6A1">{{ hold.heldL }}</span></div>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ audioIdle }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;background:radial-gradient(circle at 50% 45%, {{ pr.glow }}, transparent 60%)">
+          <div style="position:relative;width:170px;height:170px;display:flex;align-items:center;justify-content:center">
+            <div style="position:absolute;inset:0;border-radius:50%;border:1.5px solid {{ pr.color }};animation:vyRing 2.4s ease-out infinite"></div>
+            <div style="position:absolute;inset:0;border-radius:50%;border:1.5px solid {{ pr.color }};animation:vyRing 2.4s 1.2s ease-out infinite"></div>
+            <div style="width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.55), {{ pr.color }} 60%);color:#1A0F0C;display:flex;align-items:center;justify-content:center;box-shadow:0 0 50px {{ pr.glowS }}"><svg viewBox="0 0 24 24" style="width:46px;height:46px;flex-shrink:0"><path d="{{ ic.mic.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ ic.mic.s }}" style="fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round"></path></svg></div>
+          </div>
+          <div style="font-size:15px;color:#B8A6A1">Sin cámara · solo escucho</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isTunerV }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;padding:26px 32px 22px;gap:10px;background:radial-gradient(circle at 50% 62%, oklch(0.78 0.11 220 / 0.16), transparent 60%);animation:vyIn 400ms both">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:20px">
+            <div style="display:flex;align-items:center;gap:22px">
+              <div style="width:124px;height:124px;border-radius:50%;background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.6), oklch(0.78 0.11 220) 60%);color:#1A0F0C;display:flex;align-items:center;justify-content:center;box-shadow:0 0 46px {{ tu.glow }};flex-shrink:0;transition:box-shadow 300ms"><span style="font-family:Syne;font-size:50px;font-weight:800;line-height:1">{{ tu.note }}</span><span style="font-family:Syne;font-size:22px;font-weight:700;align-self:flex-start;margin-top:34px">{{ tu.oct }}</span></div>
+              <div><div style="font-size:13px;color:#B8A6A1;font-weight:600">{{ tu.kicker }}</div><div style="font-size:22px;font-weight:700;line-height:1.25;margin-top:4px;white-space:nowrap">{{ tu.instr }}</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 18px 12px 14px;border-radius:22px;background:rgba(255,236,228,0.05);border:1px solid rgba(255,226,214,0.1);opacity:{{ tu.heardOp }};transition:opacity 300ms">
+              <span style="display:flex;gap:3px;align-items:center;height:22px"><span style="width:3px;height:10px;border-radius:2px;background:oklch(0.78 0.11 220);animation:vyDot 0.9s infinite"></span><span style="width:3px;height:20px;border-radius:2px;background:oklch(0.78 0.11 220);animation:vyDot 0.9s .15s infinite"></span><span style="width:3px;height:14px;border-radius:2px;background:oklch(0.78 0.11 220);animation:vyDot 0.9s .3s infinite"></span></span>
+              <div><div style="font-size:12px;color:#B8A6A1">Se oye</div><div style="font-size:16px;font-weight:700;white-space:nowrap">{{ tu.heard }}</div></div>
+            </div>
+          </div>
+          <div style="flex:1;min-height:200px;position:relative;display:flex;justify-content:center">
+            <svg viewBox="0 0 600 300" style="height:100%;max-width:100%;overflow:visible">
+              <path d="M40 290 A260 260 0 0 1 560 290" style="fill:none;stroke:rgba(255,226,214,0.08);stroke-width:26;stroke-linecap:round"></path>
+              <path d="{{ tu.zoneSoft }}" style="fill:none;stroke:oklch(0.8 0.15 150 / 0.2);stroke-width:26"></path>
+              <path d="{{ tu.zoneHard }}" style="fill:none;stroke:oklch(0.8 0.15 150 / 0.75);stroke-width:26"></path>
+              <path d="{{ tu.ticks }}" style="fill:none;stroke:rgba(255,226,214,0.35);stroke-width:2;stroke-linecap:round"></path>
+              <g style="transform-origin:300px 290px;transform:rotate({{ tu.rot }});transition:transform 160ms ease-out"><path d="M420 290L540 290" style="stroke:{{ tu.c }};stroke-width:10;stroke-linecap:round;opacity:0.25"></path><path d="M420 290L540 290" style="stroke:#FFF6EE;stroke-width:4;stroke-linecap:round"></path></g>
+              <circle cx="300" cy="290" r="16" style="fill:{{ tu.c }};stroke:#0E080B;stroke-width:6;transition:fill 200ms"></circle>
+            </svg>
+            <div style="position:absolute;left:0;right:0;bottom:30px;text-align:center;pointer-events:none"><div style="font-family:Syne;font-size:46px;font-weight:800;line-height:1;color:{{ tu.c }};font-variant-numeric:tabular-nums;transition:color 200ms">{{ tu.cents }}</div><div style="font-size:13px;color:#B8A6A1;margin-top:4px">cents</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;max-width:560px;width:100%;margin:0 auto"><span style="font-size:13px;color:#B8A6A1;white-space:nowrap">Mantén 1 s en afinación</span><div style="flex:1;height:10px;border-radius:6px;background:rgba(255,226,214,0.1);overflow:hidden"><div style="width:{{ tu.holdW }};height:100%;border-radius:6px;background:oklch(0.8 0.15 150);box-shadow:0 0 14px oklch(0.8 0.15 150 / 0.7);transition:width 160ms linear"></div></div><span style="font-size:13px;font-weight:700;width:40px;text-align:right;font-variant-numeric:tabular-nums">{{ tu.holdL }}</span></div>
+          <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-top:6px">
+            <sc-for list="{{ tu.strings }}" as="x" hint-placeholder-count="6">
+              <button onClick="{{ x.pick }}" style="height:112px;border-radius:24px;border:1px solid {{ x.bd }};background:{{ x.bg }};color:#F7EEE9;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:12px 6px 10px;transition:all 280ms cubic-bezier(.2,.8,.2,1)" style-hover="transform:translateY(-2px)">
+                <div style="width:{{ x.w }};height:36px;border-radius:3px;background:{{ x.sc }};box-shadow:{{ x.sh }};animation:{{ x.anim }}"></div>
+                <div style="font-family:Syne;font-weight:700;font-size:17px;white-space:nowrap">{{ x.label }}</div>
+                <div style="font-size:11.5px;font-weight:800;color:{{ x.stc }};white-space:nowrap">{{ x.state }}</div>
+              </button>
+            </sc-for>
+          </div>
+          <div style="display:flex;justify-content:center;align-items:center;gap:10px;font-size:14px;font-weight:600"><span style="display:flex;gap:4px"><sc-for list="{{ tu.dots }}" as="d" hint-placeholder-count="6"><span style="width:8px;height:8px;border-radius:50%;background:{{ d }};transition:background 300ms"></span></sc-for></span>{{ tu.doneL }}</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isPulseV }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;padding:28px 34px 26px;gap:18px;background:radial-gradient(circle at 30% 50%, oklch(0.78 0.11 220 / 0.16), transparent 55%);animation:vyIn 400ms both">
+          <div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:13px;color:#B8A6A1;font-weight:600">Pulso objetivo</span><span style="height:30px;padding:0 14px;border-radius:999px;background:rgba(255,236,228,0.08);font-size:14px;font-weight:800;display:flex;align-items:center">80 BPM</span></div><span style="height:34px;padding:0 14px;border-radius:999px;background:{{ pu.stabBg }};color:{{ pu.stabC }};font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:8px;transition:all 300ms"><span style="width:8px;height:8px;border-radius:50%;background:{{ pu.stabC }}"></span>{{ pu.stab }}</span></div>
+          <div style="flex:1;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center;gap:56px">
+            {{ pulseOrb }}
+            <div><div style="font-family:Syne;font-size:120px;font-weight:800;line-height:0.85;letter-spacing:-0.04em;font-variant-numeric:tabular-nums">{{ pu.bpm }}</div><div style="font-size:15px;color:#B8A6A1;margin-top:10px">BPM · tu pulso</div><div style="font-size:15px;font-weight:600;margin-top:16px;color:{{ pu.avgC }}">{{ pu.avg }}</div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="position:relative;height:96px;border-radius:26px;background:rgba(255,236,228,0.04);border:1px solid rgba(255,226,214,0.08)">
+              <div style="position:absolute;left:16px;right:16px;top:50%;height:1px;background:rgba(255,226,214,0.12)"></div>
+              <sc-for list="{{ pu.slots }}" as="g" hint-placeholder-count="12"><div style="position:absolute;left:{{ g }};top:18px;bottom:18px;width:2px;margin-left:-1px;border-radius:2px;background:rgba(255,226,214,0.18)"></div></sc-for>
+              <sc-for list="{{ pu.hits }}" as="x" hint-placeholder-count="0"><div title="{{ x.t }}" style="position:absolute;left:{{ x.l }};top:50%;width:{{ x.sz }};height:{{ x.sz }};margin-left:{{ x.m }};margin-top:{{ x.m }};border-radius:50%;background:{{ x.c }};box-shadow:{{ x.sh }};transition:left 300ms ease-out, background 300ms;opacity:{{ x.op }}"></div></sc-for>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:#8F7F7B"><span>← antes</span><span style="display:flex;gap:16px"><span>a la izquierda de la línea: adelantado</span><span>a la derecha: atrasado</span></span><span>ahora</span></div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isCheck }}" hint-placeholder-val="{{ true }}">
+        <div style="position:absolute;left:50%;bottom:30px;transform:translateX(-50%);padding:18px 30px;border-radius:28px;background:rgba(20,10,14,0.72);border:1px solid rgba(255,226,214,0.14);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);font-size:30px;font-weight:700;white-space:nowrap;animation:vyUp 360ms both">{{ pr.instr }}</div>
+      </sc-if>
+      <sc-if value="{{ isCount }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;background:radial-gradient(circle, rgba(14,8,11,0.4), rgba(14,8,11,0.85));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">{{ countEl }}<div style="font-size:24px;color:#E6D9D3">Prepárate</div></div>
+      </sc-if>
+      <sc-if value="{{ hasCorr }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;left:24px;right:24px;bottom:24px;display:flex;align-items:center;gap:20px;padding:16px 26px 16px 16px;border-radius:32px;background:rgba(20,10,14,0.8);border:2px solid {{ corrC }};box-shadow:0 0 50px {{ corrG }};backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);animation:vyUp 220ms ease-out both">
+          <div style="width:64px;height:64px;border-radius:50%;background:{{ corrC }};color:#1A0F0C;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" style="width:32px;height:32px;flex-shrink:0"><path d="{{ corrF }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ corrS }}" style="fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"></path></svg></div>
+          <div style="font-size:40px;font-weight:700;letter-spacing:-0.01em">{{ corrText }}</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="width:380px;flex-shrink:0;display:flex;flex-direction:column;gap:14px;overflow-y:auto">
+      <sc-if value="{{ isCalibPhase }}" hint-placeholder-val="{{ true }}">
+        <div style="border-radius:30px;background:radial-gradient(circle at 0% 0%, {{ pr.glow }}, transparent 60%), rgba(255,236,228,0.05);border:1px solid rgba(255,226,214,0.12);padding:20px;display:flex;flex-direction:column;gap:10px;animation:vyUp 400ms both">
+          <div style="font-size:12px;color:oklch(0.82 0.14 55);font-weight:800;letter-spacing:0.12em;text-transform:uppercase">Qué vas a hacer</div>
+          <div style="font-size:18px;font-weight:600;line-height:1.4;text-wrap:pretty">{{ pr.goal }}</div>
+        </div>
+        <div style="border-radius:30px;background:rgba(255,236,228,0.05);border:1px solid rgba(255,226,214,0.1);padding:16px;display:flex;flex-direction:column;gap:4px;animation:vyUp 400ms 80ms both">
+          <div style="font-size:13px;color:#B8A6A1;margin:2px 6px 6px">Comprobaciones por canal</div>
+          <sc-for list="{{ checks }}" as="c" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:14px;padding:8px 6px;border-radius:20px;background:{{ c.rowBg }};transition:background 300ms">
+              <div style="width:46px;height:46px;border-radius:50%;background:{{ c.orb }};color:{{ c.icC }};display:flex;align-items:center;justify-content:center;box-shadow:{{ c.sh }};transition:all 400ms"><svg viewBox="0 0 24 24" style="width:22px;height:22px;flex-shrink:0"><path d="{{ c.f }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ c.s }}" style="fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"></path></svg></div>
+              <div style="flex:1"><div style="font-size:16px;font-weight:700">{{ c.name }}</div><div style="font-size:13px;color:#B8A6A1">{{ c.status }}</div></div>
+              <sc-if value="{{ c.ok }}" hint-placeholder-val="{{ false }}"><div style="width:30px;height:30px;border-radius:50%;background:oklch(0.8 0.15 150);color:#0E080B;display:flex;align-items:center;justify-content:center;animation:vyPop 400ms both"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12.5l4.5 4.5L19 7.5" style="fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;animation:vyCheck 400ms 120ms both"></path></svg></div></sc-if>
+              <sc-if value="{{ c.pending }}" hint-placeholder-val="{{ true }}"><div style="width:30px;height:30px;border-radius:50%;border:2px dashed rgba(255,226,214,0.35);animation:vySpin 3s linear infinite"></div></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ phaseCard.show }}" hint-placeholder-val="{{ false }}">
+        <div style="border-radius:30px;background:rgba(255,236,228,0.05);border:1px solid rgba(255,226,214,0.1);padding:18px 20px;display:flex;flex-direction:column;gap:14px;animation:vyUp 360ms both">
+          <sc-if value="{{ phaseCard.hasPhase }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:16px">
+              <div style="width:58px;height:58px;border-radius:50%;background:{{ phaseCard.orb }};color:#1A0F0C;display:flex;align-items:center;justify-content:center;transition:background 300ms"><svg viewBox="0 0 24 24" style="width:26px;height:26px;transform:{{ phaseCard.rot }};transition:transform 380ms cubic-bezier(.3,1.4,.5,1)"><path d="{{ phaseCard.icon }}" style="fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round"></path></svg></div>
+              <div><div style="font-size:12.5px;color:#B8A6A1">Fase</div><div style="font-family:Syne;font-size:30px;font-weight:700;line-height:1.1">{{ phaseCard.phase }}</div></div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ phaseCard.hasLast }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:{{ phaseCard.lpt }};border-top:{{ phaseCard.lbt }}"><span style="font-size:14px;color:#B8A6A1">Última</span><span style="height:32px;padding:0 14px;border-radius:999px;background:{{ phaseCard.lastBg }};color:{{ phaseCard.lastC }};font-size:14px;font-weight:800;display:flex;align-items:center;transition:all 300ms">{{ phaseCard.last }}</span></div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showTarget }}" hint-placeholder-val="{{ false }}">
+        <div style="border-radius:30px;background:radial-gradient(circle at 100% 0%, oklch(0.75 0.13 300 / 0.22), transparent 60%), rgba(255,236,228,0.05);border:1px solid rgba(255,226,214,0.1);padding:20px;display:flex;flex-direction:column;gap:16px;animation:vyUp 360ms both">
+          <div style="display:flex;align-items:center;gap:18px">
+            <div style="width:92px;height:92px;border-radius:50%;background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.6), oklch(0.75 0.13 300) 60%);color:#1A0F0C;display:flex;align-items:center;justify-content:center;box-shadow:0 0 36px {{ tg.glow }};transition:box-shadow 300ms"><span style="font-family:Syne;font-size:36px;font-weight:800">Do</span><span style="font-family:Syne;font-size:17px;font-weight:700;align-self:flex-start;margin-top:26px">4</span></div>
+            <div><div style="font-size:12.5px;color:#B8A6A1">Toca esta nota</div><div style="font-size:13px;color:#B8A6A1;margin-top:10px">Oigo</div><div style="font-family:Syne;font-size:24px;font-weight:700;color:{{ tg.hc }};transition:color 300ms">{{ tg.heard }}</div></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><span style="display:flex;gap:6px"><sc-for list="{{ tg.dots }}" as="d" hint-placeholder-count="5"><span style="width:26px;height:26px;border-radius:50%;background:{{ d.bg }};border:{{ d.bd }};color:#1A0F0C;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center">{{ d.t }}</span></sc-for></span><span style="font-size:14px;font-weight:700">{{ tg.goodL }}</span></div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showMeas }}" hint-placeholder-val="{{ false }}">
+        <div style="border-radius:30px;background:rgba(255,236,228,0.05);border:1px solid rgba(255,226,214,0.1);padding:18px 20px;display:flex;flex-direction:column;gap:14px;animation:vyUp 360ms 60ms both">
+          <div style="font-size:13px;color:#B8A6A1">Medidas en vivo</div>
+          <sc-for list="{{ meas }}" as="m" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <div style="display:flex;justify-content:space-between;font-size:14px"><span style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:{{ m.c }}"></span>{{ m.label }}</span><span style="font-weight:700;color:{{ m.vc }};font-variant-numeric:tabular-nums;transition:color 300ms">{{ m.val }}</span></div>
+              <div style="position:relative;height:8px;border-radius:5px;background:rgba(255,226,214,0.08)"><div style="position:absolute;left:{{ m.zl }};width:{{ m.zw }};top:0;bottom:0;border-radius:5px;background:oklch(0.8 0.15 150 / 0.3)"></div><div style="position:absolute;left:{{ m.dl }};top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#FFF6EE;box-shadow:0 0 0 3px {{ m.vc }};transition:left 200ms ease-out"></div></div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ meterTuner }}" hint-placeholder-val="{{ false }}">
+        <div style="border-radius:30px;background:rgba(255,236,228,0.05);border:1px solid rgba(255,226,214,0.1);padding:18px;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-size:13px;color:#B8A6A1">Afinación de la nota</div><div style="font-size:15px;font-weight:700;color:{{ tunerC }}">{{ centsLabel }}</div></div>
+          <svg viewBox="0 0 300 168" style="width:100%;height:auto;display:block;overflow:visible">
+            <path d="M30 150 A120 120 0 0 1 270 150" style="fill:none;stroke:rgba(255,226,214,0.1);stroke-width:16;stroke-linecap:round"></path>
+            <path d="M65.1 65.1 A120 120 0 0 1 234.9 65.1" style="fill:none;stroke:oklch(0.8 0.15 150 / 0.5);stroke-width:16"></path>
+            <path d="{{ tunerTicks }}" style="fill:none;stroke:rgba(255,226,214,0.35);stroke-width:1.5;stroke-linecap:round"></path>
+            <g style="transform-origin:150px 150px;transform:rotate({{ tunerRot }});transition:transform 180ms ease-out"><path d="M150 150L250 150" style="stroke:#FFF6EE;stroke-width:3.5;stroke-linecap:round"></path></g>
+            <circle cx="150" cy="150" r="10" style="fill:{{ tunerC }};stroke:#0E080B;stroke-width:4;transition:fill 200ms"></circle>
+          </svg>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#8F7F7B;margin-top:-4px"><span>−50</span><span style="color:oklch(0.8 0.15 150);font-weight:700">afinado ±25</span><span>+50</span></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ meterVol }}" hint-placeholder-val="{{ true }}">
+        <div style="border-radius:30px;background:rgba(255,236,228,0.05);border:1px solid rgba(255,226,214,0.1);padding:18px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:#B8A6A1"><span>Volumen</span><span>{{ volL }}</span></div>
+          <div style="display:flex;gap:3px;height:40px;align-items:center">
+            <sc-for list="{{ level }}" as="l" hint-placeholder-count="28"><div style="flex:1;height:{{ l.h }};border-radius:4px;background:{{ l.bg }};transition:height 140ms ease-out"></div></sc-for>
+          </div>
+        </div>
+      </sc-if>
+      <div style="flex:1"></div>
+      <sc-if value="{{ isTrain }}" hint-placeholder-val="{{ false }}"><button onClick="{{ finish }}" style="white-space:nowrap;height:58px;flex-shrink:0;border-radius:999px;border:0;background:linear-gradient(135deg,#FFC48A 0%,#F27A3E 50%,#D2497A 100%);color:#1A0F0C;font-size:17px;font-weight:700;cursor:pointer;animation:vyUp 320ms both">Terminar sesión</button></sc-if>
+    </div>
+  </div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ showTheme }}" hint-placeholder-val="{{ true }}">
+  <button onClick="{{ toggleTheme }}" title="{{ themeTitle }}" aria-label="{{ themeTitle }}" style="position:absolute;right:14px;bottom:14px;z-index:5;width:34px;height:34px;border-radius:50%;border:1px solid rgba(var(--lr,255,226,214),0.1);background:var(--glass,rgba(255,236,228,0.05));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:var(--mut,#B8A6A1);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0.6;transition:opacity 220ms, transform 300ms cubic-bezier(.2,.8,.2,1)" style-hover="opacity:1;transform:rotate(25deg)"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="{{ thF }}" style="fill:currentColor;opacity:0.3"></path><path d="{{ thS }}" style="fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"></path></svg></button>
+</sc-if>
+</main>
+
+<sc-if value="{{ hasOv }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;z-index:50;top:{{ ovT }};left:{{ ovL }};width:{{ ovW }};height:{{ ovH }};border-radius:{{ ovR }};background:{{ ovBg }};border:1px solid rgba(255,214,180,0.2);transition:all 480ms cubic-bezier(.4,0,.2,1);pointer-events:none"></div>
+</sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;aiEnabled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;startScreen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;inicio&quot;,&quot;tablero&quot;,&quot;ruta&quot;,&quot;biblioteca&quot;,&quot;como&quot;,&quot;ajustes&quot;,&quot;calib&quot;,&quot;resumen&quot;],&quot;default&quot;:&quot;inicio&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;startSkill&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;guitarra&quot;,&quot;afinar&quot;,&quot;piano_nota&quot;,&quot;sentadilla&quot;,&quot;flexion&quot;,&quot;curl&quot;,&quot;piano_mano&quot;,&quot;pulso&quot;,&quot;rasgueo&quot;],&quot;default&quot;:&quot;guitarra&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;sidebarCollapsed&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = { screen: null, msgs: [], draft: '', thinking: false, typing: null, quick: null, phase: 0, ph: 0, aiOn: null, collapsed: null, drawn: false, p: 0, range: '30', dashSkill: 'Todas', libCh: 'todos', libCat: 'Todas', review: null, ov: null, calib: null, theme: null, hi: null, hd: null, he: null, hrT: null, hrR: null, focusCh: 'cuerpo', selStep: 1, auxRead: false };
+  threadRef = React.createRef();
+  timers = [];
+  GRAD = 'linear-gradient(135deg,#FFC48A 0%,#F27A3E 50%,#D2497A 100%)';
+  IC = {
+    inicio: { f: 'M12 3.5c4.7 0 8.5 3.2 8.5 7.3s-3.8 7.3-8.5 7.3c-1.1 0-2.1-.2-3.1-.5L4.5 19.8l1.3-3.9C4.4 14.6 3.5 12.8 3.5 10.8c0-4.1 3.8-7.3 8.5-7.3z', s: 'M12 3.5c4.7 0 8.5 3.2 8.5 7.3s-3.8 7.3-8.5 7.3c-1.1 0-2.1-.2-3.1-.5L4.5 19.8l1.3-3.9C4.4 14.6 3.5 12.8 3.5 10.8c0-4.1 3.8-7.3 8.5-7.3zM12 6.8l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4-2.4-1 2.4-1z' },
+    tablero: { f: 'M3.5 16l5-4.5 3.5 2.5 8.5-7.5v14h-17z', s: 'M3.5 3.5v17h17M3.5 16l5-4.5 3.5 2.5 8.5-7.5M16.5 6.5h4v4' },
+    ruta: { f: 'M17 2.8a3.7 3.7 0 0 1 3.7 3.7c0 2.8-3.7 6.3-3.7 6.3s-3.7-3.5-3.7-6.3A3.7 3.7 0 0 1 17 2.8z', s: 'M17 2.8a3.7 3.7 0 0 1 3.7 3.7c0 2.8-3.7 6.3-3.7 6.3s-3.7-3.5-3.7-6.3A3.7 3.7 0 0 1 17 2.8zM17 6.4h.01M15 19.5H8.2a3.2 3.2 0 0 1 0-6.4h4.3M4.5 13.1h.01M18.5 19.5h.01' },
+    biblioteca: { f: 'M8 7.5h11a1.5 1.5 0 0 1 1.5 1.5v9.5a1.5 1.5 0 0 1-1.5 1.5H8a1.5 1.5 0 0 1-1.5-1.5V9A1.5 1.5 0 0 1 8 7.5z', s: 'M8 7.5h11a1.5 1.5 0 0 1 1.5 1.5v9.5a1.5 1.5 0 0 1-1.5 1.5H8a1.5 1.5 0 0 1-1.5-1.5V9A1.5 1.5 0 0 1 8 7.5zM3.5 16V6A2.5 2.5 0 0 1 6 3.5h10M12 11.3l3.6 2.4-3.6 2.4z' },
+    ajustes: { f: 'M15 4.8a2.7 2.7 0 1 0 0 5.4 2.7 2.7 0 0 0 0-5.4zM9 13.8a2.7 2.7 0 1 0 0 5.4 2.7 2.7 0 0 0 0-5.4z', s: 'M15 4.8a2.7 2.7 0 1 0 0 5.4 2.7 2.7 0 0 0 0-5.4zM9 13.8a2.7 2.7 0 1 0 0 5.4 2.7 2.7 0 0 0 0-5.4zM3.5 7.5h8.8M17.7 7.5h2.8M3.5 16.5h2.8M11.7 16.5h8.8' },
+    como: { f: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18z', s: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 11v5.2M12 7.6v.2' },
+    sun: { f: 'M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', s: 'M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4' },
+    moon: { f: 'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z', s: 'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5zM17 4v3M15.5 5.5h3' },
+    cuerpo: { f: 'M12 2.5a2.4 2.4 0 1 1 0 4.8 2.4 2.4 0 0 1 0-4.8zM9.6 9.6h4.8l-.4 5h-4z', s: 'M12 2.5a2.4 2.4 0 1 1 0 4.8 2.4 2.4 0 0 1 0-4.8zM5.5 10.5l6.5-1.5 6.5 1.5M12 9v5.5M12 14.5l-3.5 6.5M12 14.5l3.5 6.5' },
+    manos: { f: 'M8 12V6.3a1.4 1.4 0 0 1 2.8 0V11V4.6a1.4 1.4 0 0 1 2.8 0V11V5.6a1.4 1.4 0 0 1 2.8 0v7.6c0 4.3-2.4 7.3-6.2 7.3-2.4 0-3.9-1.3-5.2-3.6l-2-3.4a1.3 1.3 0 0 1 2.2-1.3L8 14.2z', s: 'M8 12V6.3a1.4 1.4 0 0 1 2.8 0V11V4.6a1.4 1.4 0 0 1 2.8 0V11V5.6a1.4 1.4 0 0 1 2.8 0v7.6c0 4.3-2.4 7.3-6.2 7.3-2.4 0-3.9-1.3-5.2-3.6l-2-3.4a1.3 1.3 0 0 1 2.2-1.3L8 14.2z' },
+    objeto: { f: 'M12 3l8 4.5v9L12 21l-8-4.5v-9z', s: 'M12 3l8 4.5v9L12 21l-8-4.5v-9zM4 7.5l8 4.5 8-4.5M12 12v9' },
+    audio: { f: 'M12 3.5a8.5 8.5 0 1 1 0 17 8.5 8.5 0 0 1 0-17z', s: 'M6 12h.8M9 9v6M12 6.5v11M15 9v6M18 12h-.8' },
+    warn: { f: 'M12 3.5l9.5 16.5h-19z', s: 'M12 3.5l9.5 16.5h-19zM12 10v4.5M12 17.2v.2' },
+    lock: { f: 'M5.5 10.5h13v9.5h-13z', s: 'M7.5 10.5V8a4.5 4.5 0 0 1 9 0v2.5M5.5 10.5h13v9.5h-13zM12 14.5v2' },
+    check: { f: '', s: 'M5 12.5l4.5 4.5L19 7.5' },
+    flame: { f: 'M12 2.8c1.2 4 6 6.2 6 11.2a6 6 0 0 1-12 0c0-2.9 1.7-4.6 2.9-5.7.3 2.3 1.5 3.4 2.9 3.7-.6-3.3.2-6.3.2-9.2z', s: 'M12 2.8c1.2 4 6 6.2 6 11.2a6 6 0 0 1-12 0c0-2.9 1.7-4.6 2.9-5.7.3 2.3 1.5 3.4 2.9 3.7-.6-3.3.2-6.3.2-9.2zM12 20a2.5 2.5 0 0 1-2.5-2.5c0-1.6 1.3-2.4 2.5-3.8 1.2 1.4 2.5 2.2 2.5 3.8A2.5 2.5 0 0 1 12 20z' },
+    book: { f: 'M4 5.5c2.5-1 5.5-1 8 .8v13c-2.5-1.8-5.5-1.8-8-.8z', s: 'M4 5.5c2.5-1 5.5-1 8 .8 2.5-1.8 5.5-1.8 8-.8v13c-2.5-1-5.5-1-8 .8-2.5-1.8-5.5-1.8-8-.8zM12 6.3v13' },
+    mic: { f: 'M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z', s: 'M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM6 11a6 6 0 0 0 12 0M12 17v4' },
+    shield: { f: 'M12 3l7.5 3v5.5c0 4.5-3.2 8.2-7.5 9.5-4.3-1.3-7.5-5-7.5-9.5V6z', s: 'M12 3l7.5 3v5.5c0 4.5-3.2 8.2-7.5 9.5-4.3-1.3-7.5-5-7.5-9.5V6zM9 12l2 2 4-4' },
+    offline: { f: 'M12 17.4a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6z', s: 'M3 3l18 18M8.5 15.5a5 5 0 0 1 7 0M5 12a10 10 0 0 1 4.5-2.6M14.5 9.5A10 10 0 0 1 19 12M2 8.5a15 15 0 0 1 4.3-2.6M10.5 4.6A15 15 0 0 1 22 8.5M12 19.2h.01' },
+    target: { f: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18z', s: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM12 11.2a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6z' },
+    camera: { f: 'M3.5 7.5h17v11h-17z', s: 'M3.5 7.5h4l1.5-2.5h6l1.5 2.5h4v11h-17zM12 10a3 3 0 1 1 0 6 3 3 0 0 1 0-6z' },
+    play: { f: 'M8 5.5v13l10.5-6.5z', s: 'M8 5.5v13l10.5-6.5z' }
+  };
+  CHN = { cuerpo: 'Cuerpo', manos: 'Manos', objeto: 'Objeto', audio: 'Audio' };
+  CHD = { cuerpo: 'oklch(0.74 0.15 30)', manos: 'oklch(0.75 0.13 300)', objeto: 'oklch(0.84 0.13 85)', audio: 'oklch(0.78 0.11 220)' };
+  CHL = { cuerpo: 'oklch(0.56 0.17 30)', manos: 'oklch(0.52 0.16 300)', objeto: 'oklch(0.58 0.13 70)', audio: 'oklch(0.52 0.13 235)' };
+  QD = { good: 'oklch(0.8 0.15 150)', mid: 'oklch(0.83 0.14 75)', bad: 'oklch(0.68 0.19 25)' };
+  QL = { good: 'oklch(0.56 0.15 150)', mid: 'oklch(0.62 0.14 65)', bad: 'oklch(0.55 0.2 25)' };
+  LIGHT = { bg: '#F2E9E3', side: 'rgba(255,255,255,0.55)', glass: 'rgba(255,255,255,0.56)', line: 'rgba(90,45,30,0.1)', gsh: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 24px 50px -30px rgba(90,40,25,0.35)', t1: '#2A1814', t2: '#3B2722', mut: '#6C5650', mut2: '#7E6862', sunk: 'rgba(90,45,30,0.06)', lr: '90,45,30', accT: 'oklch(0.52 0.16 38)', glowA: 'oklch(0.86 0.1 55 / 0.75)', glowB: 'oklch(0.84 0.08 340 / 0.65)', glowC: 'oklch(0.9 0.06 90 / 0.6)' };
+  REPQ = [1,1,1,1,0.5,1,1,1,0.5,1,1,0,1,1,0.5,1,1,0,1,0.5,0.5,0,0.5,0];
+
+  theme() { return this.state.theme ?? this.props.theme ?? 'dark'; }
+  applyTheme(t) {
+    this._applied = t;
+    const st = document.documentElement.style;
+    Object.keys(this.LIGHT).forEach(k => t === 'light' ? st.setProperty('--' + k, this.LIGHT[k]) : st.removeProperty('--' + k));
+    st.colorScheme = t;
+  }
+  setTheme(t) {
+    if (t === this.theme()) return;
+    const run = () => { this.applyTheme(t); this.setState({ theme: t }); };
+    document.startViewTransition ? document.startViewTransition(run) : run();
+  }
+  componentDidMount() {
+    this.applyTheme(this.theme());
+    this.phI = setInterval(() => this.setState(s => ({ ph: s.ph + 1 })), 3200);
+    this.onKeyG = e => {
+      if (e.key === 'Escape' && this.cur() === 'calib') this.leaveCalib('ruta');
+      if (e.key === 'k' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); this.go('inicio'); }
+    };
+    window.addEventListener('keydown', this.onKeyG);
+    this.enter(this.cur());
+  }
+  componentWillUnmount() { clearInterval(this.phI); window.removeEventListener('keydown', this.onKeyG); this.clear(); cancelAnimationFrame(this.rafP); }
+  componentDidUpdate(pp, ps) {
+    pp = pp || {}; ps = ps || {};
+    if (this._applied !== this.theme()) this.applyTheme(this.theme());
+    if (ps.msgs !== this.state.msgs || ps.typing !== this.state.typing || ps.thinking !== this.state.thinking || ps.quick !== this.state.quick) {
+      const el = this.threadRef.current; if (el) el.scrollTop = el.scrollHeight;
+    }
+    if (pp.startScreen !== this.props.startScreen && this.state.screen === null) this.go(this.props.startScreen);
+  }
+  cur() { return this.state.screen ?? this.props.startScreen ?? 'inicio'; }
+  ai() { return this.state.aiOn ?? (this.props.aiEnabled ?? true); }
+  later(ms, fn) { const t = setTimeout(fn, ms); this.timers.push(t); return t; }
+  clear() { this.timers.forEach(clearTimeout); this.timers = []; clearInterval(this.meterI); clearInterval(this.repI); }
+  countUp() {
+    cancelAnimationFrame(this.rafP);
+    const t0 = performance.now(), T = 1100;
+    const tick = now => { const k = Math.min(1, (now - t0) / T); this.setState({ p: 1 - Math.pow(1 - k, 3) }); if (k < 1) this.rafP = requestAnimationFrame(tick); };
+    this.setState({ p: 0 }); this.rafP = requestAnimationFrame(tick);
+  }
+  enter(screen) {
+    this.setState({ drawn: false, hi: null, hd: null, he: null, hrT: null, hrR: null });
+    this.later(90, () => this.setState({ drawn: true }));
+    if (screen === 'tablero' || screen === 'resumen' || screen === 'ruta') this.countUp();
+    if (screen === 'calib') this.startCalib(this.state.skill || this.props.startSkill);
+  }
+  go(screen) {
+    if (this.cur() === 'calib') this.clear();
+    this.setState({ screen, calib: screen === 'calib' ? this.state.calib : null });
+    if (screen !== 'calib') this.enter(screen);
+  }
+
+  think(ms, fn) { this.setState({ thinking: true }); this.later(ms, () => { this.setState({ thinking: false }); fn(); }); }
+  push(m) { this.setState(s => ({ msgs: [...s.msgs, { id: Math.random().toString(36).slice(2), ...m }] })); }
+  say(full, done) {
+    const id = 'c' + Date.now();
+    this.setState(s => ({ msgs: [...s.msgs, { id, type: 'coach', full }], typing: { id, n: 0 } }));
+    const step = () => {
+      const t = this.state.typing; if (!t || t.id !== id) return;
+      const n = Math.min(full.length, t.n + 2);
+      this.setState({ typing: { id, n } });
+      if (n < full.length) this.later(20, step); else { this.setState({ typing: null }); done && done(); }
+    };
+    this.later(20, step);
+  }
+  send(text) {
+    text = (text || '').trim();
+    if (!text || this.state.thinking || this.state.typing) return;
+    this.push({ type: 'user', text });
+    this.setState({ draft: '', quick: null });
+    if (!this.ai()) { this.think(700, () => this.push({ type: 'invite' })); return; }
+    const p = this.state.phase;
+    if (p === 0) { this.setState({ phase: 1 }); this.think(1100, () => this.say('¡Buen objetivo! ¿Tocas sentado o de pie, y la guitarra es acústica o eléctrica?', () => this.setState({ quick: ['Sentado, acústica', 'De pie, eléctrica'] }))); }
+    else if (p === 1) { this.setState({ phase: 2 }); this.think(1400, () => this.say('Perfecto. Te armé una ruta de 5 pasos.', () => this.later(200, () => this.push({ type: 'route' })))); }
+    else this.think(900, () => this.say('Cuando quieras empezamos. Te miro con la cámara y te aviso si la guitarra se inclina.'));
+  }
+  newChat() { this.clear(); this.setState({ msgs: [], phase: 0, thinking: false, typing: null, quick: null, draft: '' }); }
+
+  SK = {
+    sentadilla: { name: 'Sentadilla', display: 'counter', ch: ['cuerpo'], goal: 'Baja como si te sentaras en una silla, con la espalda recta.', instr: 'Ponte de lado, de cuerpo entero', unit: 'sentadillas bien hechas', corr: [['Baja más la cadera', 'cuerpo'], ['Pecho arriba', 'cuerpo']], alert: 'Ajusté la profundidad a tu altura', ov: { skel: 1 } },
+    flexion: { name: 'Flexión', display: 'counter', ch: ['cuerpo'], goal: 'Baja el pecho hasta casi tocar el suelo, con el cuerpo en línea.', instr: 'Ponte de lado, a ras de suelo', unit: 'flexiones bien hechas', corr: [['Cadera arriba', 'cuerpo'], ['Baja un poco más', 'cuerpo']], ov: { skel: 1 } },
+    curl: { name: 'Curl de bíceps', display: 'counter', ch: ['cuerpo'], goal: 'Sube la pesa sin mover el codo y bájala del todo.', instr: 'Ponte de frente a la cámara', unit: 'repeticiones bien hechas', corr: [['Codo quieto', 'cuerpo'], ['Baja del todo', 'cuerpo']], ov: { skel: 1 } },
+    piano_mano: { name: 'Mano al piano', display: 'counter', ch: ['manos'], goal: 'Apoya la mano con los dedos curvos y la muñeca a la altura del teclado.', instr: 'Enfoca el teclado desde arriba', unit: 'posiciones correctas', corr: [['Curva los dedos', 'manos'], ['Sube la muñeca', 'manos']], ov: { piano: 1 } },
+    piano_nota: { name: 'Nota Do al piano', display: 'target', ch: ['manos', 'audio'], goal: 'Toca Do central con la mano bien colocada.', instr: 'Enfoca el teclado y toca una tecla', corr: [['Coloca el pulgar sobre Do', 'manos']], ov: { piano: 1 } },
+    guitarra: { name: 'Postura con guitarra', display: 'hold', ch: ['cuerpo', 'manos', 'objeto', 'audio'], goal: 'Mantén la postura con la guitarra apoyada durante 5 segundos.', instr: 'Siéntate y apoya la guitarra en la pierna', corr: [['Endereza la guitarra', 'objeto'], ['Relaja el hombro', 'cuerpo']], ov: { skel: 1, guitar: 1 } },
+    afinar: { name: 'Afinar una cuerda', display: 'tuner', ch: ['audio'], cam: false, goal: 'Toca cada cuerda al aire y gira la clavija hasta que la aguja quede en el centro.', instr: 'Toca una cuerda al aire', alert: 'No oigo una guitarra · acércala al micrófono' },
+    pulso: { name: 'Pulso constante', display: 'pulse', ch: ['audio'], cam: false, goal: 'Da una palmada en cada pulso, sin acelerar ni frenar.', instr: 'Da unas palmadas para probar' },
+    rasgueo: { name: 'Rasgueo a tiempo', display: 'pulse', ch: ['audio'], cam: false, goal: 'Rasguea una vez en cada pulso, sin acelerar ni frenar.', instr: 'Rasguea una vez para probar' }
+  };
+  STR = [['Mi', '2'], ['La', '2'], ['Re', '3'], ['Sol', '3'], ['Si', '3'], ['Mi', '4']];
+  newCalib(skill) { const sk = this.SK[skill]; return { skill, checks: sk.ch.map(() => 0), phase: 'check', count: 3, reps: 0, level: 0.3, cents: 30, corr: null, t0: Date.now(), last: null, bodyPhase: 'Arriba', hold: { ms: 0, held: 0, out: false }, tuner: { idx: 0, done: [0, 0, 0, 0, 0, 0], holdMs: 0 }, target: { good: 0, judged: 0, hist: [], heard: null, hc: 0 }, hits: [], alert: null, k: 0 }; }
+  startFromCard(e, skill) {
+    skill = skill || 'guitarra';
+    this.setState({ skill });
+    const card = e && e.currentTarget && e.currentTarget.closest('[data-card]');
+    const r = card ? card.getBoundingClientRect() : { top: innerHeight / 2 - 60, left: innerWidth / 2 - 200, width: 400, height: 120 };
+    this.clear();
+    this.setState({ ov: { t: r.top, l: r.left, w: r.width, h: r.height, full: false } });
+    requestAnimationFrame(() => requestAnimationFrame(() => this.setState({ ov: { t: 0, l: 0, w: innerWidth, h: innerHeight, full: true } })));
+    setTimeout(() => { this.setState({ screen: 'calib', ov: null }); this.startCalib(skill); }, 520);
+  }
+  upd(f) { this.setState(s => s.calib ? { calib: { ...s.calib, ...f(s.calib) } } : null); }
+  startCalib(skill) {
+    skill = skill || this.state.skill || this.props.startSkill || 'guitarra';
+    const sk = this.SK[skill]; this.clear(); this._drift = 0;
+    this.setState({ skill, calib: this.newCalib(skill) });
+    const n = sk.ch.length;
+    this.meterI = setInterval(() => this.setState(s => {
+      if (!s.calib) return null; const c = { ...s.calib }, d = sk.display, tr = c.phase === 'train';
+      c.level = 0.3 + Math.random() * 0.6;
+      if (!tr) c.cents = c.cents * 0.9 + (Math.random() * 6 - 3);
+      else if (d === 'tuner') {
+        const t = { ...c.tuner, done: [...c.tuner.done] };
+        if (!c.alert && t.done.includes(0)) {
+          c.cents = Math.max(-48, Math.min(48, c.cents * 0.9 + (Math.random() * 7 - 3.5)));
+          t.holdMs = Math.abs(c.cents) <= 5 ? t.holdMs + 160 : Math.max(0, t.holdMs - 240);
+          if (t.holdMs >= 1000) { t.done[t.idx] = 1; t.holdMs = 0; const nx = t.done.indexOf(0); if (nx >= 0) { t.idx = nx; c.cents = (Math.random() > 0.5 ? 1 : -1) * (22 + Math.random() * 22); } }
+        }
+        c.tuner = t;
+      } else if (d === 'target') c.cents = c.target.hc + (Math.random() * 6 - 3);
+      else if (d === 'hold') { const hd = { ...c.hold }; if (!hd.out) { hd.ms += 160; if (hd.ms >= 5000) { hd.held += 1; hd.ms = 0; c.last = 'Bien'; } } else hd.ms = 0; c.hold = hd; }
+      return { calib: c };
+    }), 160);
+    for (let i = 0; i < n; i++) this.later(800 + i * 800, () => this.upd(c => { const ch = [...c.checks]; ch[i] = 1; return { checks: ch }; }));
+    const tc = 900 + n * 800;
+    this.later(tc, () => this.upd(() => ({ phase: 'count', count: 3 })));
+    this.later(tc + 1000, () => this.upd(() => ({ count: 2 })));
+    this.later(tc + 2000, () => this.upd(() => ({ count: 1 })));
+    this.later(tc + 3000, () => {
+      this.upd(() => ({ phase: 'train', alert: sk.alert || null, cents: sk.display === 'tuner' ? -38 : 0 }));
+      if (sk.alert) this.later(sk.display === 'tuner' ? 2400 : 3200, () => this.upd(() => ({ alert: null })));
+      const d = sk.display, C = sk.corr || [];
+      if (d === 'counter') this.repI = setInterval(() => this.upd(c => {
+        if (c.bodyPhase === 'Arriba') return { bodyPhase: 'Abajo' };
+        const reps = c.reps + 1; let corr = c.corr;
+        if (reps === 3 && C[0]) corr = { text: C[0][0], ch: C[0][1] };
+        if (reps === 5) corr = null;
+        if (reps === 8 && C[1]) corr = { text: C[1][0], ch: C[1][1] };
+        if (reps === 10) corr = null;
+        return { reps, corr, bodyPhase: 'Arriba', last: reps === 3 || reps === 8 ? 'Mejorable' : 'Bien' };
+      }), 850);
+      if (d === 'hold') this.repI = setInterval(() => this.upd(c => {
+        const k = c.k + 1, hd = { ...c.hold }; let corr = c.corr;
+        if (k === 7) { hd.out = true; corr = { text: C[0][0], ch: C[0][1] }; }
+        if (k === 9) { hd.out = false; corr = null; }
+        if (k === 16) { hd.out = true; corr = { text: C[1][0], ch: C[1][1] }; }
+        if (k === 18) { hd.out = false; corr = null; }
+        return { k, hold: hd, corr };
+      }), 1000);
+      if (d === 'target') this.repI = setInterval(() => this.upd(c => {
+        const t = { ...c.target, hist: [...c.target.hist] }, ok = t.judged === 1 ? false : Math.random() > 0.3;
+        t.judged += 1; if (ok) t.good += 1; t.hist.push(ok); if (t.hist.length > 5) t.hist.shift();
+        t.heard = ok ? 'Do 4' : (Math.random() > 0.5 ? 'Si 3' : 'Re 4'); t.hc = ok ? Math.round(Math.random() * 14 - 7) : (Math.random() > 0.5 ? 1 : -1) * Math.round(30 + Math.random() * 15);
+        return { target: t, last: ok ? 'Bien' : 'Otra nota', corr: t.judged === 2 && C[0] ? { text: C[0][0], ch: C[0][1] } : null };
+      }), 1900);
+      if (d === 'pulse') this.repI = setInterval(() => this.upd(c => {
+        this._drift = Math.max(-45, Math.min(45, (this._drift || 0) + (Math.random() * 16 - 7)));
+        const dev = Math.round(this._drift + (Math.random() * 50 - 25));
+        const hits = [...c.hits, { dev, id: (c.k || 0) + 1 }].slice(-12);
+        return { hits, k: (c.k || 0) + 1 };
+      }), 750);
+    });
+  }
+  leaveCalib(to) { this.clear(); this.setState({ calib: null }); this.go(to); }
+  finishCalib() {
+    const c = this.state.calib, key = (c && c.skill) || 'guitarra', sk = this.SK[key];
+    let stat = '24 rasgueos · 14 limpios';
+    if (c) {
+      if (sk.display === 'tuner') stat = c.tuner.done.filter(Boolean).length + ' de 6 cuerdas afinadas';
+      else if (sk.display === 'hold') stat = c.hold.held + (c.hold.held === 1 ? ' postura mantenida' : ' posturas mantenidas') + ' 5 s';
+      else if (sk.display === 'counter') stat = c.reps + ' ' + sk.unit;
+      else if (sk.display === 'target') stat = c.target.good + ' de ' + c.target.judged + ' notas bien';
+      else if (sk.display === 'pulse') { const h = c.hits; const bpm = h.length > 1 ? Math.round(60000 / (750 + (h[h.length - 1].dev - h[0].dev) / (h.length - 1))) : 80; stat = 'Pulso medio ' + bpm + ' BPM'; }
+    }
+    this.setState({ lastRes: { skill: key, title: sk.name, stat } });
+    this.leaveCalib('resumen');
+  }
+
+  avatar(size, thinking) {
+    const e = React.createElement, rs = thinking ? 1.1 : 3, sp = thinking ? 1.6 : 7;
+    const ring = d => e('div', { style: { position: 'absolute', inset: 0, borderRadius: '50%', border: `${size > 60 ? 1.5 : 1}px solid oklch(0.8 0.14 55 / 0.8)`, animation: `vyRing ${rs}s ${d}s ease-out infinite` } });
+    return e('div', { style: { position: 'relative', width: size, height: size, flexShrink: 0 } },
+      ring(0), ring(rs / 2),
+      e('div', { style: { position: 'absolute', inset: '12%', borderRadius: '50%', overflow: 'hidden', background: 'radial-gradient(circle at 34% 28%, #FFF3E2 0%, #FFBE7A 22%, #F2763C 52%, #B23A63 82%, #5C1E3E 100%)', boxShadow: `0 0 ${Math.round(size * 0.45)}px oklch(0.72 0.18 45 / 0.55), inset 0 -${Math.round(size * 0.08)}px ${Math.round(size * 0.16)}px rgba(60,10,30,0.5)`, animation: `vyBreath ${thinking ? 1 : 3.4}s ease-in-out infinite` } },
+        e('div', { style: { position: 'absolute', inset: '-30%', background: 'conic-gradient(from 0deg, transparent 0 55%, rgba(255,240,220,0.6) 70%, transparent 85%)', animation: `vySpin ${sp}s linear infinite`, mixBlendMode: 'soft-light' } }),
+        e('div', { style: { position: 'absolute', left: '22%', top: '15%', width: '30%', height: '20%', borderRadius: '50%', background: 'rgba(255,255,255,0.55)', filter: `blur(${Math.max(1, size / 30)}px)` } })));
+  }
+  a(c, al) { return c.replace(')', ` / ${al})`); }
+  chip(k) { const color = this.CH[k]; return { key: k, name: this.CHN[k], color, bg: this.a(color, 0.16), glow: this.a(color, 0.45), bd: this.a(color, 0.4), solid: color, f: this.IC[k].f, s: this.IC[k].s }; }
+  curve(P) {
+    let d = `M${P[0][0].toFixed(1)} ${P[0][1].toFixed(1)}`, len = 0; const cum = [0];
+    for (let i = 0; i < P.length - 1; i++) {
+      const p0 = P[i - 1] || P[i], p1 = P[i], p2 = P[i + 1], p3 = P[i + 2] || p2;
+      const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6], c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+      d += ` C${c1[0].toFixed(1)} ${c1[1].toFixed(1)} ${c2[0].toFixed(1)} ${c2[1].toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
+      let pr = p1, sl = 0;
+      for (let t = 1; t <= 20; t++) { const u = t / 20, m = 1 - u; const x = m*m*m*p1[0] + 3*m*m*u*c1[0] + 3*m*u*u*c2[0] + u*u*u*p2[0]; const y = m*m*m*p1[1] + 3*m*m*u*c1[1] + 3*m*u*u*c2[1] + u*u*u*p2[1]; sl += Math.hypot(x - pr[0], y - pr[1]); pr = [x, y]; }
+      len += sl; cum.push(len);
+    }
+    return { d, len: Math.ceil(len) + 2, cum };
+  }
+  fmt(d) { const dt = new Date(2026, 9, 24 - d); return d === 0 ? 'Hoy' : d === 1 ? 'Ayer' : dt.getDate() + ' ' + ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][dt.getMonth()]; }
+
+  necklace(key, unit, msgs) {
+    const W = 1100, H = 150, s = this.state, Q = this.Q;
+    const P = this.REPQ.map((q, i) => [30 + i * (1040 / 23), 75 + Math.sin(i * 0.62) * 30]);
+    const cv = this.curve(P), hv = s[key];
+    const beads = P.map((p, i) => {
+      const q = this.REPQ[i], sz = q === 1 ? 26 : q === 0.5 ? 19 : 13, c = q === 1 ? Q.good : q === 0.5 ? Q.mid : Q.bad;
+      return { l: (p[0] / W * 100) + '%', t: (p[1] / H * 100) + '%', size: sz + 'px', m: (-sz / 2) + 'px', bg: `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.7), ${c} 45%, ${this.a(c, 0.8)})`, sh: (hv === i ? '0 0 0 4px rgba(var(--lr,255,226,214),0.3), ' : '') + (q === 1 ? `0 0 18px ${this.a(c, 0.6)}` : '0 0 0 transparent'), delay: (200 + i * 40) + 'ms', enter: () => this.setState({ [key]: i }) };
+    });
+    const q = hv != null ? this.REPQ[hv] : null;
+    return { d: cv.d, len: cv.len, beads, leave: () => this.setState({ [key]: null }), show: hv != null, tl: hv != null ? (P[hv][0] / W * 100) + '%' : '0', tt: hv != null ? (P[hv][1] / H * 100) + '%' : '0', title: hv != null ? `${unit} ${hv + 1} · ${q === 1 ? 'bien' : q === 0.5 ? 'mejorable' : 'mal'}` : '', text: q != null ? msgs[q === 1 ? 0 : q === 0.5 ? 1 : 2] : '' };
+  }
+  valsTablero(s) {
+    if (this.cur() !== 'tablero') return {};
+    const A = 'oklch(0.74 0.17 45)', Q = this.Q;
+    const allD = [40, 33, 26, 23, 20, 17, 14, 12, 9, 7, 5, 2, 1, 0], allS = [48, 52, 55, 59, 62, 60, 67, 65, 72, 70, 82, 90, 71, 78];
+    const idx = allD.map((d, i) => i).filter(i => s.range === '7' ? allD[i] < 7 : s.range === '30' ? allD[i] < 30 : true);
+    const vals = idx.map(i => allS[i]), days = idx.map(i => allD[i]);
+    const W = 720, H = 230, PX = 44, PY = 30, MIN = 40, MAX = 100, n = vals.length;
+    const yv = v => PY + (MAX - v) / (MAX - MIN) * (H - 2 * PY);
+    const pts = vals.map((v, i) => [PX + i * (W - PX - 16) / (n - 1), yv(v)]);
+    const cv = this.curve(pts);
+    const mx = (n - 1) / 2, my = vals.reduce((a, b) => a + b, 0) / n; let num = 0, den = 0;
+    vals.forEach((v, i) => { num += (i - mx) * (v - my); den += (i - mx) ** 2; });
+    const sl = num / den, t0 = my - sl * mx, t1 = my + sl * mx;
+    const i = s.hi ?? n - 1, pt = pts[i], dl = i > 0 ? vals[i] - vals[i - 1] : 0;
+    const shown = s.hi == null ? Math.round(vals[i] * s.p) : vals[i];
+    const xl = s.range === '7' ? days.map(d => this.fmt(d)) : [0, Math.round((n - 1) / 3), Math.round(2 * (n - 1) / 3), n - 1].map(k => this.fmt(days[k]));
+    const sc = {
+      title: s.range === '7' ? 'Esta semana promedias 80' : s.range === '30' ? 'Subiste 23 puntos en 4 semanas' : 'De 48 a 78 desde que empezaste',
+      sub: s.range === '7' ? '4 sesiones en 7 días, 2 por encima de 80.' : 'La tendencia sigue al alza. Pasa el cursor por la gráfica.',
+      grid: [50, 70, 90].map(v => `M${PX - 6} ${yv(v).toFixed(1)}H${W}`).join(''),
+      ticks: [50, 70, 90].map(v => ({ label: v, top: (yv(v) / H * 100).toFixed(2) + '%' })),
+      d: cv.d, len: cv.len, off: s.drawn ? 0 : cv.len, op: s.drawn ? 1 : 0,
+      area: cv.d + ` L${pts[n - 1][0].toFixed(1)} ${H} L${pts[0][0].toFixed(1)} ${H} Z`,
+      trend: `M${pts[0][0]} ${yv(t0).toFixed(1)} L${pts[n - 1][0]} ${yv(t1).toFixed(1)}`,
+      dots: pts.map(p => `M${(p[0] - 4).toFixed(1)} ${p[1].toFixed(1)}a4 4 0 1 0 8 0a4 4 0 1 0 -8 0`).join(''), xl
+    };
+    const best = Math.max(...vals);
+    const hv = { l: (pt[0] / W * 100) + '%', t: (pt[1] / H * 100) + '%', val: shown, tag: vals[i] === best ? 'Mejor marca · ' + vals[i] : vals[i] + ' pts', date: this.fmt(days[i]) + (s.hi == null ? ' · última sesión' : ''), delta: i === 0 ? 'Primera del periodo' : (dl >= 0 ? '↑ +' : '↓ ') + dl + ' vs. anterior', dBg: dl >= 0 ? this.a(Q.good, 0.18) : this.a(Q.bad, 0.18), dFg: dl >= 0 ? Q.good : Q.bad };
+    const chartMove = e => { const r = e.currentTarget.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width * W; let b = 0, bd = 1e9; pts.forEach((p, k) => { const d = Math.abs(p[0] - x); if (d < bd) { bd = d; b = k; } }); if (b !== this.state.hi) this.setState({ hi: b }); };
+    const seg = (on) => ({ bg: on ? this.GRAD : 'transparent', fg: on ? '#1A0F0C' : 'var(--mut,#B8A6A1)' });
+    const ranges = [['7', '7 días'], ['30', '30 días'], ['all', 'Todo']].map(([k, label]) => ({ label, ...seg(s.range === k), pick: () => { this.setState({ range: k, drawn: false, hi: null }); this.later(60, () => this.setState({ drawn: true })); } }));
+    const dashSkills = ['Todas', 'Sentadilla', 'Postura con guitarra', 'Afinar cuerda'].map(label => ({ label, ...seg(s.dashSkill === label), pick: () => this.setState({ dashSkill: label }) }));
+    const sessMap = {}; allD.forEach((d, k) => sessMap[d] = allS[k]);
+    const daysR = Array.from({ length: 28 }, (_, k) => {
+      const d = 27 - k, v = sessMap[d], on = s.hd === k;
+      const bg = v == null ? 'rgba(var(--lr,255,226,214),0.14)' : d <= 2 ? 'linear-gradient(180deg,#FFD9A8,#F27A3E)' : this.a(A, v < 65 ? 0.45 : v < 80 ? 0.72 : 1);
+      return { bg, h: on ? '32px' : v == null ? '16px' : '24px', rot: (k * 360 / 28) + 'deg', delay: (k * 18) + 'ms', title: this.fmt(d), enter: () => this.setState({ hd: k }) };
+    });
+    const hdD = s.hd != null ? 27 - s.hd : null, hdV = hdD != null ? sessMap[hdD] : null;
+    const ringC = s.hd == null ? { big: '3', unit: 'días seguidos', sub: '12 sesiones en las últimas 4 semanas' } : { big: hdV ?? '—', unit: hdV != null ? 'puntos' : 'sin sesión', sub: this.fmt(hdD) + (hdV != null ? (hdD <= 2 ? ' · parte de tu racha' : ' · sesión completada') : ' · día de descanso') };
+    const gd = {
+      cuerpo: ['Inclinación del torso', 'Tu torso se inclina menos', [32, 30, 27, 28, 24, 22, 21, 19, 18], 10, 20, 0, 40, '°'],
+      manos: ['Ángulo de la muñeca', 'Tu muñeca ya entra en rango', [34, 31, 29, 27, 26, 24, 22, 23, 21], 10, 25, 0, 40, '°'],
+      objeto: ['Inclinación de la guitarra', 'La guitarra se mantiene más estable', [8, 14, 6, 18, 12, 22, 17, 20, 19], 15, 30, 0, 40, '°'],
+      audio: ['Desviación de afinación', 'Afinas más cerca de la nota', [38, -30, 26, -22, 18, 14, -12, 9, 6], -25, 25, -50, 50, ' cents']
+    }[s.focusCh];
+    const [gname, gtitle, ghist, lo, hi, gmin, gmax, unit] = gd, gv = ghist[ghist.length - 1], gc = this.CH[s.focusCh];
+    const ang = v => 180 - (v - gmin) / (gmax - gmin) * 180;
+    const P = (a, r) => [140 + r * Math.cos(a * Math.PI / 180), 140 - r * Math.sin(a * Math.PI / 180)];
+    const arc = (a0, a1, r) => { const p0 = P(a0, r), p1 = P(a1, r); return `M${p0[0].toFixed(2)} ${p0[1].toFixed(2)} A${r} ${r} 0 0 1 ${p1[0].toFixed(2)} ${p1[1].toFixed(2)}`; };
+    let ticks = ''; for (let k = 0; k <= 20; k++) { const a = 180 - k * 9, r0 = k % 5 === 0 ? 92 : 97, p0 = P(a, r0), p1 = P(a, 102); ticks += `M${p0[0].toFixed(1)} ${p0[1].toFixed(1)}L${p1[0].toFixed(1)} ${p1[1].toFixed(1)}`; }
+    const sp = ghist.map((v, k) => [4 + k * (252 / (ghist.length - 1)), 4 + (gmax - v) / (gmax - gmin) * 42]);
+    const yb = v => 4 + (gmax - v) / (gmax - gmin) * 42;
+    const g = { name: gname, title: gtitle, color: gc, track: arc(180, 0, 120), zone: arc(ang(lo), ang(hi), 120), zoneC: this.a(gc, 0.55), ticks, rot: (s.drawn ? -ang(gv) : -180) + 'deg', val: (gv > 0 && unit !== '°' ? '+' : '') + gv + unit, minL: gmin + unit.trim(), maxL: gmax + unit.trim(), zoneL: 'objetivo ' + lo + '–' + hi + unit, spark: this.curve(sp).d, bandY: yb(hi), bandH: yb(lo) - yb(hi), band: this.a(gc, 0.14) };
+    const chTabs = ['cuerpo', 'manos', 'objeto', 'audio'].map(k => { const c = this.chip(k), on = s.focusCh === k; return { ...c, pick: () => { this.setState({ focusCh: k }); }, bgc: on ? c.color : c.bg, fgc: on ? '#2A0F1A' : c.color, bd: on ? c.color : 'transparent', sh: on ? `0 0 20px ${c.glow}` : 'none' }; });
+    const cb = this.CH.cuerpo;
+    const errs = [['Baja más la cadera', 14, '↓ 3 menos', 'Sigue siendo tu error más común, pero ya aparece menos que el mes pasado.', 150, '0px', '24px', '40px', Q.good], ['Pecho arriba', 8, '↓ 2 menos', 'Mejora constante: cada semana lo corriges antes.', 112, '168px', '0px', '30px', Q.good], ['Rodillas hacia fuera', 5, '↑ 1 más', 'Subió un poco en las últimas sesiones. Vigila que las rodillas sigan la línea de los pies.', 94, '152px', '118px', '26px', Q.bad]];
+    const he = s.he ?? 0;
+    const bubbles = errs.map(([msg, count, delta, tip, size, x, y, fs], k) => ({ msg, count, x, y, fs, size: size + 'px', bg: `radial-gradient(circle at 35% 28%, rgba(255,255,255,0.55), ${cb} 50%, ${this.a(cb, 0.75)})`, bd: this.a(cb, 0.6), sh: he === k ? `0 0 0 5px ${this.a(cb, 0.25)}, 0 0 40px ${this.a(cb, 0.55)}` : `0 0 24px ${this.a(cb, 0.3)}`, delay: (300 + k * 140) + 'ms', enter: () => this.setState({ he: k }) }));
+    const bTip = { delta: errs[he][0] + ' ' + errs[he][2], text: errs[he][3], c: errs[he][8] };
+    const neckT = this.necklace('hrT', 'Repetición', ['Profundidad y espalda correctas', 'Pecho un poco caído', 'No bajaste lo suficiente']);
+    const qLegend = [['Bien', Q.good, '14px'], ['Mejorable', Q.mid, '11px'], ['Mal', Q.bad, '8px']].map(([l, c, sz]) => ({ l, c, s: sz }));
+    const spark = v => this.curve(v.map((y, k) => [3 + k * (134 / (v.length - 1)), 28 - y * 24])).d;
+    const hist = [
+      ['Hoy · 18:30', 'Sentadilla', ['cuerpo'], '24 repeticiones', 78, [1, 1, 1, 0.5, 1, 0.5, 0, 0.5]],
+      ['Ayer', 'Afinar cuerda al aire', ['audio'], '6 cuerdas', 71, [0.5, 0.5, 1, 0.5, 1, 1, 0.5, 1]],
+      ['22 oct', 'Postura con guitarra', ['cuerpo', 'manos', 'objeto', 'audio'], '12 min', 90, [1, 1, 1, 1, 0.5, 1, 1, 1]],
+      ['19 oct', 'Sentadilla', ['cuerpo'], '20 repeticiones', 82, [1, 1, 0.5, 1, 1, 0.5, 1, 0.5]],
+      ['17 oct', 'Pulso constante', ['audio'], '3 min', 70, [0.5, 1, 0.5, 0.5, 1, 0.5, 1, 1]]
+    ].map(([date, skill, ch, reps, score, v]) => { const c = this.chip(ch.length > 1 ? 'objeto' : ch[0]), col = score >= 80 ? Q.good : score >= 70 ? Q.mid : Q.bad; return { date, skill, reps, score, chs: ch.map(k => this.chip(k)), f: c.f, s: c.s, orb: `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.6), ${c.color} 55%)`, glow: c.glow, spark: spark(v), sc: col, off: (144.5 * (1 - score / 100 * s.p)).toFixed(1) }; });
+    return { sc, hv, chartMove, chartLeave: () => this.setState({ hi: null }), ranges, dashSkills, nxOff: (515.2 * (1 - 0.4 * s.p)).toFixed(1), days: daysR, ringC, clearHd: () => this.setState({ hd: null }), g, chTabs, bubbles, bTip, neckT, qLegend, hist };
+  }
+  valsRuta(s) {
+    if (this.cur() !== 'ruta') return {};
+    const A = 'oklch(0.74 0.17 45)', P = [[80, 210], [290, 90], [480, 200], [650, 100], [840, 210], [1030, 95]];
+    const cv = this.curve(P), done = Math.round(cv.cum[1]);
+    const crit2 = s.review === 'ok' ? '3 sesiones con 75+' : '3 sesiones con 80+';
+    const defs = [
+      { kind: 'done', kicker: 'Paso 1 · cumplido', name: 'Postura sentado', ch: ['cuerpo'], desc: 'Espalda recta y hombros relajados al sentarte con la guitarra.', crit: '3 sesiones con 80+', sess: [[82, '12 oct'], [85, '15 oct'], [88, '19 oct']] },
+      { kind: 'cur', kicker: 'Paso 2 · en curso', name: 'Posición de la guitarra', ch: ['objeto'], desc: 'La guitarra apoyada en la pierna, con el mástil ligeramente elevado.', crit: crit2, sess: [[82, 'Ayer'], null, null] },
+      { kind: 'aux', kicker: 'Auxiliar · 3 min', name: 'Por qué importa la muñeca', ch: [], desc: 'Lectura breve. Se marca como cumplida al leerla.' },
+      { kind: 'lock', kicker: 'Paso 3', name: 'Muñeca relajada', ch: ['manos'], desc: 'Muñeca recta y sin tensión mientras rasgueas.', lockText: 'Se desbloquea al cumplir el paso 2.' },
+      { kind: 'lock', kicker: 'Paso 4', name: 'Afinar cuerda al aire', ch: ['audio'], desc: 'Llevar cada cuerda a su nota con ayuda del micrófono.', lockText: 'Se desbloquea al cumplir el paso 3.' },
+      { kind: 'lock', kicker: 'Paso 5', name: 'Todo junto', ch: ['cuerpo', 'manos', 'objeto', 'audio'], desc: 'Los cuatro canales a la vez durante una canción corta.', lockText: 'Los cuatro canales a la vez. Se desbloquea al final.' }
+    ];
+    const rsteps = defs.map((d, i) => {
+      const k = d.kind, auxDone = k === 'aux' && s.auxRead, sel = s.selStep === i;
+      const size = k === 'cur' ? 70 : k === 'aux' ? 38 : k === 'done' || auxDone ? 54 : 50;
+      const I = k === 'done' || auxDone ? this.IC.check : k === 'lock' ? this.IC.lock : k === 'aux' ? this.IC.book : this.IC.objeto;
+      const below = P[i][1] > 150;
+      return { name: d.name, kicker: d.kicker, l: (P[i][0] / 1100 * 100) + '%', t: (P[i][1] / 300 * 100) + '%', size: size + 'px', m: (-size / 2) + 'px', is: (k === 'cur' ? 30 : k === 'aux' ? 17 : 22) + 'px', f: I.f, s: I.s,
+        bg: k === 'done' || auxDone ? this.GRAD : k === 'cur' ? 'var(--bg,#140D11)' : 'var(--glass,rgba(255,236,228,0.08))',
+        bd: k === 'cur' ? '3px solid ' + A : k === 'aux' && !auxDone ? '1.5px dashed rgba(var(--lr,255,226,214),0.4)' : '1px solid rgba(var(--lr,255,226,214),0.14)',
+        fg: k === 'done' || auxDone ? '#2A0F1A' : k === 'cur' ? 'var(--accT,oklch(0.82 0.14 55))' : 'var(--mut,#B8A6A1)',
+        sh: (sel ? '0 0 0 7px rgba(var(--lr,255,226,214),0.14), ' : '') + (k === 'done' ? '0 0 26px oklch(0.74 0.17 45 / 0.5)' : '0 0 0 transparent'),
+        anim: k === 'cur' && !sel ? 'vyNode 2.4s ease-in-out infinite' : 'vyPop 500ms ' + (300 + i * 150) + 'ms both',
+        op: k === 'lock' ? 0.75 : 1, fw: sel ? 800 : 600,
+        lt: below ? (size / 2 + 14) + 'px' : (-(size / 2) - 58) + 'px',
+        pick: () => this.setState({ selStep: i }) };
+    });
+    const d = defs[s.selStep], thr = s.review === 'ok' && s.selStep === 1 ? 75 : 80;
+    const sess = (d.sess || []).map((x, k) => x ? { score: x[0], date: x[1], bg: x[0] >= thr ? this.GRAD : 'rgba(var(--lr,255,226,214),0.08)', fg: x[0] >= thr ? '#1A0F0C' : 'var(--t1,#F7EEE9)', bd: '0', delay: (k * 90) + 'ms' } : { score: '—', date: 'Pendiente', bg: 'transparent', fg: 'var(--mut,#B8A6A1)', bd: '1.5px dashed rgba(var(--lr,255,226,214),0.22)', delay: (k * 90) + 'ms' });
+    const okCount = (d.sess || []).filter(x => x && x[0] >= thr).length;
+    const sel = { ...d, chs: d.ch.map(k => this.chip(k)), hasSess: !!d.sess, sess, count: okCount + ' de 3', isCur: d.kind === 'cur', isAux: d.kind === 'aux', isLock: d.kind === 'lock' };
+    return { road: { d: cv.d, done, dash: done + ' ' + cv.len }, rsteps, sel, rutaOff: (157.1 * (1 - 0.2 * s.p)).toFixed(1),
+      toggleAux: () => this.setState({ auxRead: !s.auxRead }), auxLabel: s.auxRead ? 'Leído ✓' : 'Marcar como leído', auxBg: s.auxRead ? this.GRAD : 'rgba(var(--lr,255,226,214),0.05)', auxFg: s.auxRead ? '#1A0F0C' : 'var(--t1,#F7EEE9)',
+      reviewOpen: !s.review, reviewClosed: !!s.review, reviewMsg: s.review === 'ok' ? 'Ajuste aplicado. El paso 2 ahora pide 3 sesiones con 75+.' : 'Mantengo el criterio en 80+.', reviewC: s.review === 'ok' ? this.Q.good : 'var(--mut,#B8A6A1)',
+      beforeDeco: s.review === 'ok' ? 'line-through' : 'none', beforeOp: s.review === 'ok' ? 0.5 : 1,
+      acceptReview: () => this.setState({ review: 'ok' }), rejectReview: () => this.setState({ review: 'no' }) };
+  }
+  valsBiblio(s) {
+    if (this.cur() !== 'biblioteca') return {};
+    const skills = [
+      ['Sentadilla', ['cuerpo'], 'Fitness', 'Profundidad y espalda recta en cada repetición.', 'Cámara de cuerpo entero', false, 'sentadilla'],
+      ['Flexión', ['cuerpo'], 'Fitness', 'Línea recta de la cabeza a los talones.', 'Cámara de lado, a ras de suelo', false, 'flexion'],
+      ['Curl de bíceps', ['cuerpo'], 'Fitness', 'Codo quieto y recorrido completo.', 'Cámara de frente', false, 'curl'],
+      ['Mano al piano', ['manos'], 'Música', 'Dedos curvos y muñeca a la altura del teclado.', 'Cámara sobre el teclado', false, 'piano_mano'],
+      ['Nota al piano', ['manos', 'audio'], 'Música', 'La nota correcta con la mano bien colocada.', 'Cámara, micrófono y piano', false, 'piano_nota'],
+      ['Pulso constante', ['audio'], 'Música', 'Mantienes el tempo sin acelerar.', 'Micrófono', false, 'pulso'],
+      ['Afinar cuerda al aire', ['audio'], 'Música', 'Te guío hasta la nota exacta, en cents.', 'Micrófono y guitarra', false, 'afinar'],
+      ['Postura con guitarra', ['cuerpo', 'manos', 'objeto', 'audio'], 'Música', 'Espalda, mano, guitarra y sonido a la vez.', 'Cámara, micrófono y guitarra', false, 'guitarra'],
+      ['Rasgueo a tiempo', ['audio'], 'Mis habilidades', 'Mide si cada rasgueo cae a tiempo.', 'Micrófono y guitarra', true, 'rasgueo']
+    ];
+    const lib = skills.filter(k => (s.libCh === 'todos' || k[1].includes(s.libCh)) && (s.libCat === 'Todas' || k[2] === s.libCat))
+      .map(([name, ch, cat, line, needs, exp, img], i) => { const c = this.CH[ch[0]]; return { start: e => this.startFromCard(e, img), bgImg: 'url("assets/illus/' + img + '.svg")', name, cat: exp ? 'Generada por el coach' : cat, line, needs, exp: !!exp, chs: ch.map(k => this.chip(k)), ph: 'ilustración · ' + name.toLowerCase(), tint: this.a(c, 0.3), rim: this.a(c, 0.45), glow: this.a(c, 0.22), delay: (i * 50) + 'ms' }; });
+    const fb = on => ({ bg: on ? this.GRAD : 'transparent', fg: on ? '#1A0F0C' : 'var(--t2,#E6D9D3)' });
+    const libChs = [['todos', 'Todos', null], ...['cuerpo', 'manos', 'objeto', 'audio'].map(k => [k, this.CHN[k], k])].map(([k, label, ck]) => ({ label, ...fb(s.libCh === k), s: ck ? this.IC[ck].s : this.IC.target.s, dot: ck ? (s.libCh === k ? '#1A0F0C' : this.CH[ck]) : 'var(--mut,#B8A6A1)', dotBg: ck ? (s.libCh === k ? 'rgba(255,255,255,0.4)' : this.a(this.CH[ck], 0.18)) : 'rgba(var(--lr,255,226,214),0.08)', pick: () => this.setState({ libCh: k }) }));
+    const libCats = ['Todas', 'Fitness', 'Música', 'Mis habilidades'].map(k => ({ label: k === 'Mis habilidades' ? 'Generadas por mí' : k, ...fb(s.libCat === k), pick: () => this.setState({ libCat: k }) }));
+    return { lib, libChs, libCats, libEmpty: lib.length === 0, createSkill: () => { this.go('inicio'); this.setState({ draft: 'Quiero crear una habilidad para ' }); } };
+  }
+  valsResumen(s) {
+    if (this.cur() !== 'resumen') return {};
+    const Q = this.Q, ai = this.ai();
+    const neckR = this.necklace('hrR', 'Rasgueo', ['Limpio', 'Hombro tenso', 'La guitarra se inclinó']);
+    const breakdown = [[14, 'limpios', Q.good, '22px'], [6, 'mejorables', Q.mid, '17px'], [4, 'fallidos', Q.bad, '12px']].map(([n, l, c, sz]) => ({ n, l, c, sz, g: this.a(c, 0.5) }));
+    const pips = (n, c) => Array.from({ length: 4 }, (_, k) => k < n ? c : 'rgba(var(--lr,255,226,214),0.1)');
+    const rErrs = [['Endereza la guitarra', 4, 'objeto'], ['Relaja el hombro', 2, 'cuerpo']].map(([msg, n, k]) => ({ msg, n, ...this.chip(k), pips: pips(n, this.CH[k]) }));
+    const lr = s.lastRes || { skill: 'guitarra', title: 'Posición de la guitarra', stat: '24 rasgueos · 14 limpios' };
+    return { resTitle: lr.title, resStat: lr.stat, repeatSkill: e => this.startFromCard(e, lr.skill), neckR, breakdown, rErrs, ringN: Math.round(84 * s.p), ringOff: (678.6 * (1 - 0.84 * s.p)).toFixed(1), goodBg: this.a(Q.good, 0.16), goodC: Q.good,
+      summaryLabel: ai ? 'Resumen del coach' : 'Consejo de la sesión',
+      summaryText: ai ? 'Hiciste 24 rasgueos y 14 salieron limpios. La guitarra se te inclinó 4 veces, casi todas al final: cuando notes cansancio, para un momento y vuelve a apoyarla. Subiste 13 puntos respecto a la sesión anterior.' : 'Cuando notes cansancio, para un momento y vuelve a apoyar la guitarra en la pierna. Los fallos se acumulan en los últimos rasgueos.' };
+  }
+  valsMisc(s) {
+    const scr = this.cur(), ai = this.ai(), light = this.theme() === 'light';
+    if (scr !== 'como' && scr !== 'ajustes') return {};
+    const como = [['Dime qué quieres aprender', 'Conversas con el coach.', 'inicio', 'oklch(0.8 0.13 60)'], ['Armo tu ruta', 'Pasos claros, a tu ritmo.', 'ruta', 'oklch(0.74 0.15 30)'], ['Te miro y te escucho', 'Cámara y micrófono, corrección en vivo.', 'camera', 'oklch(0.72 0.14 340)'], ['Ves cómo mejoras', 'Gráficas y consejos.', 'tablero', 'oklch(0.75 0.13 300)']]
+      .map(([t, s2, ic, color], i) => ({ n: i + 1, t, s2, color, glow: this.a(color, 0.45), f: this.IC[ic].f, s: this.IC[ic].s, delay: (i * 110) + 'ms', fd: (-i * 1.4) + 's' }));
+    const promises = [['Privado', 'Tu video y tu audio nunca se guardan ni salen de tu equipo.', 'shield'], ['Funciona sin internet', 'La IA es opcional. Sin ella practicas cualquier habilidad desde la Biblioteca.', 'offline'], ['Mide lo que se puede medir', 'Sí: postura, ángulos, posición de la guitarra, afinación, ritmo. No: la intención, la emoción o lo que la cámara no ve.', 'target']].map(([t, d, ic]) => ({ t, d, f: this.IC[ic].f, s: this.IC[ic].s }));
+    const setNav = ['General', 'Voz', 'Cámara', 'Micrófono', 'Coach con IA', 'Mis habilidades generadas', 'Privacidad y datos', 'Acerca de'].map(l => { const on = l === 'Coach con IA'; return { label: l, bg: on ? 'rgba(var(--lr,255,226,214),0.08)' : 'transparent', fg: on ? 'var(--t1,#F7EEE9)' : 'var(--mut,#B8A6A1)', bd: on ? 'rgba(var(--lr,255,226,214),0.12)' : 'transparent' }; });
+    const themeOpts = [['dark', 'Oscuro · Brasa', '#1C1117', 'rgba(255,236,228,0.08)', 'rgba(255,236,228,0.12)'], ['light', 'Claro · Arena', '#F2E9E3', 'rgba(255,255,255,0.7)', '#FFFFFF']].map(([k, label, bg, side, card]) => { const on = this.theme() === k; return { label, bg, side, card, bd: on ? 'oklch(0.74 0.17 45)' : 'rgba(var(--lr,255,226,214),0.12)', dot: on ? 'oklch(0.74 0.17 45)' : 'transparent', pick: () => this.setTheme(k) }; });
+    const spend = Array.from({ length: 20 }, (_, k) => k < 5 ? this.GRAD : 'rgba(var(--lr,255,226,214),0.1)');
+    return { como, promises, setNav, themeOpts, spend, aiOn: ai, aiShort: ai ? 'Encendida' : 'Apagada', trackBg: ai ? this.GRAD : 'rgba(var(--lr,255,226,214),0.16)', knobL: ai ? '28px' : '4px', aiOp: ai ? 1 : 0.45, toggleAi: () => this.setState({ aiOn: !ai }) };
+  }
+  valsCalib(s) {
+    if (this.cur() !== 'calib') return {};
+    const CD = this.CHD, QD = this.QD, e = React.createElement;
+    const key = (s.calib && s.calib.skill) || s.skill || this.props.startSkill || 'guitarra', sk = this.SK[key];
+    const c = s.calib || this.newCalib(key), disp = sk.display, cam = sk.cam !== false, train = c.phase === 'train', sound = sk.ch.includes('audio');
+    const mk = sk.ch.length === 1 ? sk.ch[0] : disp === 'hold' ? 'objeto' : 'manos', mc = CD[mk];
+    const pr = { name: sk.name, goal: sk.goal, instr: sk.instr, unit: sk.unit, cam, color: mc, glow: this.a(mc, 0.2), glowS: this.a(mc, 0.55), f: this.IC[mk].f, s: this.IC[mk].s };
+    const chkTxt = { cuerpo: ['Cuerpo', 'Te veo bien encuadrado', 'Buscando tu cuerpo…'], manos: ['Manos', 'Las manos se ven claras', 'Muestra las manos'], objeto: ['Guitarra', 'Guitarra detectada', 'Buscando la guitarra…'], audio: ['Sonido', 'Se oye claro', disp === 'pulse' ? 'Da una palmada' : 'Toca una nota'] };
+    const checks = sk.ch.map((k, i) => { const on = !!c.checks[i], col = CD[k], t = chkTxt[k]; return { name: t[0], f: this.IC[k].f, s: this.IC[k].s, ok: on, pending: !on, status: on ? t[1] : t[2], orb: on ? col : this.a(col, 0.14), icC: on ? '#1A0F0C' : col, sh: on ? `0 0 24px ${this.a(col, 0.55)}` : 'none', rowBg: on ? 'rgba(255,236,228,0.04)' : 'transparent' }; });
+    const urgent = !!c.alert;
+    const st = urgent ? { text: c.alert, bg: 'oklch(0.83 0.14 75 / 0.16)', bd: 'oklch(0.83 0.14 75 / 0.45)', fg: 'oklch(0.9 0.11 80)', f: this.IC.warn.f, s: this.IC.warn.s } : { text: sk.goal, bg: 'rgba(255,236,228,0.06)', bd: 'rgba(255,226,214,0.1)', fg: '#E6D9D3', f: this.IC.target.f, s: this.IC.target.s };
+    const el = Math.max(0, Math.floor((Date.now() - c.t0) / 1000)), clock = String(Math.floor(el / 60)).padStart(2, '0') + ':' + String(el % 60).padStart(2, '0');
+    const P = (cx, cy, r, a) => [cx + r * Math.cos(a * Math.PI / 180), cy - r * Math.sin(a * Math.PI / 180)];
+    const arc = (cx, cy, r, a0, a1) => { const p0 = P(cx, cy, r, a0), p1 = P(cx, cy, r, a1); return `M${p0[0].toFixed(1)} ${p0[1].toFixed(1)} A${r} ${r} 0 0 1 ${p1[0].toFixed(1)} ${p1[1].toFixed(1)}`; };
+    const ticksFor = (cx, cy, r0a, r0b, r1) => { let t = ''; for (let k = 0; k <= 20; k++) { const a = 180 - k * 9, p0 = P(cx, cy, k % 5 === 0 ? r0a : r0b, a), p1 = P(cx, cy, r1, a); t += `M${p0[0].toFixed(1)} ${p0[1].toFixed(1)}L${p1[0].toFixed(1)} ${p1[1].toFixed(1)}`; } return t; };
+    const cents = Math.round(c.cents);
+    // tuner
+    const T = c.tuner, doneN = T.done.filter(Boolean).length, all = doneN === 6, heard = !c.alert && !all;
+    const tc = all ? QD.good : Math.abs(cents) <= 5 ? QD.good : Math.abs(cents) <= 25 ? QD.mid : QD.bad;
+    const cur = this.STR[T.idx];
+    const tu = { note: cur[0], oct: cur[1], kicker: all ? 'Afinación completa' : 'Cuerda ' + (T.idx + 1) + ' de 6 · al aire', instr: all ? 'Las 6 cuerdas están afinadas' : cents < -5 ? 'Suena grave: aprieta un poco la clavija' : cents > 5 ? 'Suena aguda: afloja un poco la clavija' : 'Así. Mantén la nota', heard: heard ? cur[0] + ' ' + cur[1] + ' · ' + (cents > 0 ? '+' : '') + cents : 'Nada todavía', heardOp: heard ? 1 : 0.45,
+      rot: (-(90 - (heard ? cents : 0) * 1.8)) + 'deg', c: heard ? tc : '#8F7F7B', cents: heard ? (cents > 0 ? '+' : '') + cents : '—', glow: heard && Math.abs(cents) <= 5 ? 'oklch(0.8 0.15 150 / 0.7)' : 'oklch(0.78 0.11 220 / 0.45)',
+      zoneSoft: arc(300, 290, 260, 135, 45), zoneHard: arc(300, 290, 260, 99, 81), ticks: ticksFor(300, 290, 228, 238, 250),
+      holdW: Math.min(100, T.holdMs / 10) + '%', holdL: (T.holdMs / 1000).toFixed(1).replace('.', ',') + ' s',
+      strings: this.STR.map((x, i) => { const dn = !!T.done[i], cu = i === T.idx && !all; return { label: x[0] + ' ' + x[1], w: (4.8 - i * 0.6) + 'px', sc: dn ? QD.good : cu ? CD.audio : 'rgba(255,236,228,0.5)', sh: dn ? `0 0 10px ${this.a(QD.good, 0.6)}` : cu ? `0 0 12px ${this.a(CD.audio, 0.7)}` : 'none', anim: cu && heard ? 'vyVib 90ms linear infinite' : 'none', state: dn ? '✓ Lista' : cu ? 'Afinando' : 'Pendiente', stc: dn ? QD.good : cu ? CD.audio : '#8F7F7B', bg: dn ? this.a(QD.good, 0.08) : cu ? this.a(CD.audio, 0.14) : 'rgba(255,236,228,0.03)', bd: dn ? this.a(QD.good, 0.4) : cu ? CD.audio : 'rgba(255,226,214,0.08)', pick: () => { if (!dn) this.upd(cc => ({ tuner: { ...cc.tuner, idx: i, holdMs: 0 }, cents: (Math.random() > 0.5 ? 1 : -1) * 30 })); } }; }),
+      dots: T.done.map(dn => dn ? QD.good : 'rgba(255,226,214,0.15)'), doneL: doneN + ' de 6 cuerdas afinadas' };
+    // pulse
+    const H = c.hits, slotW = 100 / 12;
+    const hits = H.map((x, i) => { const pos = 12 - H.length + i, a = Math.abs(x.dev), col = a < 30 ? QD.good : a < 60 ? QD.mid : QD.bad, sz = a < 30 ? 22 : a < 60 ? 17 : 13, last = i === H.length - 1; return { l: 'calc(16px + (100% - 32px) * ' + (((pos + 0.5) * slotW + x.dev / 375 * slotW / 2) / 100).toFixed(4) + ')', sz: sz + 'px', m: (-sz / 2) + 'px', c: col, sh: last ? `0 0 0 5px ${this.a(col, 0.25)}, 0 0 20px ${this.a(col, 0.7)}` : `0 0 10px ${this.a(col, 0.4)}`, op: 0.45 + 0.55 * ((i + 1) / H.length), t: (x.dev > 0 ? '+' : '') + x.dev + ' ms' }; });
+    const avgAbs = H.length ? H.reduce((a, x) => a + Math.abs(x.dev), 0) / H.length : 0, avg = H.length ? Math.round(H.reduce((a, x) => a + x.dev, 0) / H.length) : 0;
+    const bpm = H.length > 1 ? Math.round(60000 / (750 + (H[H.length - 1].dev - H[0].dev) / (H.length - 1))) : 80;
+    const stabK = avgAbs < 30 ? 'good' : avgAbs < 55 ? 'mid' : 'bad';
+    const pu = { bpm, hits, slots: Array.from({ length: 12 }, (_, i) => 'calc(16px + (100% - 32px) * ' + ((i + 0.5) / 12).toFixed(4) + ')'), stab: H.length < 3 ? 'Escuchando…' : stabK === 'good' ? 'Estable' : stabK === 'mid' ? 'Algo irregular' : 'Irregular', stabC: H.length < 3 ? '#B8A6A1' : QD[stabK], stabBg: H.length < 3 ? 'rgba(255,236,228,0.06)' : this.a(QD[stabK], 0.15), avg: H.length < 3 ? 'Sigue el pulso del orbe' : Math.abs(avg) < 12 ? 'A tiempo, de media' : avg > 0 ? 'Vas ' + avg + ' ms tarde, de media' : 'Vas ' + (-avg) + ' ms adelantado, de media', avgC: Math.abs(avg) < 12 ? QD.good : QD.mid };
+    const pulseOrb = e('div', { key: 'po', style: { position: 'relative', width: 200, height: 200, flexShrink: 0 } },
+      e('div', { style: { position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid ' + CD.audio, animation: 'vyRing 750ms ease-out infinite' } }),
+      e('div', { style: { position: 'absolute', inset: 20, borderRadius: '50%', background: `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.6), ${CD.audio} 55%, oklch(0.5 0.12 240))`, boxShadow: `0 0 60px ${this.a(CD.audio, 0.6)}`, animation: 'vyPulse 750ms cubic-bezier(.2,.8,.2,1) infinite' } }));
+    // hold
+    const hd = c.hold, inPos = !hd.out, hs = hd.ms / 1000;
+    const hold = { big: inPos ? hs.toFixed(1).replace('.', ',') : '—', label: inPos ? 'En posición' : 'Fuera de posición', lc: inPos ? QD.good : QD.mid, bd: inPos ? this.a(QD.good, 0.4) : this.a(QD.mid, 0.5), glow: inPos ? this.a(QD.good, 0.2) : this.a(QD.mid, 0.25), segs: Array.from({ length: 5 }, (_, k) => ({ w: (Math.max(0, Math.min(1, hs - k)) * 100) + '%' })), bar: Math.floor(hs) + ' s de 5 s', heldL: hd.held + (hd.held === 1 ? ' mantenida' : ' mantenidas'), heldDots: Array.from({ length: Math.max(3, hd.held) }, (_, k) => k < hd.held ? this.GRAD : 'rgba(255,226,214,0.15)') };
+    const jit = () => Math.round(Math.random() * 3 - 1.5);
+    const gOut = c.corr && c.corr.ch === 'objeto', sOut = c.corr && c.corr.ch === 'cuerpo';
+    const meas = [['Torso', CD.cuerpo, sOut ? 24 : 12 + jit(), 0, 20, 0, 40], ['Guitarra', CD.objeto, gOut ? 36 : 21 + jit(), 15, 30, 0, 45], ['Muñeca', CD.manos, 17 + jit(), 10, 25, 0, 40]].map(([label, col, v, lo, hi, mn, mx]) => { const ok = v >= lo && v <= hi; return { label, c: col, val: v + '°', vc: ok ? QD.good : QD.bad, zl: ((lo - mn) / (mx - mn) * 100) + '%', zw: ((hi - lo) / (mx - mn) * 100) + '%', dl: (Math.max(0, Math.min(1, (v - mn) / (mx - mn))) * 100) + '%' }; });
+    // target
+    const tg0 = c.target, match = tg0.heard === 'Do 4';
+    const tg = { heard: tg0.heard || '—', hc: tg0.heard ? (match ? QD.good : QD.bad) : '#8F7F7B', glow: tg0.heard && match ? this.a(QD.good, 0.6) : 'oklch(0.75 0.13 300 / 0.45)', dots: Array.from({ length: 5 }, (_, k) => { const v = tg0.hist[k]; return v == null ? { bg: 'transparent', bd: '1.5px dashed rgba(255,226,214,0.25)', t: '' } : { bg: v ? QD.good : QD.bad, bd: '0', t: v ? '✓' : '✕' }; }), goodL: tg0.good + ' de ' + tg0.judged + ' notas bien' };
+    // phase card
+    let ph = null, lastTxt = null;
+    if (disp === 'counter') { ph = c.bodyPhase; if (c.reps > 0) lastTxt = c.last; }
+    if (disp === 'hold') { ph = inPos ? 'En posición' : null; if (hd.held > 0) lastTxt = 'Bien'; }
+    if (disp === 'target' && tg0.judged > 0) lastTxt = c.last;
+    const lastOk = lastTxt === 'Bien';
+    const phaseCard = { show: train && !!(ph || lastTxt), hasPhase: !!ph, phase: ph, hasLast: !!lastTxt, last: lastTxt ? (lastOk ? '✓ Bien' : (lastTxt === 'Mejorable' ? '~ Mejorable' : '✕ ' + lastTxt)) : '', lastBg: this.a(lastOk ? QD.good : lastTxt === 'Mejorable' ? QD.mid : QD.bad, 0.16), lastC: lastOk ? QD.good : lastTxt === 'Mejorable' ? QD.mid : QD.bad, lpt: ph ? '14px' : '0', lbt: ph ? '1px solid rgba(255,226,214,0.08)' : '0', orb: ph === 'Abajo' ? CD.cuerpo : ph === 'En posición' ? QD.good : this.GRAD, icon: ph === 'En posición' ? 'M5 12.5l4.5 4.5L19 7.5' : 'M12 19V5M6 11l6-6 6 6', rot: ph === 'Abajo' ? 'rotate(180deg)' : 'none' };
+    // piano keys
+    const pkeys = Array.from({ length: 14 }, (_, k) => { const isDo = k === 7, hl = isDo && disp === 'target'; return { bg: hl ? CD.manos : 'rgba(255,246,238,0.85)', sh: hl ? `0 0 26px ${this.a(CD.manos, 0.8)}` : 'none', lbl: isDo && disp === 'target' }; });
+    const lv = Math.round(c.level * 28);
+    const level = Array.from({ length: 28 }, (_, k) => { const on = k < lv, w = 0.35 + 0.65 * Math.abs(Math.sin(k * 0.9 + c.level * 6)); return { h: on ? Math.round(10 + w * 28) + 'px' : '6px', bg: on ? (k > 23 ? 'oklch(0.83 0.14 75)' : CD.audio) : 'rgba(255,226,214,0.1)' }; });
+    const corrCol = c.corr ? CD[c.corr.ch] : CD.objeto;
+    const countEl = e('div', { key: 'n' + c.count, style: { fontFamily: 'Syne', fontSize: 240, fontWeight: 800, lineHeight: 1, background: 'linear-gradient(180deg,#FFE2C2,#F27A3E 60%,#D2497A)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', animation: 'vyBeat 900ms cubic-bezier(.2,.8,.2,1) both' } }, c.count);
+    const repEl = e('div', { key: 'r' + c.reps, style: { fontFamily: 'Syne', fontSize: 88, fontWeight: 800, lineHeight: 1, animation: 'vyBeat 320ms ease-out both' } }, c.reps);
+    const tcs = disp === 'target' ? cents : 0, inT = Math.abs(tcs) <= 25;
+    return { pr, checks, st, clock, isCheck: c.phase === 'check', isCount: c.phase === 'count', isTrain: train, isCalibPhase: !train, phaseLabel: train ? 'Práctica' : c.phase === 'count' ? 'Empezamos' : 'Calibración', phaseBg: train ? this.GRAD : 'oklch(0.84 0.13 85)',
+      stageBg: cam ? 'radial-gradient(circle at 50% 40%, #24141B, #120A0E)' : 'radial-gradient(circle at 50% 50%, #1C1218, #0F090C)',
+      ovl: { skel: !!(sk.ov && sk.ov.skel), guitar: !!(sk.ov && sk.ov.guitar), piano: !!(sk.ov && sk.ov.piano) }, pkeys,
+      showCounter: cam && train && disp === 'counter', showHold: cam && train && disp === 'hold', isTunerV: train && disp === 'tuner', isPulseV: train && disp === 'pulse', audioIdle: !cam && !train,
+      tu, pu, pulseOrb, hold, meas, showMeas: train && disp === 'hold', tg, showTarget: train && disp === 'target', phaseCard,
+      meterTuner: train && disp === 'target', meterVol: sound && !(train && (disp === 'target' || disp === 'tuner')), volL: c.level > 0.8 ? 'Fuerte' : c.level > 0.45 ? 'Bien' : 'Bajo',
+      tunerTicks: ticksFor(150, 150, 92, 98, 104), tunerRot: (-(90 - tcs * 1.8)) + 'deg', tunerC: inT ? 'oklch(0.8 0.15 150)' : 'oklch(0.83 0.14 75)', centsLabel: (tcs > 0 ? '+' : '') + tcs + ' cents', level,
+      countEl, repEl, hasCorr: train && !!c.corr, corrText: c.corr ? c.corr.text : '', corrC: corrCol, corrG: this.a(corrCol, 0.4), corrF: c.corr ? this.IC[c.corr.ch].f : '', corrS: c.corr ? this.IC[c.corr.ch].s : '',
+      guitarColor: gOut ? 'oklch(0.68 0.19 25)' : CD.objeto, guitarGlow: gOut ? 'oklch(0.68 0.19 25 / 0.45)' : 'oklch(0.84 0.13 85 / 0.25)',
+      exitCalib: () => this.leaveCalib('ruta'), finish: () => this.finishCalib() };
+  }
+  renderVals() {
+    const s = this.state, scr = this.cur(), ai = this.ai(), light = this.theme() === 'light';
+    this.CH = light ? this.CHL : this.CHD; this.Q = light ? this.QL : this.QD;
+    const collapsed = s.collapsed ?? (this.props.sidebarCollapsed ?? false);
+    const go = k => () => this.go(k);
+    const activeNav = scr === 'resumen' ? 'tablero' : scr;
+    const navItem = (k, label, icon) => {
+      const on = activeNav === k, I = this.IC[icon || k];
+      return { label, f: I.f, s: I.s, go: go(k), bg: on ? 'linear-gradient(135deg, oklch(0.74 0.17 45 / 0.2), oklch(0.6 0.16 350 / 0.12))' : 'transparent', bd: on ? 'oklch(0.78 0.15 50 / 0.35)' : 'transparent', fg: on ? 'var(--t1,#F7EEE9)' : 'var(--mut,#B8A6A1)', orb: on ? this.GRAD : 'rgba(var(--lr,255,226,214),0.06)', ic: on ? '#2A0F1A' : 'var(--mut,#B8A6A1)', sh: on ? '0 8px 22px -8px oklch(0.7 0.18 40 / 0.8)' : 'none' };
+    };
+    const nav = [['inicio', 'Inicio'], ['tablero', 'Tablero'], ['ruta', 'Mi ruta'], ['biblioteca', 'Biblioteca'], ['ajustes', 'Ajustes']].map(([k, l]) => navItem(k, l));
+    const th = light ? this.IC.moon : this.IC.sun;
+    const navBottom = [navItem('como', 'Cómo funciona')];
+    this._th = { thF: th.f, thS: th.s, themeTitle: light ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro', toggleTheme: () => this.setTheme(light ? 'dark' : 'light'), showTheme: scr !== 'calib' };
+    const msgs = s.msgs.map(m => ({ id: m.id, isUser: m.type === 'user', isCoach: m.type === 'coach', isRoute: m.type === 'route', isInvite: m.type === 'invite', text: m.type === 'coach' ? (s.typing && s.typing.id === m.id ? m.full.slice(0, s.typing.n) : m.full) : m.text }));
+    const placeholders = ['Quiero mejorar mi postura con la guitarra…', 'Quiero hacer sentadillas bien…', 'Quiero afinar mi guitarra de oído…'];
+    const chipDefs = [['Mejorar mi sentadilla', 'cuerpo'], ['Postura con la guitarra', 'objeto'], ['Afinar una cuerda', 'audio'], ['Postura de manos al piano', 'manos'], ['Flexiones sin lesionarme', 'cuerpo']];
+    const skMap = { 'Mejorar mi sentadilla': 'sentadilla', 'Postura con la guitarra': 'guitarra', 'Afinar una cuerda': 'afinar', 'Postura de manos al piano': 'piano_mano', 'Flexiones sin lesionarme': 'flexion' };
+    const chips = chipDefs.map(([label, k]) => ({ label, ...this.chip(k), pick: e => ai ? this.setState({ draft: label }) : this.startFromCard(e, skMap[label]) }));
+    const satPos = [['50%', '0%'], ['100%', '50%'], ['50%', '100%'], ['0%', '50%']];
+    const sats = ['cuerpo', 'manos', 'objeto', 'audio'].map((k, i) => ({ ...this.chip(k), x: satPos[i][0], y: satPos[i][1] }));
+    const hr = new Date().getHours();
+    const rP = [[40, 60], [180, 22], [320, 70], [460, 24], [600, 58]];
+    const rcv = this.curve(rP);
+    const rnodes = [['Postura sentado', 'cuerpo'], ['Posición de la guitarra', 'objeto'], ['Muñeca relajada', 'manos'], ['Afinar cuerda al aire', 'audio'], ['Todo junto', 'objeto']].map(([name, k], i) => ({ ...this.chip(k), name, n: i + 1, l: (rP[i][0] / 640 * 100) + '%', t: 'calc(' + (rP[i][1] / 160 * 100) + '% * 0.84)', delay: (400 + i * 220) + 'ms', ...(i === 4 ? { color: 'var(--accT,oklch(0.82 0.14 55))', glow: 'oklch(0.74 0.17 45 / 0.45)', f: this.IC.target.f, s: this.IC.target.s } : {}) }));
+    const weekDots = ['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((l, i) => ({ l, bg: i >= 3 && i <= 5 ? this.GRAD : i === 0 ? 'oklch(0.74 0.17 45 / 0.4)' : 'rgba(var(--lr,255,226,214),0.1)' }));
+    const ov = s.ov;
+    const base = {
+      showNav: scr !== 'calib', expanded: !collapsed, sideW: collapsed ? '78px' : '236px', collapseRot: collapsed ? 'rotate(180deg)' : 'none',
+      toggleSide: () => this.setState({ collapsed: !collapsed }), nav, navBottom, ic: this.IC,
+      aiDot: ai ? 'oklch(0.8 0.15 150)' : '#8F7F7B', aiLabel: ai ? 'Coach con IA encendido' : 'Coach sin IA · práctica libre', aiShortLabel: ai ? 'tu coach está listo' : 'modo práctica libre',
+      greeting: hr < 12 ? 'Buenos días' : hr < 20 ? 'Buenas tardes' : 'Buenas noches',
+      isInicio: scr === 'inicio', isTablero: scr === 'tablero', isRuta: scr === 'ruta', isBiblio: scr === 'biblioteca', isComo: scr === 'como', isAjustes: scr === 'ajustes', isResumen: scr === 'resumen', isCalib: scr === 'calib',
+      goInicio: go('inicio'), goRuta: go('ruta'), goBiblio: go('biblioteca'), goAjustes: go('ajustes'), goTablero: go('tablero'), goResumen: go('resumen'),
+      isEmpty: s.msgs.length === 0, hasMsgs: s.msgs.length > 0, msgs, thinking: s.thinking,
+      hasQuick: !!s.quick, quick: (s.quick || []).map(label => ({ label, pick: () => this.send(label) })),
+      draft: s.draft, onDraft: e => this.setState({ draft: e.target.value }), onKey: e => { if (e.key === 'Enter') this.send(s.draft); }, sendDraft: () => this.send(s.draft),
+      placeholder: placeholders[s.ph % placeholders.length], chips, sats, weekDots, stackOrbs: ['cuerpo', 'manos', 'objeto', 'audio'].map(k => this.chip(k)),
+      newChat: () => this.newChat(), threadRef: this.threadRef,
+      avatarHero: this.avatar(184, false), avatarSm: this.avatar(40, false), avatarThink: this.avatar(40, true), avatarXs: this.avatar(28, false), avatarMd: this.avatar(56, false),
+      rc: { d: rcv.d, len: rcv.len }, rnodes, allChips: ['cuerpo', 'manos', 'objeto', 'audio'].map(k => this.chip(k)), startFromCard: e => this.startFromCard(e, 'guitarra'), startSquat: e => this.startFromCard(e, 'sentadilla'),
+      hasOv: !!ov, ovT: ov ? ov.t + 'px' : 0, ovL: ov ? ov.l + 'px' : 0, ovW: ov ? ov.w + 'px' : 0, ovH: ov ? ov.h + 'px' : 0, ovR: ov && ov.full ? '0px' : '32px', ovBg: ov && ov.full ? '#0E080B' : 'linear-gradient(135deg, #3A1C22, #22121A)'
+    };
+    const extra = ['valsTablero', 'valsRuta', 'valsBiblio', 'valsResumen', 'valsMisc', 'valsCalib'].reduce((acc, m) => this[m] ? Object.assign(acc, this[m](s)) : acc, {});
+    return { ...base, ...this._th, ...extra };
+  }
+}
+</script>
+</body>
+</html>

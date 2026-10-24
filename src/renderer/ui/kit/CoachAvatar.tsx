@@ -41,7 +41,7 @@ export function CoachAvatar({
           className="absolute rounded-full"
           style={{
             inset: '32%',
-            border: `${Math.max(2, size / 22)}px solid #0d0f14`,
+            border: `${Math.max(2, size / 22)}px solid #140d11`,
             opacity: 0.85
           }}
         />
