@@ -765,5 +765,6 @@
   "home.resume.step": "{title} · step {step} of {total}",
   "home.resume.none": "You have no path yet",
   "home.streak": "Streak",
-  "home.library": "Library · {count} skills"
+  "home.library": "Library · {count} skills",
+  "library.channels.label": "Channels it measures"
 }

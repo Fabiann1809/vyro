@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { currentLanguage, localize, t, type MessageKey } from '@renderer/i18n'
 import type { SkillChannel } from '@shared/skill/skillChannels'
-import { ChannelChips } from '../kit/ChannelChip'
 import { CHANNEL_LOOK, CHANNEL_ORDER } from '../kit/channels'
-import { Button } from '../kit/Button'
 import { Card } from '../kit/Card'
 import { CoachAvatar } from '../kit/CoachAvatar'
 import { Icon } from '../kit/Icon'
@@ -19,6 +17,7 @@ import {
 import { cardOf, startWithExpand } from '../expandTransition'
 import { useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
+import { illustrationOf } from '../skillIllustration'
 import { useSkills } from '../skillsStore'
 
 const CATEGORY_LABEL: Record<LibraryCategory, MessageKey> = {
@@ -29,7 +28,7 @@ const CATEGORY_LABEL: Record<LibraryCategory, MessageKey> = {
 }
 
 const PILL =
-  'inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-[0.84rem] transition-colors aria-pressed:border-t1 aria-pressed:bg-t1 aria-pressed:text-inv border-line/12 text-t4 hover:bg-line/5 aria-pressed:hover:bg-t1'
+  'inline-flex h-9 items-center gap-2 rounded-full border border-transparent px-3.5 text-[0.84rem] font-semibold text-mut transition-all duration-200 hover:text-t1 aria-pressed:bg-grad aria-pressed:text-on-brand'
 
 function FilterPill({
   pressed,
@@ -60,53 +59,74 @@ function SkillCard({
   const { skill, category, channels } = entry
   const name = localize(skill.name)
   const lead = channels[0]
+  const color = lead ? CHANNEL_LOOK[lead].color : 'var(--mut)'
+  const picture = illustrationOf(skill.id)
   const needs = listOf(skillNeeds(skill).map((need) => t(need)))
 
   return (
     <Card
       data-expand
-      className="anim-up flex w-full flex-col gap-3.5 p-3 pb-5 transition duration-200 hover:-translate-y-0.5 hover:border-line/14"
+      className="anim-up group flex w-full flex-col items-center gap-3 rounded-t-[12.5rem] p-4 pb-5 text-center transition duration-300 hover:-translate-y-1.5 hover:border-line/24"
     >
-      <div
-        aria-hidden="true"
-        className="relative flex h-36 items-end gap-2 overflow-hidden rounded-[1.125rem] bg-sunk p-3"
-      >
-        {lead && <span className={`absolute inset-0 opacity-15 ${CHANNEL_LOOK[lead].fill}`} />}
-        <span className="absolute inset-0 bg-[repeating-linear-gradient(135deg,color-mix(in_oklab,var(--line)_4%,transparent)_0_10px,transparent_10px_20px)]" />
-        {channels.map((channel) => (
-          <span key={channel} className={`relative ${CHANNEL_LOOK[channel].text}`}>
-            <Icon name={CHANNEL_LOOK[channel].icon} className="size-9" strokeWidth={1.2} />
-          </span>
-        ))}
+      <div aria-hidden="true" className="relative mb-2.5 aspect-square w-full max-w-50">
+        <div
+          className="absolute inset-0 overflow-hidden rounded-full border"
+          style={{
+            borderColor: `color-mix(in oklab, ${color} 45%, transparent)`,
+            background: `repeating-linear-gradient(135deg, color-mix(in oklab, var(--line) 6%, transparent) 0 8px, color-mix(in oklab, var(--line) 1.5%, transparent) 8px 16px), radial-gradient(circle at 50% 35%, color-mix(in oklab, ${color} 30%, transparent), transparent 70%)`,
+            boxShadow: `inset 0 0 40px color-mix(in oklab, ${color} 30%, transparent), 0 0 46px color-mix(in oklab, ${color} 22%, transparent)`
+          }}
+        >
+          {picture ? (
+            <img src={picture} alt="" className="size-full object-cover" />
+          ) : (
+            <span className="flex size-full items-center justify-center gap-2">
+              {channels.map((channel) => (
+                <span key={channel} className={CHANNEL_LOOK[channel].text}>
+                  <Icon name={CHANNEL_LOOK[channel].icon} className="size-11" strokeWidth={1.2} />
+                </span>
+              ))}
+            </span>
+          )}
+        </div>
         {category === 'generated' && (
-          <span className="absolute top-3 left-3 flex h-6 items-center rounded-full border border-dashed border-warn bg-card px-2.5 text-[0.72rem] font-semibold text-warn-text">
+          <span className="absolute top-1.5 left-1/2 flex h-6 -translate-x-1/2 items-center rounded-full border border-dashed border-warn bg-bg px-2.5 text-[0.69rem] font-bold whitespace-nowrap text-warn-text">
             {t('library.badge.experimental')}
           </span>
         )}
-        <span className="absolute top-3 right-3 flex h-6 items-center rounded-full bg-bg/70 px-2.5 text-[0.72rem] text-t4">
-          {t(CATEGORY_LABEL[category])}
-        </span>
+        <div className="absolute -bottom-3.5 left-1/2 flex -translate-x-1/2 gap-1">
+          {channels.map((channel) => (
+            <span
+              key={channel}
+              className={`flex size-8.5 items-center justify-center rounded-full border-[3px] border-bg ${CHANNEL_LOOK[channel].fill} text-on-brand`}
+            >
+              <Icon name={CHANNEL_LOOK[channel].icon} className="size-4" strokeWidth={2} />
+            </span>
+          ))}
+        </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 px-2">
-        <h2 className="text-lg font-semibold">{name}</h2>
-        <p className="text-sm leading-snug text-mut">{t(skillLine(skill))}</p>
-        <ChannelChips channels={channels} />
-        <p className="mt-auto pt-1.5 text-xs text-mut2">
-          {t('library.needs.label', { things: needs })}
-        </p>
-      </div>
-
-      <div className="px-2">
-        <Button
-          variant="light"
-          className="w-full"
-          aria-label={t('library.start', { name })}
-          onClick={(event) => onStart(skill.id, cardOf(event.currentTarget))}
-        >
-          {t('library.start.short')}
-        </Button>
-      </div>
+      <p className="text-[0.72rem] font-bold tracking-[0.1em] text-mut uppercase">
+        {t(CATEGORY_LABEL[category])}
+      </p>
+      <h2 className="-mt-1.5 font-display text-xl font-bold">{name}</h2>
+      <p className="flex-1 text-[0.84rem] leading-snug text-mut text-pretty">
+        {t(skillLine(skill))}
+      </p>
+      <ul aria-label={t('library.channels.label')} className="sr-only">
+        {channels.map((channel) => (
+          <li key={channel}>{t(CHANNEL_LOOK[channel].label)}</li>
+        ))}
+      </ul>
+      <p className="text-xs text-mut2">{t('library.needs.label', { things: needs })}</p>
+      <button
+        type="button"
+        aria-label={t('library.start', { name })}
+        onClick={(event) => onStart(skill.id, cardOf(event.currentTarget))}
+        className="inline-flex h-11 w-full items-center justify-center rounded-full border border-line/14 bg-line/6 text-[0.9rem] font-bold transition duration-200 hover:border-transparent hover:bg-grad hover:text-on-brand focus-visible:bg-grad focus-visible:text-on-brand"
+      >
+        {t('library.start.short')}
+      </button>
     </Card>
   )
 }
@@ -131,15 +151,17 @@ export function LibraryScreen(): React.JSX.Element {
     <section className="mx-auto flex h-full w-full max-w-[82rem] flex-col gap-5 self-start overflow-y-auto px-8 pt-7 pb-12">
       <div className="flex flex-wrap items-end justify-between gap-5">
         <div>
-          <p className="text-sm text-mut">{t('screen.library.title')}</p>
-          <h1 className="mt-1.5 font-display text-[2.125rem] leading-tight font-semibold tracking-tight">
+          <p className="text-[0.8125rem] font-bold tracking-[0.14em] text-accent uppercase">
+            {t('screen.library.title')}
+          </p>
+          <h1 className="mt-2 font-display text-[2.375rem] leading-tight font-bold tracking-[-0.03em]">
             {t('library.title')}
           </h1>
         </div>
         <button
           type="button"
           onClick={() => go('skillNew')}
-          className="inline-flex h-12 items-center gap-2.5 rounded-full border border-brand/50 bg-brand/8 px-5 text-[0.9375rem] font-semibold text-accent transition-colors hover:bg-brand/14"
+          className="inline-flex h-13 items-center gap-2.5 rounded-full border border-brand/50 bg-brand/12 pr-5.5 pl-2.5 text-[0.9375rem] font-bold text-accent transition-colors hover:bg-brand/22"
         >
           <CoachAvatar size={22} />
           {t('library.create')}
@@ -150,7 +172,7 @@ export function LibraryScreen(): React.JSX.Element {
         <div
           role="group"
           aria-label={t('library.filter.channels')}
-          className="flex flex-wrap gap-1.5"
+          className="glass flex flex-wrap gap-1 rounded-full p-1.25"
         >
           <FilterPill pressed={channel === null} onClick={() => setChannel(null)}>
             {t('library.filter.allChannels')}
@@ -165,11 +187,10 @@ export function LibraryScreen(): React.JSX.Element {
             </FilterPill>
           ))}
         </div>
-        <span aria-hidden="true" className="h-6 w-px bg-line/10" />
         <div
           role="group"
           aria-label={t('library.filter.categories')}
-          className="flex flex-wrap gap-1.5"
+          className="glass flex flex-wrap gap-1 rounded-full p-1.25"
         >
           <FilterPill pressed={category === null} onClick={() => setCategory(null)}>
             {t('library.filter.allCategories')}
@@ -190,7 +211,7 @@ export function LibraryScreen(): React.JSX.Element {
           {t('library.empty')}
         </p>
       ) : (
-        <ul className="grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-4.5">
+        <ul className="grid grid-cols-[repeat(auto-fill,minmax(15.5rem,1fr))] gap-4">
           {shown.map((entry) => (
             <li key={entry.skill.id} className="flex">
               <SkillCard entry={entry} onStart={start} />
