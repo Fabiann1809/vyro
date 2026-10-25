@@ -13,8 +13,8 @@
     "cents": { "type": "pitch", "target": "nearest" }
   },
   "phases": [
-    { "id": "quiet", "when": { "level": { "lt": -42 } } },
-    { "id": "ringing", "when": { "level": { "gt": -32 } } }
+    { "id": "quiet", "when": { "level": { "lt": -46 } } },
+    { "id": "ringing", "when": { "level": { "gt": -38 } } }
   ],
   "rep": { "sequence": ["quiet", "ringing", "quiet"], "minDurationMs": 200 },
   "rules": [
@@ -39,7 +39,7 @@
     {
       "id": "let_it_ring",
       "severity": "low",
-      "check": "durationMs >= 600",
+      "check": "durationMs >= 400",
       "message": {
         "es": "Deja que la cuerda suene más tiempo",
         "en": "Let the string ring for longer"
