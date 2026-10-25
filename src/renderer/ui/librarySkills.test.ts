@@ -22,7 +22,7 @@ const all: LibrarySkill[] = bundledSkills.skills.map(toLibrarySkill)
 describe('categoryOf', () => {
   it('maps the categories of the skills that come with the app', () => {
     expect(categoryOf(byId('squat'))).toBe('fitness')
-    expect(categoryOf(byId('piano_note'))).toBe('music')
+    expect(categoryOf(byId('guitar_posture'))).toBe('music')
   })
 
   it('calls a skill made by the AI generated, whatever its category', () => {
@@ -48,7 +48,6 @@ describe('filterSkills', () => {
   it('keeps the skills that use a channel, among others', () => {
     const ids = filterSkills(all, { channel: 'audio', category: null }).map((e) => e.skill.id)
 
-    expect(ids).toContain('piano_note')
     expect(ids).toContain('string_tuning')
     expect(ids).not.toContain('squat')
   })

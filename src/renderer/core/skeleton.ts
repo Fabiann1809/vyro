@@ -99,17 +99,47 @@ export const HAND_CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
 
 const OBJECT_COLOR = 'rgba(251, 191, 36, 0.95)'
 
-// Draws the box of the object over what is already drawn. Passing null draws nothing.
+// Draws the box of the object over what is already drawn, with its name on a tab above it so that
+// the person knows what the camera found. Passing null draws nothing. When the picture is shown
+// as in a mirror (the canvas is flipped by the page), the name is flipped back so it reads right.
 export function drawObjectBox(
   ctx: CanvasRenderingContext2D,
   box: ObjectBox | null,
   width: number,
-  height: number
+  height: number,
+  label?: string,
+  mirrored = false
 ): void {
   if (!box) return
   ctx.lineWidth = Math.max(2, width / 320)
   ctx.strokeStyle = OBJECT_COLOR
-  ctx.strokeRect(box.x * width, box.y * height, box.width * width, box.height * height)
+  const x = box.x * width
+  const y = box.y * height
+  ctx.strokeRect(x, y, box.width * width, box.height * height)
+  if (!label) return
+
+  const size = Math.max(14, Math.round(width / 46))
+  ctx.font = `700 ${size}px system-ui, sans-serif`
+  const padding = size * 0.6
+  const tabWidth = ctx.measureText(label).width + padding * 2
+  const tabHeight = size * 1.7
+  // Above the box, or inside its top edge when the box touches the top of the picture.
+  const top = y - tabHeight >= 0 ? y - tabHeight : y
+  ctx.fillStyle = OBJECT_COLOR
+  ctx.fillRect(x, top, tabWidth, tabHeight)
+  ctx.fillStyle = '#1a0f0c'
+  ctx.textBaseline = 'middle'
+  ctx.save()
+  if (mirrored) {
+    // Turn around the middle of the tab, so that the name stays inside it.
+    ctx.translate(x + tabWidth / 2, top + tabHeight / 2)
+    ctx.scale(-1, 1)
+    ctx.textAlign = 'center'
+    ctx.fillText(label, 0, 0)
+  } else {
+    ctx.fillText(label, x + padding, top + tabHeight / 2)
+  }
+  ctx.restore()
 }
 
 // Draws the hands over the body, which drawSkeleton has just drawn (it clears the canvas first).

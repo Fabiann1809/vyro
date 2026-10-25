@@ -31,6 +31,7 @@ import { GUITAR_POSTURE_ID, isGuitarLesson } from '@shared/skill/guitar'
 import { skillChannels, skillInstrument, type SkillChannel } from '@shared/skill/skillChannels'
 import { CameraStage } from '../CameraStage'
 import { ChecksPanel, type CheckItem } from '../immersive/ChecksPanel'
+import { OBJECT_NAME } from '../objectName'
 import { Button } from '../kit/Button'
 import { ImmersiveFrame, ImmersiveHeader } from '../immersive/ImmersiveFrame'
 import { sortChannels } from '../kit/channels'
@@ -376,6 +377,7 @@ export function CalibrationScreen(): React.JSX.Element {
               showDevicePicker
               withHands={useHands}
               withObjects={useObject}
+              objectLabel={skill.object ? t(OBJECT_NAME[skill.object]) : undefined}
               videoClassName="max-h-[74vh] rounded-[1.875rem]"
             >
               {useBody && (

@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, rmSync } from 'node:fs'
 import { DatabaseSync } from 'node:sqlite'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -37,17 +37,12 @@ test('says that the beep of a fake microphone is not the flute that the skill as
   await (await app.firstWindow()).title()
   await app.close()
 
-  const beat = JSON.parse(readFileSync('src/renderer/skills/steady-beat.json', 'utf-8')) as {
-    metrics: object
-    rep: object
-    display?: string
-    audio?: object
-  }
-  // The pulse of the steady beat does not go with a flute: only its base is borrowed.
   const flute = {
-    ...beat,
-    display: undefined,
-    audio: undefined,
+    category: 'instrument',
+    phases: [
+      { id: 'quiet', when: { level: { lt: -45 } } },
+      { id: 'hit', when: { level: { gt: -30 } } }
+    ],
     id: 'custom_flute',
     name: { es: 'Soplar la flauta', en: 'Blow the flute' },
     rep: { sequence: ['quiet', 'hit', 'quiet'], minDurationMs: 300 },

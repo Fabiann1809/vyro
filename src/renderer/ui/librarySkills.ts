@@ -66,8 +66,6 @@ const LINES: Record<string, MessageKey> = {
   pushup: 'library.line.pushup',
   bicep_curl: 'library.line.bicep_curl',
   piano_hand: 'library.line.piano_hand',
-  piano_note: 'library.line.piano_note',
-  steady_beat: 'library.line.steady_beat',
   string_tuning: 'library.line.string_tuning',
   guitar_posture: 'library.line.guitar_posture'
 }

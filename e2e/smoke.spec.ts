@@ -254,34 +254,19 @@ test('a skill of the hands is calibrated with the hands, not the body', async ()
   await expect(page.getByText('Cuerpo completo')).toHaveCount(0)
 })
 
-test('a skill played with the hand and the sound is calibrated with both', async () => {
-  const page = await launch()
-
-  await nav(page, 'Biblioteca').click()
-  await page.getByRole('button', { name: 'Nota Do al piano' }).click()
-
-  await expect(page.getByRole('heading', { level: 1, name: /Nota Do al piano/ })).toBeVisible()
-  for (const check of ['Mano completa', 'Ruido de la sala']) {
-    await expect(page.getByText(check, { exact: true })).toBeVisible()
-  }
-})
-
 test('groups the checks of the calibration by what is watched, and leaves with Escape', async () => {
   const page = await launch()
   await nav(page, 'Biblioteca').click()
-  await page.getByRole('button', { name: 'Empezar Nota Do al piano' }).click()
+  await page.getByRole('button', { name: 'Empezar Mano al piano' }).click()
 
   const groups = page.getByRole('group')
   await expect(
     groups.filter({ hasText: 'Mano completa' }).getByText('Manos', { exact: true })
   ).toBeVisible()
-  await expect(
-    groups.filter({ hasText: 'Ruido de la sala' }).getByText('Audio', { exact: true })
-  ).toBeVisible()
 
   // The guide of the skill is there, folded, and opens to what the app does not check.
   await page.getByText('Antes de empezar', { exact: true }).click()
-  await expect(page.getByText('Que el hombro y el antebrazo estén relajados')).toBeVisible()
+  await expect(page.getByText('Que el pulgar quede relajado a un lado de la mano.')).toBeVisible()
 
   await page.keyboard.press('Escape')
   await expect(nav(page, 'Biblioteca')).toHaveAttribute('aria-current', 'page')

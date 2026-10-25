@@ -28,11 +28,6 @@ export interface VoicePolicyOptions {
 
 const DEFAULT_OPTIONS: VoicePolicyOptions = { repeatMs: 20_000 }
 
-// Only what matters is spoken. Small details stay on the screen, where they cost no attention.
-function isImportant(message: FeedbackMessage): boolean {
-  return message.kind === 'praise' || message.severity !== 'low'
-}
-
 function identityOf(message: FeedbackMessage): string {
   return message.kind === 'praise' ? praiseClipId(message.variant) : message.ruleId
 }
@@ -53,8 +48,6 @@ export class VoicePolicy {
 
   // Returns true when the message was spoken.
   consider(message: FeedbackMessage, settings: VoiceSettings, nowMs: number): boolean {
-    if (!isImportant(message)) return false
-
     // A safety alert about the movement in progress is the only thing worth interrupting for, and
     // the one the user needs to hear right now.
     const urgent = message.kind === 'correction' && message.live && message.severity === 'high'

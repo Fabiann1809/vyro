@@ -22,6 +22,8 @@ interface Props {
   withHands?: boolean
   // Look for the object too, which loads the object model.
   withObjects?: boolean
+  // What the object is called, written on its box.
+  objectLabel?: string
   // Show the picture as in a mirror, so that a hand moves towards the side where it is seen.
   mirrored?: boolean
   videoClassName?: string
@@ -36,6 +38,7 @@ export function CameraStage({
   showDevicePicker,
   withHands = false,
   withObjects = false,
+  objectLabel,
   mirrored = false,
   videoClassName = 'max-h-[65vh] rounded-lg'
 }: Props): React.JSX.Element {
@@ -68,7 +71,8 @@ export function CameraStage({
       const landmarks = smootherRef.current.smooth(frame.landmarks, frame.timestampMs)
       drawSkeleton(ctx, landmarks, canvas.width, canvas.height)
       if (frame.hands) drawHands(ctx, frame.hands.observations, canvas.width, canvas.height)
-      if (frame.objects) drawObjectBox(ctx, frame.objects.box, canvas.width, canvas.height)
+      if (frame.objects)
+        drawObjectBox(ctx, frame.objects.box, canvas.width, canvas.height, objectLabel, mirrored)
       onFrame?.(frame, landmarks, video)
     },
     hands.hands?.landmarker ?? null,

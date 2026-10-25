@@ -32,7 +32,9 @@ export interface FramingInput {
 
 // Fraction of the frame height the tracked body should fill: not too far, not cut off.
 const FULL_BODY_SPAN = { min: 0.55, max: 0.92 }
-const UPPER_BODY_SPAN = { min: 0.2, max: 0.6 }
+// For the upper body the size is the length of the torso (shoulder to hip), not the reach of the arm:
+// an arm that bends and stretches must not make the person seem to come closer and go away.
+const UPPER_BODY_SPAN = { min: 0.2, max: 0.55 }
 
 // A joint closer than this to the edge is probably cut off by the frame.
 const EDGE_MARGIN = 0.02
@@ -62,6 +64,7 @@ const MAX_PROFILE_SHOULDER_RATIO = 0.35
 
 const FULL_BODY_JOINTS: readonly JointName[] = ['shoulder', 'hip', 'knee', 'ankle']
 const UPPER_BODY_JOINTS: readonly JointName[] = ['shoulder', 'elbow', 'wrist', 'hip']
+const TORSO_JOINTS: readonly JointName[] = ['shoulder', 'hip']
 
 const inFrame = (landmark: Landmark): boolean =>
   landmark.x > EDGE_MARGIN &&
@@ -146,16 +149,18 @@ export function evaluateFraming(input: FramingInput): FramingReport {
   const span = camera.fullBody ? FULL_BODY_SPAN : UPPER_BODY_SPAN
   const body = trackedJoints(landmarks, side, names)
   const complete = body !== null && body.every(inFrame)
+  // What is measured against the span: the whole body, or only the torso.
+  const measured = camera.fullBody ? body : trackedJoints(landmarks, side, TORSO_JOINTS)
 
   const profile: CheckState =
     camera.view === 'side' ? profileState(landmarks, side, frameSize) : 'ok'
   const report = {
     fullBody: complete ? 'ok' : 'fix',
     profile,
-    distance: complete ? distanceState(body, span) : 'pending',
+    distance: complete && measured ? distanceState(measured, span) : 'pending',
     lighting
   } as const
 
-  const close = complete && tooClose(body, span)
+  const close = complete && measured !== null && tooClose(measured, span)
   return { ...report, instruction: firstInstruction(report, light, close, camera.fullBody) }
 }

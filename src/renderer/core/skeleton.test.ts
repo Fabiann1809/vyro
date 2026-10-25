@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { POSE_LANDMARK, POSE_LANDMARK_COUNT, type Landmark } from './landmarks'
-import { drawSkeleton, SKELETON_CONNECTIONS } from './skeleton'
+import { drawObjectBox, drawSkeleton, SKELETON_CONNECTIONS } from './skeleton'
 
 function fakeContext(): {
   ctx: CanvasRenderingContext2D
@@ -83,5 +83,64 @@ describe('drawSkeleton', () => {
       expect(from).toBeLessThan(POSE_LANDMARK_COUNT)
       expect(to).toBeLessThan(POSE_LANDMARK_COUNT)
     }
+  })
+})
+
+describe('drawObjectBox', () => {
+  const box = { x: 0.3, y: 0.4, width: 0.3, height: 0.2, score: 0.9 }
+
+  function textContext(): {
+    ctx: CanvasRenderingContext2D
+    texts: Array<{ text: string; x: number; y: number }>
+    scales: number[]
+  } {
+    const texts: Array<{ text: string; x: number; y: number }> = []
+    const scales: number[] = []
+    const ctx = {
+      strokeRect: vi.fn(),
+      fillRect: vi.fn(),
+      measureText: () => ({ width: 60 }),
+      save: vi.fn(),
+      restore: vi.fn(),
+      translate: vi.fn(),
+      scale: (x: number) => scales.push(x),
+      fillText: (text: string, x: number, y: number) => texts.push({ text, x, y })
+    } as unknown as CanvasRenderingContext2D
+    return { ctx, texts, scales }
+  }
+
+  it('draws nothing without a box', () => {
+    const { ctx, texts } = textContext()
+
+    drawObjectBox(ctx, null, 640, 480, 'Guitarra')
+
+    expect(texts).toEqual([])
+  })
+
+  it('writes the name of the object on a tab above the box', () => {
+    const { ctx, texts } = textContext()
+
+    drawObjectBox(ctx, box, 640, 480, 'Guitarra')
+
+    expect(texts).toHaveLength(1)
+    expect(texts[0]?.text).toBe('Guitarra')
+    // The tab sits over the top edge of the box (y = 192).
+    expect(texts[0]!.y).toBeLessThan(192)
+  })
+
+  it('draws no tab when it has no name', () => {
+    const { ctx, texts } = textContext()
+
+    drawObjectBox(ctx, box, 640, 480)
+
+    expect(texts).toEqual([])
+  })
+
+  it('turns the name back when the picture is shown as in a mirror', () => {
+    const { ctx, scales } = textContext()
+
+    drawObjectBox(ctx, box, 640, 480, 'Guitarra', true)
+
+    expect(scales).toEqual([-1])
   })
 })

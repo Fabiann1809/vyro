@@ -10,10 +10,8 @@ const FILE: Record<string, string> = {
   bicep_curl: 'curl',
   guitar_posture: 'guitarra',
   piano_hand: 'piano_mano',
-  piano_note: 'piano_nota',
   pushup: 'flexion',
   squat: 'sentadilla',
-  steady_beat: 'pulso',
   string_tuning: 'afinar'
 }
 

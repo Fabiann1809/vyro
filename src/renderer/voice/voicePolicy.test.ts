@@ -53,11 +53,11 @@ describe('VoicePolicy', () => {
     expect(said[0]?.message).toEqual({ clipId: 'praise.1', text: '¡Buena técnica!' })
   })
 
-  it('leaves small details on the screen', () => {
+  it('also speaks the small details: what is written on the screen is said out loud', () => {
     const { policy, said } = setup()
 
-    expect(policy.consider(correction('descent_control', 'low'), settings, 0)).toBe(false)
-    expect(said).toEqual([])
+    expect(policy.consider(correction('descent_control', 'low'), settings, 0)).toBe(true)
+    expect(said).toHaveLength(1)
   })
 
   it('is silent when the voice is off', () => {

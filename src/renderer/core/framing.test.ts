@@ -153,4 +153,17 @@ describe('evaluateFraming', () => {
       instruction: 'showUpperBody'
     })
   })
+
+  it('measures the distance of the upper body by the torso, so a bending arm does not change it', () => {
+    const upper = { view: 'side', fullBody: false } as const
+    const stretched = person({ top: 0.2, bottom: 0.85 })
+    const curled = person({ top: 0.2, bottom: 0.85 })
+    // The wrist comes up to the shoulder: the arm reaches far less, the torso is the same.
+    curled[JOINT_INDEX.left.wrist] = { x: 0.5, y: 0.25, z: 0, visibility: 0.98 }
+
+    expect(framing({ landmarks: stretched, camera: upper }).distance).toBe(
+      framing({ landmarks: curled, camera: upper }).distance
+    )
+    expect(framing({ landmarks: curled, camera: upper }).distance).toBe('ok')
+  })
 })

@@ -515,8 +515,6 @@
   "library.line.pushup": "A straight line from head to heels.",
   "library.line.bicep_curl": "A still elbow and the full range.",
   "library.line.piano_hand": "Curved fingers and a wrist at keyboard height.",
-  "library.line.piano_note": "The right note with the hand well placed.",
-  "library.line.steady_beat": "You keep the tempo without rushing.",
   "library.line.string_tuning": "I guide you to the exact note, in cents.",
   "library.line.guitar_posture": "Your back and arm from the side, held for a few seconds.",
   "library.line.generated": "A skill made with the coach.",
@@ -759,5 +757,7 @@
   "dashboard.score.delta": "{delta} vs. previous",
   "dashboard.channels.gauge": "{channel}: failed {rate} of every 100 repetitions",
   "dashboard.channels.zone": "aim ≤ {target}",
-  "training.endSession": "End session"
+  "training.endSession": "End session",
+  "object.name.guitar": "Guitar",
+  "training.turnSideways": "Turn sideways: the camera needs to see you in profile"
 }

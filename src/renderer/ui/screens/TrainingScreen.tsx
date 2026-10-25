@@ -30,6 +30,7 @@ import { VoicePolicy } from '@renderer/voice/voicePolicy'
 import { HandControl } from '@renderer/core/handControl'
 import { pickHand } from '@renderer/core/handJoints'
 import { cameraOf } from '@shared/skill/cameraOf'
+import { evaluateFraming } from '@renderer/core/framing'
 import { isGeneratedSkillId } from '@shared/skill/generatedSafety'
 import { ruleChannel } from '@shared/skill/ruleChannels'
 import { skillChannels, skillInstrument, type SkillChannel } from '@shared/skill/skillChannels'
@@ -43,6 +44,7 @@ import { HoldClock } from '../holdClock'
 import { TargetNote } from '../immersive/TargetNote'
 import { StringTuner } from '../immersive/StringTuner'
 import { TunerCard } from '../immersive/TunerCard'
+import { OBJECT_NAME } from '../objectName'
 import { Button } from '../kit/Button'
 import { ImmersiveFrame, ImmersiveHeader } from '../immersive/ImmersiveFrame'
 import { sortChannels } from '../kit/channels'
@@ -58,6 +60,9 @@ import { phaseLabel } from '../phaseLabel'
 import { useMicrophoneFeatures } from '../useMicrophoneFeatures'
 
 const MESSAGE_VISIBLE_MS = 4000
+
+// How long the body has to be seen from the front before the person is told to turn.
+const FRONT_AFTER_MS = 1500
 
 // How long the last string is left on show, tuned, before the practice ends by itself.
 const FINISH_AFTER_MS = 3000
@@ -148,6 +153,9 @@ export function TrainingScreen(): React.JSX.Element {
     new OtherSoundWatch(DEFAULT_AUDIO_FRAMING.otherSoundMs, DEFAULT_AUDIO_FRAMING.silenceDb)
   )
   const [wrongSound, setWrongSound] = useState(false)
+  // Seen from the front when the skill is filmed from the side (see isFacingCamera).
+  const [facingCamera, setFacingCamera] = useState(false)
+  const frontSince = useRef<number | null>(null)
 
   // A skill shown as a tuner is tuned string by string: each string is a note to aim at.
   const targets = skill?.audio?.targets ?? []
@@ -280,6 +288,29 @@ export function TrainingScreen(): React.JSX.Element {
     )
   }
 
+  // True once the body has been seen from the front, instead of from the side, for a while.
+  const isFacingCamera = (
+    frame: PoseFrame,
+    video: HTMLVideoElement,
+    base: SkillConfig
+  ): boolean => {
+    const camera = cameraOf(base)
+    const wrong =
+      camera.view === 'side' &&
+      evaluateFraming({
+        landmarks: frame.landmarks,
+        luminance: null,
+        frameSize: { width: video.videoWidth, height: video.videoHeight },
+        camera
+      }).profile === 'fix'
+    if (!wrong) frontSince.current = null
+    else frontSince.current ??= frame.timestampMs
+    const facing =
+      frontSince.current !== null && frame.timestampMs - frontSince.current >= FRONT_AFTER_MS
+    setFacingCamera((previous) => (previous === facing ? previous : facing))
+    return facing
+  }
+
   const handleFrame = (
     frame: PoseFrame,
     _smoothed: Landmark[] | null,
@@ -295,6 +326,8 @@ export function TrainingScreen(): React.JSX.Element {
       useHandPointer.getState().show(control.pointer, control.progress)
       if (control.finished) end()
     }
+    // A skill filmed from the side cannot be judged from the front: say so, and do not judge.
+    if (channels.includes('body') && isFacingCamera(frame, video, skill)) return
     const hand = pickHand(frame.hands?.observations ?? [], cameraOf(skill).hand)
     advance(
       {
@@ -484,15 +517,17 @@ export function TrainingScreen(): React.JSX.Element {
       />
 
       <p role="status" className="relative min-h-6 shrink-0 text-center text-lg text-t2">
-        {wrongSound && wanted
-          ? t('training.wrongSound', { instrument: t(`instrument.${wanted}.a`) })
-          : adjusting
-            ? t('training.personal.hint')
-            : personalResult
-              ? t(PERSONAL_RESULT[personalResult])
-              : skill.goal
-                ? localize(skill.goal)
-                : ''}
+        {facingCamera
+          ? t('training.turnSideways')
+          : wrongSound && wanted
+            ? t('training.wrongSound', { instrument: t(`instrument.${wanted}.a`) })
+            : adjusting
+              ? t('training.personal.hint')
+              : personalResult
+                ? t(PERSONAL_RESULT[personalResult])
+                : skill.goal
+                  ? localize(skill.goal)
+                  : ''}
       </p>
 
       <div className="flex min-h-0 flex-1 gap-5">
@@ -502,6 +537,7 @@ export function TrainingScreen(): React.JSX.Element {
               onFrame={handleFrame}
               withHands={channels.includes('hands') || handControl}
               withObjects={channels.includes('object')}
+              objectLabel={skill.object ? t(OBJECT_NAME[skill.object]) : undefined}
               mirrored={handControl}
               videoClassName="max-h-[74vh] rounded-[1.875rem]"
             >
