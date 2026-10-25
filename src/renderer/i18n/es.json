@@ -759,5 +759,8 @@
   "dashboard.channels.zone": "meta ≤ {target}",
   "training.endSession": "Terminar sesión",
   "object.name.guitar": "Guitarra",
-  "training.turnSideways": "Gírate de lado: la cámara te necesita de perfil"
+  "training.turnSideways": "Gírate de lado: la cámara te necesita de perfil",
+  "skill.preview.goal": "Qué vas a hacer",
+  "skill.preview.tips": "Cómo hacerlo",
+  "skill.preview.notMeasured": "Lo que VYRO no puede comprobar"
 }

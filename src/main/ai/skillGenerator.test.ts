@@ -229,6 +229,33 @@ describe('a skill that listens', () => {
     })
   })
 
+  describe('and brings a guide', () => {
+    it('keeps the tips and what the app cannot check', async () => {
+      const model = scriptedModel(answer(tuner, { channels: ['audio'] }))
+
+      const result = await generateSkill(model, input({ description: 'Quiero tocar flauta' }))
+
+      expect(result.kind === 'skill' && result.skill.guide?.notMeasured.length).toBeGreaterThan(0)
+    })
+
+    it('is asked to be fixed when it has no guide', async () => {
+      const bare = { ...tuner, guide: undefined }
+      const model = scriptedModel(
+        answer(bare, { channels: ['audio'] }),
+        answer(tuner, { channels: ['audio'] })
+      )
+
+      const result = await generateSkill(model, input())
+
+      expect(result.kind).toBe('skill')
+      expect(model.requests[1]?.messages.at(-1)?.content).toContain('guide: write it')
+    })
+
+    it('tells the coach to write it and to say what cannot be checked', () => {
+      expect(skillGeneratorPrompt('es')).toContain('notMeasured')
+    })
+  })
+
   describe('and says what to do', () => {
     it('keeps the line that tells the person what to do', async () => {
       const goal = { es: 'Toca la nota y déjala sonar.', en: 'Play the note and let it ring.' }

@@ -164,6 +164,20 @@ export function SkillCreateScreen(): React.JSX.Element {
                   {t('skill.preview.noVoice')}
                 </p>
               )}
+              {preview.goal && (
+                <div className="rounded-2xl bg-brand/10 p-4">
+                  <h3 className="text-xs font-bold tracking-[0.1em] text-accent uppercase">
+                    {t('skill.preview.goal')}
+                  </h3>
+                  <p className="mt-1.5 text-base font-semibold">{preview.goal}</p>
+                </div>
+              )}
+              {preview.tips.length > 0 && (
+                <List title={t('skill.preview.tips')} items={preview.tips} />
+              )}
+              {preview.notMeasured.length > 0 && (
+                <List title={t('skill.preview.notMeasured')} items={preview.notMeasured} />
+              )}
               <div>
                 <h3 className="text-sm font-semibold">{t('skill.preview.camera')}</h3>
                 <p className="mt-1 text-[0.9rem] text-t4">{preview.camera}</p>

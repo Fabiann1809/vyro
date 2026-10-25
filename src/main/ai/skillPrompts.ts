@@ -21,6 +21,21 @@ export const EXAMPLE_SKILL = {
     en: 'Lower as if sitting back and come up again.'
   },
   camera: { view: 'side', fullBody: true },
+  guide: {
+    tips: [
+      { es: 'Pies a la anchura de los hombros.', en: 'Feet shoulder width apart.' },
+      {
+        es: 'Baja con el pecho alto y vuelve a subir despacio.',
+        en: 'Go down with your chest up and come up slowly.'
+      }
+    ],
+    notMeasured: [
+      {
+        es: 'Que las rodillas no se junten al bajar.',
+        en: 'That your knees do not cave in as you go down.'
+      }
+    ]
+  },
   metrics: {
     knee: { type: 'angle', points: ['hip', 'knee', 'ankle'] },
     torso: { type: 'tilt', from: 'hip', to: 'shoulder' }
@@ -64,6 +79,24 @@ export const EXAMPLE_HAND_SKILL = {
     view: 'side',
     fullBody: false,
     hand: 'auto'
+  },
+  guide: {
+    tips: [
+      {
+        es: 'Apoya la mano sobre la mesa, con los dedos relajados.',
+        en: 'Rest your hand on the table, with your fingers relaxed.'
+      },
+      {
+        es: 'Cierra el dedo despacio hasta la posición.',
+        en: 'Close the finger slowly into position.'
+      }
+    ],
+    notMeasured: [
+      {
+        es: 'Que el movimiento sea suave y sin tensión.',
+        en: 'That the movement is smooth and tension free.'
+      }
+    ]
   },
   metrics: {
     curve: {
@@ -137,6 +170,18 @@ export const EXAMPLE_AUDIO_SKILL = {
   audio: {
     a4: 440
   },
+  guide: {
+    tips: [
+      { es: 'Pulsa una sola cuerda y déjala sonar.', en: 'Pluck one string and let it ring.' },
+      { es: 'Acerca el micrófono a la guitarra.', en: 'Bring the microphone close to the guitar.' }
+    ],
+    notMeasured: [
+      {
+        es: 'Cuál es la cuerda que tocas: la app oye la nota.',
+        en: 'Which string you pluck: the app hears the note.'
+      }
+    ]
+  },
   metrics: {
     level: {
       type: 'level'
@@ -209,6 +254,24 @@ export const EXAMPLE_OBJECT_SKILL = {
     hand: 'auto'
   },
   object: 'guitar',
+  guide: {
+    tips: [
+      {
+        es: 'Siéntate con la guitarra acostada sobre la pierna.',
+        en: 'Sit with the guitar lying across your leg.'
+      },
+      {
+        es: 'Mantén la muñeca recta, sin doblarla.',
+        en: 'Keep your wrist straight, without bending it.'
+      }
+    ],
+    notMeasured: [
+      {
+        es: 'Que no aprietes el mástil con demasiada fuerza.',
+        en: 'That you do not squeeze the neck too hard.'
+      }
+    ]
+  },
   metrics: {
     lying: {
       type: 'objectAspect'
@@ -277,6 +340,7 @@ export function skillGeneratorPrompt(language: Language): OutboundSystem {
       'The field "skill" holds the text of ONE JSON object: the whole configuration, with this format.',
       '- "id": "custom_" followed by lowercase words joined by underscores (letters, digits and underscores only). "category": one lowercase word such as "exercise", "stretch", "yoga" or "posture". "name": {"es": ..., "en": ...}.',
       '- "goal": ONE short sentence, in both languages ({"es": ..., "en": ...}, at most 160 characters), that tells the person what to do in the skill, in the second person ("Baja como si te sentaras y vuelve a subir"). It is shown before and while they practise.',
+      '- "guide" (always write it): what helps the person do the skill, {"tips": 2 to 4 short lines on how to do it, each {"es": ..., "en": ...} of at most 160 characters, "notMeasured": 1 to 3 things that the camera or the microphone cannot check even though they matter, in the same format}. Be honest in "notMeasured": VYRO only sees the position of the joints, hands or objects, and hears pitch, pace, volume and the instrument, so say what it cannot judge (for example that a sign of a sign language is exactly right, or the quality of a tone). Never write a "diagrams" field.',
       '- "camera": {"view": "side" or "front", "fullBody": true or false, "hand": "auto", "left" or "right"}. Use "side" when the movement shows from the side (most do), "front" for symmetry. "fullBody" is true when the legs matter; it is false for a skill of the hands. Leave "camera" out when the skill only listens. "hand" says which hand the hand joints belong to ("auto" for the one the camera sees best); leave it out for a skill of the body.',
       `- "metrics": an object whose keys are the metric names (lowercase first letter, letters and digits only, not one of: ${RESERVED_NAMES.join(', ')}). Every metric is one of: {"type": "angle", "points": [a, b, c]} (the angle at the middle joint b); {"type": "tilt", "from": a, "to": b} (the angle of the segment from a to b with the vertical: 0 is straight up, 90 is level); {"type": "offset", "from": a, "to": b, "axis": "x" or "y", "scale": [c, d]} (the distance from a to b along one axis, divided by the length of c to d, so it does not depend on how far the person stands); {"type": "gap", "from": a, "to": b, "scale": [c, d]} (the straight distance from a to b, divided by the length of c to d: how far apart two points are). The body joints are: ${JOINT_NAMES.join(', ')}; they mean the side of the body the camera sees. The hand joints are: ${HAND_JOINT_NAMES.join(', ')}; they mean the hand being followed, and each finger goes from its base (Mcp) to its tip. A metric may mix body and hand joints, for example the angle at the wrist between "elbow", "handWrist" and "middleMcp". The metrics of sound do not use joints: {"type": "level"} (how loud the sound is, in dBFS: -100 is silence, about -50 a quiet room, about -20 a note played near the microphone); {"type": "pitch", "target": a note such as "A2", "E4" or "C#3", or "nearest"} (how far the pitch is from the note, in cents: 0 is in tune, positive is sharp, negative is flat; "nearest" measures from the closest note, which suits tuning any string); {"type": "interval", "semitones": n} (how far the step between the last two notes is from n semitones, in cents: 0 is exact); {"type": "tempo"} (the beats per minute of the last notes; it is known from the third note on); {"type": "instrument", "name": one of ${INSTRUMENTS.join(', ')}} (how sure the sound is of being that instrument, from 0 to 1). Add the instrument metric when WHO is sounding matters, that is, when the person plays one of those instruments, and read its average in a rule (for example "avg(flute) >= 0.5", with a message such as "I do not hear a flute: play it near the microphone"); it is not needed to judge pitch or pace, and an instrument that is not in that list cannot be named, so for it measure the pitch, the pace and the volume only. The metrics of an object look at the box that the detector draws around it: {"type": "objectOffset", "to": a joint, "axis": "x" or "y", "scale": [c, d]} (where the centre of the object is compared with that joint, in times the length of c to d: positive when the object is to the right of it (x) or below it (y)); {"type": "objectAspect"} (the width of the box over its height: above 1 the object lies across the picture, below 1 it stands up; a box has no slant, so there is no angle of the object). A skill with these metrics names the object in a top-level field "object"; the objects allowed today are: ${DETECTABLE_OBJECTS.join(', ')}. Use 2 to 5 metrics. A skill that uses an object needs "object" in requirement.channels and the object in requirement.objects. A skill that uses hand joints needs "hands" in requirement.channels, one that uses body joints needs "body", and one that uses the metrics of sound needs "audio". A skill that listens counts a repetition per note: define the phases with "level" (for example quiet: level less than -42; ringing: level greater than -32), and judge the pitch or the pace in the rules.`,
       '- "phases": at least two, each {"id": ..., "when": {metricName: {"gt": number, "lt": number}}} where every condition must hold together ("gt" is greater than, "lt" is less than; use one or both). Leave a gap between the thresholds of the phases so that the phase does not flicker (for example standing: knee greater than 160; down: knee less than 110).',

@@ -61,7 +61,14 @@ export function readSkillText(
       problems: [`id: "${parsed.skill.id}" is already used. Pick another id.`]
     }
   }
-  const unsafe = [...generatedSkillProblems(parsed.skill), ...guitarLessonProblems(parsed.skill)]
+  const missing = parsed.skill.guide
+    ? []
+    : ['guide: write it, with 2 to 4 "tips" and 1 to 3 things in "notMeasured"']
+  const unsafe = [
+    ...generatedSkillProblems(parsed.skill),
+    ...guitarLessonProblems(parsed.skill),
+    ...missing
+  ]
   if (unsafe.length > 0) return { ok: false, problems: unsafe }
   const undeclared = declared
     ? skillChannels(parsed.skill).filter((channel) => !declared.includes(channel))

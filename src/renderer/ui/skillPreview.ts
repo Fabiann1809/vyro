@@ -119,6 +119,11 @@ function cameraText(skill: SkillConfig): string {
 
 export interface SkillPreview {
   name: string
+  // What the person is to do, in a line; null when the skill has none.
+  goal: string | null
+  // How to do it, and what the app cannot check of it, when the skill brings them.
+  tips: string[]
+  notMeasured: string[]
   camera: string
   metrics: string[]
   phases: string[]
@@ -130,6 +135,9 @@ export interface SkillPreview {
 export function describeSkill(skill: SkillConfig): SkillPreview {
   return {
     name: localize(skill.name),
+    goal: skill.goal ? localize(skill.goal) : null,
+    tips: skill.guide?.tips.map(localize) ?? [],
+    notMeasured: skill.guide?.notMeasured.map(localize) ?? [],
     camera: cameraText(skill),
     metrics: Object.entries(skill.metrics).map(([name, metric]) => metricText(name, metric)),
     phases: skill.phases.map((phase) => {
