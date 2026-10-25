@@ -7,6 +7,7 @@ import { ChannelOrb } from '../kit/ChannelOrb'
 import { ChannelOrbit } from '../home/ChannelOrbit'
 import { Shortcuts } from '../home/Shortcuts'
 import { streakLength, weekDays } from '../dashboardData'
+import { hourGreeting } from '../greeting'
 import { useSkills } from '../skillsStore'
 import { Thread, type ThreadActions } from '../chat/Thread'
 import { ChatComposer } from '../chat/ChatComposer'
@@ -75,13 +76,6 @@ const SUGGESTIONS: ReadonlyArray<{
     channel: 'body'
   }
 ]
-
-const hourGreeting = (hour: number): MessageKey =>
-  hour < 12
-    ? 'home.greeting.morning'
-    : hour < 20
-      ? 'home.greeting.afternoon'
-      : 'home.greeting.night'
 
 const PLACEHOLDERS: readonly MessageKey[] = [
   'home.placeholder.guitar',
