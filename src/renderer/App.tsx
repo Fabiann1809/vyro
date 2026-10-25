@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { CameraPreview } from './ui/CameraPreview'
 import { Ambient } from './ui/kit/Ambient'
+import { BrandOpening } from './ui/kit/BrandOpening'
 import { ExpandOverlay } from './ui/ExpandOverlay'
 import { focusComposer } from './ui/focusComposer'
 import { Sidebar } from './ui/Sidebar'
@@ -85,6 +86,7 @@ function App(): React.JSX.Element {
         </div>
       </main>
       <ExpandOverlay />
+      <BrandOpening />
     </div>
   )
 }
