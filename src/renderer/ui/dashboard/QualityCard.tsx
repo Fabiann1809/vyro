@@ -30,7 +30,7 @@ export function QualityCard({
   const skill = detail ? skillDisplayName(detail.skillId) : ''
 
   return (
-    <Card className="flex flex-col gap-4 p-6">
+    <Card className="flex flex-col gap-4 p-6 lg:col-span-12">
       <div>
         <p className="text-[0.8125rem] text-mut">{t(words.label, { skill })}</p>
         <h2 className="mt-1 text-[1.1875rem] font-semibold">

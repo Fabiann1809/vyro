@@ -39,7 +39,7 @@ export function ConsistencyCard({
   const total = days.reduce((sum, day) => sum + day.sessions, 0)
 
   return (
-    <Card className="flex flex-col gap-4 p-6">
+    <Card className="flex flex-col gap-4 p-6 lg:col-span-6">
       <div>
         <p className="text-[0.8125rem] text-mut">
           {t('dashboard.consistency.label', { weeks: WEEKS })}

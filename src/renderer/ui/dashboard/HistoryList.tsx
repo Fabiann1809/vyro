@@ -25,7 +25,7 @@ export function HistoryList({
   details: readonly SessionDetail[]
 }): React.JSX.Element {
   return (
-    <Card className="px-2 py-2.5 lg:col-span-3">
+    <Card className="px-2 py-2.5 lg:col-span-12">
       <div className="flex items-baseline justify-between px-4.5 pt-3.5 pb-2.5">
         <h2 className="text-[1.1875rem] font-semibold">{t('dashboard.history.title')}</h2>
         <p className="text-[0.8125rem] text-mut">

@@ -57,11 +57,11 @@ function MeasureCard({ series }: { series: MeasureSeries }): React.JSX.Element {
 export function MeasuresCards({ series }: { series: readonly MeasureSeries[] }): React.JSX.Element {
   return (
     <>
-      <div className="flex items-baseline justify-between lg:col-span-3">
+      <div className="flex items-baseline justify-between lg:col-span-12">
         <h2 className="text-[1.1875rem] font-semibold">{t('dashboard.measures.title')}</h2>
         <p className="text-[0.8125rem] text-mut">{t('dashboard.measures.hint')}</p>
       </div>
-      <ul className="grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4.5 lg:col-span-3">
+      <ul className="grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4.5 lg:col-span-12">
         {series.map((item) => (
           <li key={item.measure} className="flex">
             <MeasureCard series={item} />
