@@ -59,6 +59,9 @@ import { useMicrophoneFeatures } from '../useMicrophoneFeatures'
 
 const MESSAGE_VISIBLE_MS = 4000
 
+// How long the last string is left on show, tuned, before the practice ends by itself.
+const FINISH_AFTER_MS = 3000
+
 // A pitch is only a note when the sound is clear enough to be sure of it.
 const MIN_PITCH_CLARITY = 0.5
 
@@ -366,6 +369,20 @@ export function TrainingScreen(): React.JSX.Element {
     }
     go('summary')
   }, [skill, startedAt, elapsedMs, finishSession, setSaveStatus, go])
+
+  // The practice that has an end of its own, such as tuning every string, ends by itself a moment
+  // after it is reached, so that the person sees the last string done and then the summary. The timer
+  // calls the latest end, because that one changes every second with the clock.
+  const endRef = useRef(end)
+  useEffect(() => {
+    endRef.current = end
+  })
+  const finished = tuner && tuned.size === targets.length
+  useEffect(() => {
+    if (!finished) return
+    const timer = setTimeout(() => endRef.current(), FINISH_AFTER_MS)
+    return () => clearTimeout(timer)
+  }, [finished])
 
   useEffect(() => {
     if (!skill) go('library')
