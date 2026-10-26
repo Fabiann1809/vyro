@@ -4,7 +4,7 @@ const REASON_HELP: Record<(typeof FLAGGABLE_REASONS)[number], string> = {
   'invisible-outcome':
     'the result cannot be seen or heard (meditation, chess, maths, languages beyond pronunciation)',
   'too-fine-detail':
-    'the detail is too fine for a webcam (calligraphy, embroidery, the quality of a drawing stroke)',
+    'the detail is too fine for a webcam, or is right only when every finger is in an exact place, which the app cannot tell from the position of the hand (calligraphy, embroidery, the quality of a drawing stroke, the letters or signs of a sign language, the exact fingering of a chord)',
   'out-of-frame': 'the movement leaves the frame (running outdoors, swimming, team sports)',
   'needs-touch': 'it is done by touch (massage, cooking, soldering)',
   'physical-risk':

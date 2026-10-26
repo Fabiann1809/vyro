@@ -229,6 +229,28 @@ describe('a skill that listens', () => {
     })
   })
 
+  describe('and a shape that only the exact fingers decide', () => {
+    it('tells the coach that a sign or a chord fingering is too fine to coach', () => {
+      const prompt = skillGeneratorPrompt('es')
+
+      expect(prompt).toContain('sign language')
+      expect(prompt).toContain('too-fine-detail')
+    })
+
+    it('declines it when the coach flags it', async () => {
+      const model = scriptedModel(
+        JSON.stringify({
+          requirement: { channels: ['hands'], outOfScope: ['too-fine-detail'] },
+          skill: ''
+        })
+      )
+
+      const result = await generateSkill(model, input({ description: 'La letra A en señas' }))
+
+      expect(result.kind).toBe('out-of-scope')
+    })
+  })
+
   describe('and a shape that is kept still', () => {
     const repeated = EXAMPLE_HAND_SKILL
     const kept = {
@@ -243,7 +265,10 @@ describe('a skill that listens', () => {
     it('sends back a skill that counts repetitions of it', async () => {
       const model = scriptedModel(withHeld(repeated, true), withHeld(kept, true))
 
-      const result = await generateSkill(model, input({ description: 'La letra A en señas' }))
+      const result = await generateSkill(
+        model,
+        input({ description: 'Mantener la mano abierta y quieta' })
+      )
 
       expect(model.requests).toHaveLength(2)
       expect(model.requests[1]?.messages.at(-1)?.content).toContain('held:')
