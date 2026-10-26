@@ -147,10 +147,15 @@ export function describeSkill(skill: SkillConfig): SkillPreview {
       ])
       return t('skill.phase', { id: phase.id, conditions: conditions.join(', ') })
     }),
-    repetition: t('skill.repetition', {
-      sequence: skill.rep.sequence.join(' → '),
-      seconds: (skill.rep.minDurationMs / 1000).toFixed(1)
-    }),
+    repetition: [
+      t('skill.repetition', {
+        sequence: skill.rep.sequence.join(' → '),
+        seconds: (skill.rep.minDurationMs / 1000).toFixed(1)
+      }),
+      ...(skill.rep.holdMs !== undefined
+        ? [t('skill.repetition.hold', { seconds: (skill.rep.holdMs / 1000).toFixed(1) })]
+        : [])
+    ].join(' '),
     rules: skill.rules.map((rule) => ({
       severity: t(SEVERITY_TEXT[rule.severity]),
       message: localize(rule.message)

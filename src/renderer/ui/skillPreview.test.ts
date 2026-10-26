@@ -28,6 +28,13 @@ describe('describeSkill', () => {
 
     expect(preview.phases.some((phase) => phase.includes('mayor que'))).toBe(true)
     expect(preview.repetition).toContain('→')
+    expect(preview.repetition).not.toContain('Se mantiene')
+  })
+
+  it('says for how long a shape is kept when the skill holds it', () => {
+    const held = { ...skill(), rep: { ...skill().rep, holdMs: 2500 } }
+
+    expect(describeSkill(held).repetition).toContain('Se mantiene la forma 2.5 s')
   })
 
   it('uses the language of the person', () => {

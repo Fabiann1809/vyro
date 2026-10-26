@@ -762,5 +762,6 @@
   "training.turnSideways": "Gírate de lado: la cámara te necesita de perfil",
   "skill.preview.goal": "Qué vas a hacer",
   "skill.preview.tips": "Cómo hacerlo",
-  "skill.preview.notMeasured": "Lo que VYRO no puede comprobar"
+  "skill.preview.notMeasured": "Lo que VYRO no puede comprobar",
+  "skill.repetition.hold": "Se mantiene la forma {seconds} s: no cuenta repeticiones."
 }

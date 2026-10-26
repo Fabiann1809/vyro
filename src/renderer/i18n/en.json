@@ -762,5 +762,6 @@
   "training.turnSideways": "Turn sideways: the camera needs to see you in profile",
   "skill.preview.goal": "What you are going to do",
   "skill.preview.tips": "How to do it",
-  "skill.preview.notMeasured": "What VYRO cannot check"
+  "skill.preview.notMeasured": "What VYRO cannot check",
+  "skill.repetition.hold": "The shape is kept {seconds} s: it does not count repetitions."
 }
