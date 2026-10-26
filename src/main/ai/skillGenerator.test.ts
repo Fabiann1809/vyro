@@ -229,6 +229,37 @@ describe('a skill that listens', () => {
     })
   })
 
+  describe('and a shape that is kept still', () => {
+    const repeated = EXAMPLE_HAND_SKILL
+    const kept = {
+      ...EXAMPLE_HAND_SKILL,
+      display: 'hold',
+      rep: { ...EXAMPLE_HAND_SKILL.rep, holdMs: 2500 }
+    }
+    const hands = { channels: ['hands'] }
+    const withHeld = (skill: unknown, held: boolean): string =>
+      JSON.stringify({ requirement: hands, skill: JSON.stringify(skill), held })
+
+    it('sends back a skill that counts repetitions of it', async () => {
+      const model = scriptedModel(withHeld(repeated, true), withHeld(kept, true))
+
+      const result = await generateSkill(model, input({ description: 'La letra A en señas' }))
+
+      expect(model.requests).toHaveLength(2)
+      expect(model.requests[1]?.messages.at(-1)?.content).toContain('held:')
+      expect(result.kind === 'skill' && result.skill.rep.holdMs).toBe(2500)
+    })
+
+    it('leaves a movement that is repeated as it is', async () => {
+      const model = scriptedModel(withHeld(repeated, false))
+
+      const result = await generateSkill(model, input())
+
+      expect(model.requests).toHaveLength(1)
+      expect(result.kind).toBe('skill')
+    })
+  })
+
   describe('and brings a guide', () => {
     it('keeps the tips and what the app cannot check', async () => {
       const model = scriptedModel(answer(tuner, { channels: ['audio'] }))

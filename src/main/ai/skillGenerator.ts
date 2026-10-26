@@ -19,12 +19,25 @@ const SKILL_MAX_TOKENS = 4000
 
 // The text that the model writes comes in a field, as JSON inside JSON: the metrics of a skill are
 // keyed by names that the model chooses, which a fixed schema for the answer cannot describe.
-const answerSchema = z.object({ requirement: skillRequirementSchema, skill: z.string() }).strict()
+// "held" is the coach saying that the person makes a shape and keeps it still, which the skill must
+// then measure as a time held and not as repetitions.
+const answerSchema = z
+  .object({ requirement: skillRequirementSchema, skill: z.string(), held: z.boolean().optional() })
+  .strict()
 
 // Open models like to wrap what they write in a markdown fence.
 function withoutFence(text: string): string {
   const match = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(text.trim())
   return match?.[1] ?? text.trim()
+}
+
+// A shape that is kept still is judged by the time it is held: without that, the screen would count
+// repetitions of a thing that is not repeated.
+function heldProblems(skill: SkillConfig): string[] {
+  if (skill.rep.holdMs !== undefined && skill.display === 'hold') return []
+  return [
+    'held: the skill is a shape that is kept still, so add "holdMs" (2000 to 4000) to "rep", set "display" to "hold" and use a three-step "sequence" (away, shape, away) instead of a repetition that goes up and down.'
+  ]
 }
 
 export type SkillText =
@@ -40,7 +53,9 @@ export function readSkillText(
   // The channels the coach said the skill needs: it may not measure with any other.
   declared?: readonly Channel[],
   // The objects the coach said the skill needs: it may look at no other.
-  declaredObjects?: readonly string[]
+  declaredObjects?: readonly string[],
+  // True when the coach said the skill is a shape that is kept still.
+  held?: boolean
 ): SkillText {
   const source = withoutFence(text)
   if (source === '') return { ok: false, problems: ['The skill is empty: write the whole JSON.'] }
@@ -67,7 +82,8 @@ export function readSkillText(
   const unsafe = [
     ...generatedSkillProblems(parsed.skill),
     ...guitarLessonProblems(parsed.skill),
-    ...missing
+    ...missing,
+    ...(held ? heldProblems(parsed.skill) : [])
   ]
   if (unsafe.length > 0) return { ok: false, problems: unsafe }
   const undeclared = declared
@@ -111,7 +127,8 @@ export async function generateSkill(
       value.skill,
       input.existingSkillIds,
       requirement.channels,
-      requirement.objects
+      requirement.objects,
+      value.held
     )
     if (!read.ok) {
       for (const message of read.problems) {
@@ -152,7 +169,8 @@ export async function generateSkill(
     answer.skill,
     input.existingSkillIds,
     requirement.channels,
-    requirement.objects
+    requirement.objects,
+    answer.held
   )
   if (!read.ok) throw new Error('A skill that was already checked cannot be read.')
   return { kind: 'skill', skill: read.skill, config: read.config }

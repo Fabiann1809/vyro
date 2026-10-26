@@ -16,7 +16,11 @@ const SPOT: Record<SkillChannel, { x: string; y: string }> = {
 // slowly around it. The names stay still (the ring turns, each name turns back).
 export function ChannelOrbit(): React.JSX.Element {
   return (
-    <div aria-hidden="true" className="relative flex h-125 items-center justify-center">
+    // It is only a picture and, in a narrow window, it reaches over the message box: it takes no clicks.
+    <div
+      aria-hidden="true"
+      className="pointer-events-none relative flex h-125 items-center justify-center"
+    >
       <div className="absolute size-110 rounded-full border border-dashed border-line/16" />
       <div className="absolute size-79 rounded-full border border-line/8" />
       <div className="absolute flex size-63 items-center justify-center rounded-full border border-[rgba(255,214,180,0.22)] bg-[radial-gradient(circle_at_50%_40%,oklch(0.7_0.17_45/0.25),transparent_70%)] shadow-[inset_0_0_40px_oklch(0.75_0.16_50/0.18),0_0_80px_oklch(0.65_0.17_40/0.25)] backdrop-blur-xl">
