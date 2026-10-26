@@ -46,6 +46,7 @@ function Dial({
   cents: number | null
   status: TuningStatus
 }): React.JSX.Element {
+  const shown = Math.round(cents ?? 0)
   const angle = angleOf(Math.max(-50, Math.min(50, cents ?? 0)), SCALE)
   const colour = needleColour(status)
   const soft = [angleOf(-25, SCALE), angleOf(25, SCALE)] as const
@@ -113,6 +114,19 @@ function Dial({
         strokeWidth="6"
         style={{ transition: 'fill 200ms' }}
       />
+      <text
+        x={CENTRE.x}
+        y={CENTRE.y - 54}
+        textAnchor="middle"
+        className="font-display text-[46px] font-extrabold"
+        fill={colour}
+        style={{ transition: 'fill 200ms' }}
+      >
+        {cents === null ? '—' : `${shown > 0 ? '+' : ''}${shown}`}
+      </text>
+      <text x={CENTRE.x} y={CENTRE.y - 30} textAnchor="middle" className="fill-mut text-[13px]">
+        cents
+      </text>
       {[-50, 0, 50].map((mark) => {
         const [x, y] = pointAt(CENTRE.x, CENTRE.y, RADIUS + 34, angleOf(mark, SCALE))
         return (
@@ -154,8 +168,6 @@ export function StringTuner({
   const { name, octave } = noteLabel(target)
   const status = tuningStatus(cents)
   const allDone = tuned.size === targets.length
-  const shown = Math.round(cents ?? 0)
-  const colour = needleColour(status)
 
   return (
     <div className="absolute inset-0 flex flex-col gap-2 px-8 pt-6 pb-5">
@@ -213,18 +225,6 @@ export function StringTuner({
 
       <div className="relative flex min-h-40 flex-1 justify-center">
         <Dial cents={cents} status={status} />
-        <p
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-6 text-center"
-        >
-          <span
-            className="block font-display text-[2.875rem] leading-none font-extrabold tabular-nums"
-            style={{ color: colour, transition: 'color 200ms' }}
-          >
-            {cents === null ? '—' : `${shown > 0 ? '+' : ''}${shown}`}
-          </span>
-          <span className="mt-1 block text-[0.8125rem] text-mut">cents</span>
-        </p>
       </div>
 
       <div className="mx-auto flex w-full max-w-140 shrink-0 items-center gap-3.5">

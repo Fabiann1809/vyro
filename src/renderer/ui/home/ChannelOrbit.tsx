@@ -53,7 +53,7 @@ export function ChannelOrbit(): React.JSX.Element {
         })}
       </div>
       <div
-        className="absolute top-[12%] right-[4%] flex h-9.5 items-center gap-2 rounded-full border border-line/12 bg-(--glass) px-3.5 text-[0.8125rem] text-t2 backdrop-blur-lg"
+        className="absolute right-[2%] bottom-[8%] flex h-9.5 items-center gap-2 rounded-full border border-line/12 bg-(--glass) px-3.5 text-[0.8125rem] text-t2 backdrop-blur-lg"
         style={{ animation: 'vy-float 5s ease-in-out infinite' }}
       >
         <span className="flex h-3.5 items-center gap-0.5">
