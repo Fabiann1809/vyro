@@ -254,6 +254,12 @@ describe('a skill that listens', () => {
     it('tells the coach to write it and to say what cannot be checked', () => {
       expect(skillGeneratorPrompt('es')).toContain('notMeasured')
     })
+
+    it('tells the coach that a shape kept still is held, not repeated', () => {
+      expect(skillGeneratorPrompt('es')).toContain(
+        'Never make it a repetition that goes up and down'
+      )
+    })
   })
 
   describe('and says what to do', () => {
