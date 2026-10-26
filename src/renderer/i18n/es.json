@@ -117,7 +117,7 @@
   "path.channel.audio": "el sonido",
   "path.channel.object": "los objetos",
   "path.reason.invisible-outcome": "El resultado no se puede ver ni oír (por ejemplo, meditar o jugar ajedrez).",
-  "path.reason.too-fine-detail": "El detalle es demasiado fino para una cámara web (por ejemplo, el trazo al dibujar).",
+  "path.reason.too-fine-detail": "El detalle es demasiado fino para una cámara web, o depende de dónde está cada dedo (por ejemplo, el trazo al dibujar, una letra en lenguaje de señas o la posición exacta de un acorde).",
   "path.reason.out-of-frame": "El movimiento sale del encuadre (por ejemplo, correr al aire libre).",
   "path.reason.needs-touch": "Se hace con el tacto (por ejemplo, cocinar o dar un masaje).",
   "path.reason.physical-risk": "Hay un riesgo físico o clínico (por ejemplo, rehabilitar una lesión).",

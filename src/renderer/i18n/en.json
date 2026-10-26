@@ -117,7 +117,7 @@
   "path.channel.audio": "sound",
   "path.channel.object": "objects",
   "path.reason.invisible-outcome": "The result cannot be seen or heard (for example, meditating or playing chess).",
-  "path.reason.too-fine-detail": "The detail is too fine for a webcam (for example, the stroke when drawing).",
+  "path.reason.too-fine-detail": "The detail is too fine for a webcam, or depends on where each finger is (for example a drawing stroke, a letter in sign language or the exact fingering of a chord).",
   "path.reason.out-of-frame": "The movement leaves the frame (for example, running outdoors).",
   "path.reason.needs-touch": "It is done by touch (for example, cooking or giving a massage).",
   "path.reason.physical-risk": "There is a physical or clinical risk (for example, rehabilitating an injury).",
