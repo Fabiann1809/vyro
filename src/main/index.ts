@@ -5,10 +5,10 @@ import { APP_NAME } from '@shared/app'
 import icon from '../../resources/icon.png?asset'
 import { ApiKeyStore, createKeyFile, type SecretStorage } from './ai/keyStore'
 import { AuthService } from './auth/authService'
-import { mayOpenInBrowser } from './auth/browser'
+import { isOnServer, mayOpenInBrowser } from './auth/browser'
 import { setupDeepLinks } from './auth/deepLinks'
 import { ReturnInbox } from './auth/returnInbox'
-import { readAuthConfig } from './auth/config'
+import { readAuthConfig, testServerUrl } from './auth/config'
 import { EncryptedAuthStorage } from './auth/sessionStorage'
 import { createSupabaseClient, createSupabaseGateway } from './auth/supabaseGateway'
 import { AccountActions } from './account/accountActions'
@@ -62,7 +62,7 @@ const secretStorage: SecretStorage = {
 
 // The tests of the app run it from source and give it a fake sign-in server on this computer. A
 // packaged app ignores this, so nobody can point an installed VYRO at another server.
-const testServer = app.isPackaged ? undefined : process.env['VYRO_E2E_SUPABASE_URL']
+const testServer = testServerUrl(app.isPackaged, process.env)
 
 interface Account {
   auth: AuthService
@@ -89,7 +89,9 @@ function createAccount(): Account {
       })
   if (!config) return { auth: new AuthService(null), remote: null, cloud: null }
   const openBrowser = async (url: string): Promise<boolean> => {
-    if (!mayOpenInBrowser(url, testServer !== undefined)) return false
+    // The page of the sign-in has to be on the account service, and secure (or this computer, under test).
+    if (!mayOpenInBrowser(url, testServer !== undefined) || !isOnServer(url, config.url))
+      return false
     // Under test no browser is opened: the test brings the return link itself.
     if (!testServer) await shell.openExternal(url)
     return true

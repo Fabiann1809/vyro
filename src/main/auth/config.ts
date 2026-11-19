@@ -4,6 +4,15 @@ function text(value: unknown): string | undefined {
   return typeof value === 'string' ? value.trim() : undefined
 }
 
+// The address of the fake account service that the tests of the app give it, or undefined. A packaged
+// app never takes it, so nobody can point an installed VYRO at another server by setting a variable.
+export function testServerUrl(
+  isPackaged: boolean,
+  env: Record<string, string | undefined>
+): string | undefined {
+  return isPackaged ? undefined : env['VYRO_E2E_SUPABASE_URL']
+}
+
 export interface AuthConfig {
   url: string
   // The publishable key (formerly "anon"): public by design, protected by Row Level Security.

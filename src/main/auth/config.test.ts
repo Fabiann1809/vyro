@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { readAuthConfig } from './config'
+import { readAuthConfig, testServerUrl } from './config'
 
 const URL = 'https://abc.supabase.co'
 const KEY = 'sb_publishable_abc'
@@ -48,5 +48,18 @@ describe('readAuthConfig', () => {
         MAIN_VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_secret_abc'
       })
     ).toBeNull()
+  })
+})
+
+describe('testServerUrl', () => {
+  const env = { VYRO_E2E_SUPABASE_URL: 'http://127.0.0.1:5000' }
+
+  it('is taken when the app runs from source', () => {
+    expect(testServerUrl(false, env)).toBe('http://127.0.0.1:5000')
+    expect(testServerUrl(false, {})).toBeUndefined()
+  })
+
+  it('is never taken by a packaged app, so an installed VYRO cannot be pointed elsewhere', () => {
+    expect(testServerUrl(true, env)).toBeUndefined()
   })
 })

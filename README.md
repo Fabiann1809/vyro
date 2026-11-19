@@ -44,7 +44,7 @@ letter in a sign language or the exact fingering of a chord, VYRO says so instea
 | **Sets you up first**              | A calibration checks that you are in view, at a good distance and well lit before it starts.                                                      |
 | **Plans a path**                   | Tell the coach what you want to learn; it proposes steps and marks the ones VYRO can measure.                                                     |
 | **Shows your progress**            | A summary after each session and a dashboard with your streak, your scores, what fails most and how each channel is doing.                        |
-| **Private by design**              | No account, no cloud. Video, images and audio are never saved or sent: only numbers.                                                              |
+| **Private by design**              | Video, images and audio are never saved or sent: only numbers and text, kept in your account.                                                              |
 | **Open to new skills**             | A skill is one JSON file. The engine knows no specific exercise, and the AI coach can design new ones.                                            |
 
 ## See it
@@ -132,10 +132,19 @@ If you prefer not to trust an unsigned binary, build it yourself (see _Developme
 
 ## Your data
 
-VYRO stores **only numbers** on your computer: the repetitions, score and mistakes of each
-session, and your settings. It never stores video, images, body landmarks or sound, and it sends
-nothing anywhere unless you turn on the optional AI coach (see below). You can erase everything in
-**Settings → Data and privacy**.
+VYRO needs an account (email and password, or Google) to open. The camera, the microphone and the
+neural networks run **on your computer**; what is saved is **only numbers and text**: the
+repetitions, score and mistakes of each session, your learning paths and the skills you created. It
+never stores video, images, body landmarks or sound.
+
+Those numbers and that text are kept on your computer and in your account in the cloud, so that you
+see them on every computer you use. **Never** sent to the cloud: your conversation with the coach,
+your API key and your settings. The first sign-in needs a connection; after that you can practise
+without one, and the changes go up when it comes back.
+
+In **Settings → Account** you see what is synced, you can sign out and you can delete your account.
+**Settings → Data and privacy → Delete all data** erases your data on this computer and the copy in
+the cloud. Nothing else is sent anywhere unless you turn on the optional AI coach (see below).
 
 The microphone is used only in skills that listen (such as tuning a string), and only while they
 are open. The sound is measured on the spot and forgotten: it is never recorded, saved or sent.
@@ -170,6 +179,22 @@ pnpm package      # build the installer for your system, in dist/
 ```
 
 The camera cannot be tested in CI, so anything that needs it is checked by hand.
+
+### The account service
+
+The account and the sync use [Supabase](https://supabase.com). To run the app with them:
+
+1. Create a Supabase project and run the files of [`supabase/migrations`](supabase/migrations) in its
+   SQL Editor, in order. They create the tables, the Row Level Security that keeps each account
+   apart, and the two functions that delete an account's data.
+2. Copy `.env.example` to `.env.local` and fill in the address of the project and its **publishable**
+   key. Both are public by design. **Never** put the secret (`service_role`) key anywhere in this
+   repository or in the app: the app refuses a key that starts with `sb_secret_`.
+3. For the installers, set the repository variables `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in
+   GitHub; the release workflow stops if they are missing.
+
+The tests run against a fake account service and an in-memory Postgres that loads the same
+migrations, so they need no Supabase project.
 
 ### How it is organised
 

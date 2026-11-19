@@ -332,7 +332,7 @@ Todo lo del brief original (WCAG AA mínimo, AAA en modo de pie donde se pueda, 
 
 - App de **Electron + React + Tailwind**; los componentes se implementarán en React. Proponer diseño exportable a componentes y tokens (colores, tipografía, espaciado) reutilizables.
 - Debe funcionar **sin internet** (salvo la IA opcional). Nada de fuentes ni imágenes cargadas desde servidores externos en tiempo de ejecución: se empaquetan.
-- **Sin cuentas, sin login, sin nube.** Los datos son locales.
+- ~~Sin cuentas, sin login, sin nube. Los datos son locales.~~ Sustituido por la fase 25 (D21): hay cuenta obligatoria; el video, las imágenes y el audio siguen sin salir del equipo.
 - El video de la cámara es el protagonista en calibración/entrenamiento; relación 16:9 o 4:3.
 - Rendimiento: el entrenamiento ya usa varios modelos de visión en paralelo; en esas pantallas las animaciones deben ser **baratas** (transformaciones y opacidad, nada que fuerce redibujar el video).
 - Privacidad: el video, las capturas y el audio **no se guardan ni se envían**; a la IA solo viaja texto del chat y números. El diseño debe **mostrarlo** (indicadores) y nunca sugerir lo contrario.

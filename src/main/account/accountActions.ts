@@ -74,8 +74,15 @@ export class AccountActions {
   }
 
   private async sendWhatIsWaiting(sync: SyncControl): Promise<void> {
-    const wait = new Promise<void>((done) => setTimeout(done, this.deps.waitMs ?? 8000))
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const wait = new Promise<void>((done) => {
+      timer = setTimeout(done, this.deps.waitMs ?? 8000)
+    })
     // A failure is not an error here: the check afterwards says whether anything is still waiting.
-    await Promise.race([sync.run().catch(() => undefined), wait])
+    try {
+      await Promise.race([sync.run().catch(() => undefined), wait])
+    } finally {
+      clearTimeout(timer)
+    }
   }
 }

@@ -44,7 +44,7 @@ letra en lenguaje de señas o la posición exacta de un acorde, VYRO lo dice en 
 | **Te coloca antes de empezar**     | Una calibración comprueba que te ve, a buena distancia y con buena luz, antes de iniciar.                                                         |
 | **Arma una ruta**                  | Dile al coach qué quieres aprender: propone pasos y marca los que VYRO puede medir.                                                               |
 | **Muestra tu progreso**            | Un resumen al terminar cada sesión y un tablero con tu racha, tus puntuaciones, lo que más falla y cómo va cada canal.                            |
-| **Privada por diseño**             | Sin cuenta ni nube. El video, las imágenes y el audio nunca se guardan ni se envían: solo números.                                                |
+| **Privada por diseño**             | El video, las imágenes y el audio nunca se guardan ni se envían: solo números y texto, en tu cuenta.                                                |
 | **Abierta a nuevas habilidades**   | Una habilidad es un archivo JSON. El motor no conoce ningún ejercicio concreto, y el coach con IA puede diseñar nuevas.                           |
 
 ## Míralo
@@ -134,10 +134,20 @@ Si prefieres no confiar en un binario sin firmar, compílalo tú (mira _Desarrol
 
 ## Tus datos
 
-VYRO guarda **solo números** en tu computador: las repeticiones, la puntuación y los errores de cada
-sesión, y tus ajustes. Nunca guarda video, imágenes, puntos del cuerpo ni sonido, y no envía nada a
-ningún sitio salvo que actives el coach con IA opcional (mira abajo). Puedes borrar todo en
-**Ajustes → Datos y privacidad**.
+VYRO necesita una cuenta (correo y contraseña, o Google) para abrirse. La cámara, el micrófono y
+las redes neuronales funcionan **en tu computador**; lo que se guarda es **solo números y texto**:
+las repeticiones, la puntuación y los errores de cada sesión, tus rutas y las habilidades que
+creaste. Nunca guarda video, imágenes, puntos del cuerpo ni sonido.
+
+Esos números y ese texto se guardan en tu computador y en tu cuenta en la nube, para que los veas
+en cada computador que uses. **Nunca** se envían a la nube: tu conversación con el coach, tu clave
+de API y tus ajustes. El primer inicio de sesión necesita conexión; después puedes practicar sin
+ella y los cambios se suben cuando vuelva.
+
+En **Ajustes → Cuenta** ves qué se sincroniza, puedes cerrar sesión y puedes borrar tu cuenta.
+**Ajustes → Datos y privacidad → Borrar todos los datos** borra tus datos en este computador y la
+copia en la nube. No se envía nada más a ningún sitio salvo que actives el coach con IA opcional
+(mira abajo).
 
 El micrófono se usa solo en las habilidades que escuchan (como afinar una cuerda) y solo mientras
 están abiertas. El sonido se mide al instante y se olvida: nunca se graba, se guarda ni se envía.
@@ -173,6 +183,23 @@ pnpm package      # genera el instalador de tu sistema, en dist/
 ```
 
 La cámara no se puede probar en CI, así que lo que la necesita se comprueba a mano.
+
+### El servicio de cuentas
+
+La cuenta y la sincronización usan [Supabase](https://supabase.com). Para ejecutar la app con ellas:
+
+1. Crea un proyecto de Supabase y ejecuta, en orden, los archivos de
+   [`supabase/migrations`](supabase/migrations) en su SQL Editor. Crean las tablas, la seguridad por
+   filas (RLS) que separa cada cuenta y las dos funciones que borran los datos de una cuenta.
+2. Copia `.env.example` a `.env.local` y rellena la dirección del proyecto y su clave
+   **publicable**. Las dos son públicas por diseño. **Nunca** pongas la clave secreta
+   (`service_role`) en este repositorio ni en la app: la app rechaza una clave que empiece por
+   `sb_secret_`.
+3. Para los instaladores, define en GitHub las variables del repositorio `SUPABASE_URL` y
+   `SUPABASE_PUBLISHABLE_KEY`; el flujo de publicación se detiene si faltan.
+
+Las pruebas usan un servicio de cuentas falso y un Postgres en memoria que carga las mismas
+migraciones, así que no necesitan un proyecto de Supabase.
 
 ### Cómo está organizado
 

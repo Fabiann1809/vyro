@@ -14,6 +14,15 @@ describe('buildCsp', () => {
     expect(buildCsp(false)).not.toContain('ws:')
   })
 
+  it('lets the page talk to no server at all in production, not even the account service', () => {
+    // The account and the sync are the business of the main process (D21): the page has no address to
+    // reach, so a script that got into it could not send anything out.
+    const csp = buildCsp(false)
+    expect(csp).not.toMatch(/https?:|wss?:|\*/)
+    expect(csp).not.toContain('supabase')
+    expect(csp).toContain("default-src 'self'")
+  })
+
   it('allows hot reload only in development', () => {
     expect(buildCsp(true)).toContain('ws://localhost:*')
     expect(buildCsp(true)).toContain("'unsafe-inline'")

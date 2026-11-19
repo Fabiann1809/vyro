@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mayOpenInBrowser } from './browser'
+import { isOnServer, mayOpenInBrowser } from './browser'
 
 describe('mayOpenInBrowser', () => {
   it('opens secure addresses', () => {
@@ -25,5 +25,27 @@ describe('mayOpenInBrowser', () => {
     expect(mayOpenInBrowser('http://localhost:8080/start', true)).toBe(true)
     expect(mayOpenInBrowser('http://evil.example.com/start', true)).toBe(false)
     expect(mayOpenInBrowser('http://127.0.0.1.evil.example.com/start', true)).toBe(false)
+  })
+})
+
+describe('isOnServer', () => {
+  const server = 'https://abc.supabase.co'
+
+  it('accepts the pages of the account service', () => {
+    expect(isOnServer('https://abc.supabase.co/auth/v1/authorize?provider=google', server)).toBe(
+      true
+    )
+  })
+
+  it('refuses any other server, however alike it looks', () => {
+    for (const address of [
+      'https://evil.example.com/auth/v1/authorize',
+      'https://abc.supabase.co.evil.example.com/authorize',
+      'http://abc.supabase.co/authorize',
+      'https://abc.supabase.co:8443/authorize',
+      'not an address'
+    ]) {
+      expect(isOnServer(address, server)).toBe(false)
+    }
   })
 })
