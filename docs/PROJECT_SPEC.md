@@ -29,7 +29,7 @@ El MVP cubre tres ejercicios con el propio peso del cuerpo (sentadilla, flexión
 | Voz | Sí, en el MVP |
 | Cámara | La del portátil; el celular sirve como webcam virtual (DroidCam, Iriun, Camo) |
 | Vista de cámara | De perfil en los tres ejercicios del MVP |
-| Privacidad | Sin nube, sin cuentas; solo se guardan métricas, nunca video, imágenes ni audio. La IA es opcional y, si se activa, solo recibe texto y números (D12) |
+| Privacidad | Local por defecto; solo se guardan métricas, nunca video, imágenes ni audio. La IA es opcional y, si se activa, solo recibe texto y números (D12). Desde la fase 25 hay una cuenta opcional (D21): solo con ella se sincronizan números y texto, nunca video, imágenes ni audio |
 | Objetivo | Portafolio (README, demo y releases descargables) |
 | Flujo Git | Directo a `main` con hooks locales, CI en 3 sistemas y CD por tag |
 | Licencia | MIT |
@@ -121,7 +121,7 @@ custom_skills(id, config_json, status, created_at)   -- habilidades generadas po
 - Instaladores para Windows, macOS y Linux.
 
 ### Fuera del MVP
-- Cuentas, sincronización, nube y funciones sociales.
+- Cuentas, sincronización y nube (entran en la fase 25, D21) y funciones sociales.
 - Varios usuarios a la vez en cámara.
 - Detección de mancuernas o cualquier objeto.
 - Diagnóstico médico, rehabilitación o planes de nutrición.
@@ -417,6 +417,20 @@ Ajustes tras la primera prueba del usuario (2026-10-24), sin tarea propia: la di
 
 Sin verificar sin el usuario: cómo se ve en su pantalla real, el rendimiento de las luces y el desenfoque con la cámara encendida, y el aspecto en macOS y Linux.
 
+### Fase 25 — Cuenta en la nube (D21)
+
+El usuario pidió una cuenta con inicio de sesión y sincronización (2026-11-18), y eligió Supabase, correo y contraseña más Google, y sincronizar las métricas. Esto cambia la regla "sin nube, sin cuentas" de las fases anteriores (D21). Supuesto por confirmar: la cuenta es **opcional**; sin ella la app sigue entera y local, como hasta ahora. Se sincronizan solo sesiones, repeticiones, errores, rutas y habilidades creadas (números y texto); nunca video, imágenes, audio, el chat, la clave de la IA ni los ajustes. Todas las tareas van en este orden y el usuario debe crear antes el proyecto de Supabase y el cliente de Google (ver sección 11).
+
+- [ ] **T25.1 Esquema y reglas en Supabase.** Migraciones SQL versionadas en `supabase/` con las tablas espejo (`sessions`, `reps`, `rep_errors`, `learning_paths`, `path_steps`, `custom_skills`), cada fila con `user_id`, y Row Level Security en todas. *Hecho cuando:* una prueba contra una base local demuestra que un usuario no lee ni escribe datos de otro y que sin sesión no se accede a nada.
+- [ ] **T25.2 Cliente de autenticación en el proceso principal.** `@supabase/supabase-js` con versión fija, solo en `src/main/`; la sesión se guarda cifrada con `safeStorage`; API tipada por IPC y preload (sin tokens en el renderer). Dirección y clave pública del proyecto por configuración de compilación, nunca en el repositorio. *Hecho cuando:* pruebas con un cliente falso de iniciar, restaurar y cerrar sesión, y ningún token aparece en logs ni errores.
+- [ ] **T25.3 Correo y contraseña.** Registro, inicio de sesión, cierre de sesión, verificación del correo y recuperar contraseña. *Hecho cuando:* pruebas del servicio con el cliente falso y mensajes de error claros en español, sin revelar si un correo existe.
+- [ ] **T25.4 Inicio con Google.** OAuth con PKCE en el navegador del sistema y regreso a la app por el protocolo `vyro://` (instancia única; `open-url` en macOS, `second-instance` en Windows y Linux). *Hecho cuando:* pruebas del manejo del enlace de regreso (código válido, inválido y caducado) y comprobación a mano en Windows; macOS y Linux quedan para el CI y el usuario.
+- [ ] **T25.5 Pantalla de cuenta.** Inicio de sesión y registro con el aspecto de la fase 24, estado de sesión en la barra lateral y opción de seguir sin cuenta; textos en `i18n`. *Hecho cuando:* e2e con un servidor de autenticación falso y prueba de contraste AA en los dos temas.
+- [ ] **T25.6 Datos listos para sincronizar.** Migración local con `remote_id`, `updated_at`, `deleted_at` y `user_id` en las tablas que se sincronizan; los datos hechos sin cuenta se asignan a la cuenta solo si la persona lo acepta. *Hecho cuando:* pruebas de repositorios con SQLite en memoria y de la migración sobre una base ya usada.
+- [ ] **T25.7 Sincronización.** Subida y bajada de las filas cambiadas, cola sin conexión, reintentos y conflictos por la fecha de modificación más reciente; no bloquea la práctica. *Hecho cuando:* pruebas con un servidor falso de dos equipos, de sin conexión y de conflicto, y un test que prueba que nada fuera de la lista de arriba sale del equipo.
+- [ ] **T25.8 Cuenta en Ajustes.** Ver la cuenta, cerrar sesión, aviso de qué se sincroniza (texto de consentimiento), borrar los datos de la nube y borrar la cuenta. *Hecho cuando:* e2e de cada acción y pruebas de que borrar elimina las filas de la nube.
+- [ ] **T25.9 Seguridad y documentación.** La CSP permite conectar solo con la dirección del proyecto; revisión de seguridad de la rama; README, `docs/DECISIONS.md` y los textos de privacidad al día. *Hecho cuando:* una prueba de la CSP, la revisión sin hallazgos abiertos y la pantalla "Cómo funciona" dice la verdad sobre lo que sale del equipo.
+
 ### Aplazado
 Vista frontal, detección de fatiga, clips de errores, modelos propios que juzguen técnica, firma de código y auto-actualización, módulos de comunidad.
 
@@ -439,6 +453,9 @@ Vista frontal, detección de fatiga, clips de errores, modelos propios que juzgu
 | El detector de objetos falla con luz o fondos distintos | Lista corta de objetos, conjunto de evaluación aparte y umbral mínimo (fase 15) |
 | Ruido ambiente y latencia estropean el audio | Calibración de audio y procesamiento local en tiempo real (fase 14) |
 | Privacidad del micrófono | Permiso solo cuando una habilidad lo necesita; el audio nunca se graba, guarda ni envía (D15) |
+| Se filtran datos de un usuario a otro en la nube | Row Level Security en cada tabla y pruebas que lo intentan (T25.1) |
+| Se pierden o duplican datos al sincronizar | Cola con reintentos, conflicto por fecha y pruebas de dos equipos (T25.7) |
+| El regreso de Google no llega a la app en algún sistema | PKCE, instancia única y manejo por sistema, probado en el CI de 3 sistemas (T25.4) |
 
 ## 11. Pendientes por decidir
 
@@ -450,6 +467,7 @@ Vista frontal, detección de fatiga, clips de errores, modelos propios que juzgu
 - Texto del aviso de consentimiento de la IA (T12.1).
 - Límite de gasto diario por defecto (T12.2): decidido en 200 000 tokens al día, configurable.
 - Imágenes de entrenamiento de los objetos: fuente y licencia (T15.1).
+- Fase 25, a cargo del usuario: crear el proyecto de Supabase (y pasar la dirección y la clave pública, nunca la clave de servicio), activar el correo con verificación, crear el cliente OAuth de Google y confirmar que la cuenta es opcional.
 
 ## 12. Convenciones del repositorio
 
