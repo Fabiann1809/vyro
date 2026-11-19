@@ -3,12 +3,10 @@ import { t } from '@renderer/i18n'
 import type { AuthFailure, AuthResult } from '@shared/account'
 import { applyResult, clearReturnError, useAccount } from '../accountStore'
 import { FAILURE_TEXT } from '../accountErrors'
-import { Ambient } from '../kit/Ambient'
+import { AuthFrame } from '../kit/AuthFrame'
 import { Button } from '../kit/Button'
-import { Card } from '../kit/Card'
 import { FIELD, FIELD_LABEL } from '../kit/fields'
 import { Icon } from '../kit/Icon'
-import { Mark } from '../kit/Mark'
 
 type Mode = 'signIn' | 'signUp' | 'verify' | 'forgot' | 'reset'
 
@@ -60,28 +58,6 @@ function Field({
   )
 }
 
-function Frame({ children }: { children: React.ReactNode }): React.JSX.Element {
-  return (
-    <div className="relative flex h-screen items-center justify-center overflow-auto bg-bg p-6 text-t1">
-      <Ambient />
-      <Card raised className="relative z-10 flex w-full max-w-104 flex-col gap-5 p-8">
-        <div className="flex items-center gap-3">
-          <Mark />
-          <div className="flex flex-col">
-            <span className="font-display text-xl leading-none font-extrabold tracking-[0.16em]">
-              VYRO
-            </span>
-            <span className="mt-1 text-[0.6875rem] tracking-[0.04em] text-mut">
-              {t('account.tagline')}
-            </span>
-          </div>
-        </div>
-        {children}
-      </Card>
-    </div>
-  )
-}
-
 // The page that closes the app to anyone who has not signed in (D21). It is also the page that says
 // so when this build has no account service to sign in to.
 export function AccountScreen(): React.JSX.Element {
@@ -103,7 +79,7 @@ export function AccountScreen(): React.JSX.Element {
 
   if (typeof status === 'object' && status.state === 'unconfigured') {
     return (
-      <Frame>
+      <AuthFrame>
         <div className="flex flex-col gap-3">
           <Icon name="warning" className="size-7 text-warn-text" />
           <h1 className="font-display text-2xl font-extrabold">
@@ -111,7 +87,7 @@ export function AccountScreen(): React.JSX.Element {
           </h1>
           <p className="text-sm text-mut">{t('account.unconfigured.body')}</p>
         </div>
-      </Frame>
+      </AuthFrame>
     )
   }
 
@@ -198,7 +174,7 @@ export function AccountScreen(): React.JSX.Element {
   const intro = mode in INTRO ? INTRO[mode as keyof typeof INTRO] : null
 
   return (
-    <Frame>
+    <AuthFrame>
       <div className="flex flex-col gap-1.5">
         <h1 className="font-display text-2xl font-extrabold">{t(TITLE[mode])}</h1>
         {intro && <p className="text-sm text-mut">{t(intro)}</p>}
@@ -323,6 +299,6 @@ export function AccountScreen(): React.JSX.Element {
           </Button>
         )}
       </div>
-    </Frame>
+    </AuthFrame>
   )
 }

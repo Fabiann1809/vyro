@@ -28,6 +28,7 @@ describe('openDatabase', () => {
     const db = openDatabase(':memory:')
 
     expect(tables(db)).toEqual([
+      'account_owner',
       'ai_usage',
       'custom_skills',
       'learning_paths',
@@ -35,7 +36,8 @@ describe('openDatabase', () => {
       'rep_errors',
       'reps',
       'sessions',
-      'settings'
+      'settings',
+      'sync_tombstones'
     ])
     expect(version(db)).toBe(MIGRATIONS.length)
   })

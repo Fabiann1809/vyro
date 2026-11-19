@@ -809,5 +809,17 @@
   "account.error.unconfigured": "Esta versión no tiene cuentas configuradas.",
   "account.error.unknown": "Algo salió mal. Inténtalo de nuevo.",
   "account.signedInAs": "Sesión de {email}",
-  "account.signOut": "Cerrar sesión"
+  "account.signOut": "Cerrar sesión",
+  "localData.title": "Ya tienes datos en este equipo",
+  "localData.body": "Los hiciste antes de tener una cuenta. ¿Quieres guardarlos en tu cuenta?",
+  "localData.sessions_one": "{count} sesión de práctica",
+  "localData.sessions_other": "{count} sesiones de práctica",
+  "localData.paths_one": "{count} ruta",
+  "localData.paths_other": "{count} rutas",
+  "localData.skills_one": "{count} habilidad creada",
+  "localData.skills_other": "{count} habilidades creadas",
+  "localData.keep": "Conservar en mi cuenta",
+  "localData.discard": "Empezar de cero",
+  "localData.discardNote": "Empezar de cero borra estos datos de este equipo y no se pueden recuperar.",
+  "localData.error": "No se pudo preparar tus datos. Inténtalo de nuevo."
 }

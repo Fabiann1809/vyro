@@ -16,7 +16,9 @@ import { ConfiguredLlmClient } from './ai/provider'
 import { dayOf, SpendLimitedClient } from './ai/spendGuard'
 import { AiUsageRepository } from './db/aiUsageRepository'
 import { loadReviewSource } from './ai/reviewData'
+import { LocalAdoption } from './db/adoption'
 import { openDatabase, type Database } from './db/database'
+import { LocalData } from './db/localData'
 import { CustomSkillRepository } from './db/customSkillRepository'
 import { PathProgressService } from './db/pathProgressService'
 import { PathRepository } from './db/pathRepository'
@@ -24,6 +26,7 @@ import { SessionRepository } from './db/sessionRepository'
 import { SettingsRepository } from './db/settingsRepository'
 import { registerAiIpc } from './ipc/ai'
 import { registerCameraIpc } from './ipc/camera'
+import { registerLocalDataIpc } from './ipc/localData'
 import { registerMicrophoneIpc } from './ipc/microphone'
 import { MicrophoneGate } from './mediaPermissions'
 import { registerCoachIpc } from './ipc/coach'
@@ -131,6 +134,7 @@ app.whenReady().then(() => {
   const auth = createAuthService()
   const inbox = new ReturnInbox()
   registerAccountIpc(auth, inbox)
+  registerLocalDataIpc(new LocalAdoption(new LocalData(database)), () => auth.currentUserId())
   deepLinks.listen(async (link) => {
     const result = await auth.handleCallback(link)
     if (!result) return

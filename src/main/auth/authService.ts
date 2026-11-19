@@ -15,10 +15,16 @@ type Failed = { error: AuthFailure }
 // Whoever is signed in after the call, or null when the call worked but nobody is signed in yet.
 type Signed = { email: string } | null
 
+// Who is signed in: the address to show and the id that the data on this computer is tied to.
+export interface CurrentUser {
+  email: string
+  id: string
+}
+
 // What the account code needs from the sign-in server, so tests can use a fake one.
 export interface AuthGateway {
   // The person whose session is stored (renewed when it expired), or null.
-  currentUser: () => Promise<{ email: string } | null>
+  currentUser: () => Promise<CurrentUser | null>
   signInWithPassword: (email: string, password: string) => Promise<{ email: string } | Failed>
   // Signed in at once only when the project does not ask to confirm the email.
   signUp: (email: string, password: string) => Promise<Signed | Failed>
@@ -56,6 +62,16 @@ export class AuthService {
       return user ? { state: 'signed-in', email: user.email } : SIGNED_OUT
     } catch {
       return SIGNED_OUT
+    }
+  }
+
+  // The id of the account that is signed in, for the main process only: the page never needs it.
+  async currentUserId(): Promise<string | null> {
+    if (!this.gateway) return null
+    try {
+      return (await this.gateway.currentUser())?.id ?? null
+    } catch {
+      return null
     }
   }
 

@@ -1,4 +1,5 @@
 import { mkdtempSync, rmSync } from 'node:fs'
+import { DatabaseSync } from 'node:sqlite'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
@@ -245,4 +246,98 @@ test('opens offline with a stored session that has already expired', async () =>
   // Nothing answers at this address, as when the computer has no connection.
   const second = await launch({ VYRO_E2E_SUPABASE_URL: 'http://127.0.0.1:1' })
   await expect(bar(second).getByText(SHORT_LIVED_EMAIL)).toBeVisible({ timeout: 30_000 })
+})
+
+// What was made on this computer before the account, put straight into the database of the app
+// while the app is closed.
+function seedSession(): void {
+  const db = new DatabaseSync(join(userData, 'vyro.db'))
+  db.exec("INSERT INTO sessions (skill_id, started_at, duration_ms) VALUES ('squat', 1, 1000)")
+  db.close()
+}
+
+function readDatabase<T>(sql: string): T {
+  const db = new DatabaseSync(join(userData, 'vyro.db'))
+  try {
+    return db.prepare(sql).get() as T
+  } finally {
+    db.close()
+  }
+}
+
+// Opens the app once so that its database exists, then closes it.
+async function createDatabase(): Promise<void> {
+  const page = await launch()
+  await expect(page.getByRole('heading', { name: 'Inicia sesión' })).toBeVisible()
+  await app!.close()
+}
+
+test('asks what to do with the data made before the account, and keeps it when told to', async () => {
+  await createDatabase()
+  seedSession()
+
+  const page = await launch()
+  await fillSignIn(page, TEST_USER.email, TEST_USER.password)
+  await expect(page.getByRole('heading', { name: 'Ya tienes datos en este equipo' })).toBeVisible()
+  await expect(page.getByText('1 sesión de práctica')).toBeVisible()
+  await expect(bar(page)).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Conservar en mi cuenta' }).click()
+  await expect(bar(page)).toBeVisible()
+  await app!.close()
+
+  expect(readDatabase<{ n: number }>('SELECT count(*) AS n FROM sessions').n).toBe(1)
+  expect(readDatabase<{ n: number }>('SELECT count(*) AS n FROM account_owner').n).toBe(1)
+})
+
+test('deletes the data made before the account when the person starts from zero', async () => {
+  await createDatabase()
+  seedSession()
+
+  const page = await launch()
+  await fillSignIn(page, TEST_USER.email, TEST_USER.password)
+  await page.getByRole('button', { name: 'Empezar de cero' }).click()
+  await expect(bar(page)).toBeVisible()
+  await app!.close()
+
+  expect(readDatabase<{ n: number }>('SELECT count(*) AS n FROM sessions').n).toBe(0)
+})
+
+test('does not ask twice: the same account goes straight in with its data', async () => {
+  await createDatabase()
+  seedSession()
+
+  const first = await launch()
+  await fillSignIn(first, TEST_USER.email, TEST_USER.password)
+  await first.getByRole('button', { name: 'Conservar en mi cuenta' }).click()
+  await bar(first).getByRole('button', { name: 'Cerrar sesión' }).click()
+  await fillSignIn(first, TEST_USER.email, TEST_USER.password)
+  await expect(bar(first)).toBeVisible()
+  await expect(first.getByRole('heading', { name: 'Ya tienes datos en este equipo' })).toHaveCount(
+    0
+  )
+})
+
+test('clears the data of the first account when a different one signs in', async () => {
+  const first = await launch()
+  await fillSignIn(first, TEST_USER.email, TEST_USER.password)
+  await expect(bar(first)).toBeVisible()
+  await bar(first).getByRole('button', { name: 'Cerrar sesión' }).click()
+  await expect(first.getByRole('heading', { name: 'Inicia sesión' })).toBeVisible()
+  await app!.close()
+
+  // The first account made a session on this computer.
+  seedSession()
+  expect(readDatabase<{ n: number }>('SELECT count(*) AS n FROM sessions').n).toBe(1)
+
+  const second = await launch()
+  await fillSignIn(second, SHORT_LIVED_EMAIL, TEST_USER.password)
+  // No question: the data was the other account's, and it is already in that account's cloud.
+  await expect(bar(second)).toBeVisible()
+  await expect(second.getByRole('heading', { name: 'Ya tienes datos en este equipo' })).toHaveCount(
+    0
+  )
+  await app!.close()
+
+  expect(readDatabase<{ n: number }>('SELECT count(*) AS n FROM sessions').n).toBe(0)
 })

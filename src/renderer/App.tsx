@@ -1,5 +1,8 @@
 import { useEffect } from 'react'
+import { t } from './i18n'
 import { CameraPreview } from './ui/CameraPreview'
+import { AuthFrame } from './ui/kit/AuthFrame'
+import { Button } from './ui/kit/Button'
 import { Ambient } from './ui/kit/Ambient'
 import { BrandOpening } from './ui/kit/BrandOpening'
 import { ExpandOverlay } from './ui/ExpandOverlay'
@@ -19,6 +22,8 @@ import { TrainingScreen } from './ui/screens/TrainingScreen'
 import { useSession } from './ui/sessionStore'
 import { useSettings } from './ui/settingsStore'
 import { useAccount } from './ui/accountStore'
+import { checkLocalData, useLocalData } from './ui/localDataStore'
+import { LocalDataScreen } from './ui/screens/LocalDataScreen'
 import { AccountScreen } from './ui/screens/AccountScreen'
 import { useAppliedAppearance } from './ui/useAppliedAppearance'
 
@@ -57,6 +62,29 @@ function App(): React.JSX.Element {
   const account = useAccount((state) => state.status)
   if (account === 'loading') return <div className="h-screen bg-bg" aria-busy="true" />
   if (account.state !== 'signed-in') return <AccountScreen />
+  return <WithLocalData />
+}
+
+// Once someone is signed in, the data on this computer has to be theirs before the app opens: it is
+// claimed for them, cleared if it was another account's, or the person is asked (D21).
+function WithLocalData(): React.JSX.Element {
+  const phase = useLocalData((state) => state.phase)
+  const failed = useLocalData((state) => state.failed)
+  useEffect(() => {
+    void checkLocalData(window.api)
+  }, [])
+  if (phase === 'ask') return <LocalDataScreen />
+  if (phase === 'checking' && failed) {
+    return (
+      <AuthFrame>
+        <p role="alert" className="text-sm text-bad-text">
+          {t('localData.error')}
+        </p>
+        <Button onClick={() => void checkLocalData(window.api)}>{t('camera.retry')}</Button>
+      </AuthFrame>
+    )
+  }
+  if (phase === 'checking') return <div className="h-screen bg-bg" aria-busy="true" />
   return <SignedInApp />
 }
 

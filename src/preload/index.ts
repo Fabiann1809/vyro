@@ -5,6 +5,10 @@ import { IPC, type VyroApi } from '@shared/ipc'
 // The only surface exposed to the renderer. Typed methods are added here as features need them.
 const api: VyroApi = {
   platform: process.platform,
+  localData: {
+    check: () => ipcRenderer.invoke(IPC.localDataCheck),
+    resolve: (choice) => ipcRenderer.invoke(IPC.localDataResolve, choice)
+  },
   account: {
     status: () => ipcRenderer.invoke(IPC.accountStatus),
     signIn: (input) => ipcRenderer.invoke(IPC.accountSignIn, input),

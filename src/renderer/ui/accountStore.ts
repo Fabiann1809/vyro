@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { AccountStatus, AuthFailure, AuthResult } from '@shared/account'
 import type { VyroApi } from '@shared/ipc'
+import { resetLocalData } from './localDataStore'
 
 // "loading" lasts until the main process says who is signed in (a moment after the window opens).
 export type AccountView = 'loading' | AccountStatus
@@ -41,6 +42,8 @@ export async function startAccount(api: AccountApi): Promise<() => void> {
 
 export async function signOut(api: AccountApi): Promise<void> {
   useAccount.setState({ status: await api.account.signOut() })
+  // The next person to sign in is checked again.
+  resetLocalData()
 }
 
 export function clearReturnError(): void {

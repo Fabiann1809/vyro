@@ -809,5 +809,17 @@
   "account.error.unconfigured": "This version has no accounts set up.",
   "account.error.unknown": "Something went wrong. Try again.",
   "account.signedInAs": "Signed in as {email}",
-  "account.signOut": "Sign out"
+  "account.signOut": "Sign out",
+  "localData.title": "You already have data on this computer",
+  "localData.body": "You made it before having an account. Do you want to keep it in your account?",
+  "localData.sessions_one": "{count} practice session",
+  "localData.sessions_other": "{count} practice sessions",
+  "localData.paths_one": "{count} path",
+  "localData.paths_other": "{count} paths",
+  "localData.skills_one": "{count} created skill",
+  "localData.skills_other": "{count} created skills",
+  "localData.keep": "Keep it in my account",
+  "localData.discard": "Start from zero",
+  "localData.discardNote": "Starting from zero deletes this data from this computer and it cannot be recovered.",
+  "localData.error": "Your data could not be prepared. Try again."
 }

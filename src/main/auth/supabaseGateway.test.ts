@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createGateway, failureKind, storedEmail, type SupabaseAuth } from './supabaseGateway'
+import type { CurrentUser } from './authService'
+import { createGateway, failureKind, readStoredUser, type SupabaseAuth } from './supabaseGateway'
 
 const OK = { data: { user: { email: 'ana@mail.com' } }, error: null }
 
@@ -49,12 +50,12 @@ describe('createGateway', () => {
     const stored = createGateway(
       fakeAuth({
         getSession: async () => ({
-          data: { session: { user: { email: 'ana@mail.com' } } },
+          data: { session: { user: { email: 'ana@mail.com', id: 'u1' } } },
           error: null
         })
       })
     )
-    expect(await stored.currentUser()).toEqual({ email: 'ana@mail.com' })
+    expect(await stored.currentUser()).toEqual({ email: 'ana@mail.com', id: 'u1' })
   })
 
   it('uses the stored session when the server cannot be reached', async () => {
@@ -64,20 +65,26 @@ describe('createGateway', () => {
         error: { name: 'AuthRetryableFetchError' }
       })
     })
-    const stored = (): { email: string } => ({ email: 'ana@mail.com' })
-    expect(await createGateway(offline, stored).currentUser()).toEqual({ email: 'ana@mail.com' })
+    const stored = (): CurrentUser => ({ email: 'ana@mail.com', id: 'u1' })
+    expect(await createGateway(offline, stored).currentUser()).toEqual({
+      email: 'ana@mail.com',
+      id: 'u1'
+    })
     expect(await createGateway(offline).currentUser()).toBeNull()
   })
 
   it('opens with the stored session when the server is slow to answer', async () => {
     const slow = fakeAuth({ getSession: () => new Promise(() => {}) })
-    const stored = (): { email: string } => ({ email: 'ana@mail.com' })
-    expect(await createGateway(slow, stored, 20).currentUser()).toEqual({ email: 'ana@mail.com' })
+    const stored = (): CurrentUser => ({ email: 'ana@mail.com', id: 'u1' })
+    expect(await createGateway(slow, stored, 20).currentUser()).toEqual({
+      email: 'ana@mail.com',
+      id: 'u1'
+    })
   })
 
   it('prefers what the server says when it answers in time', async () => {
     const refused = fakeAuth({ getSession: async () => ({ data: { session: null }, error: null }) })
-    const stored = (): { email: string } => ({ email: 'ana@mail.com' })
+    const stored = (): CurrentUser => ({ email: 'ana@mail.com', id: 'u1' })
     expect(await createGateway(refused, stored, 1000).currentUser()).toBeNull()
   })
 
@@ -88,7 +95,7 @@ describe('createGateway', () => {
         error: { code: 'refresh_token_not_found' }
       })
     })
-    const stored = (): { email: string } => ({ email: 'ana@mail.com' })
+    const stored = (): CurrentUser => ({ email: 'ana@mail.com', id: 'u1' })
     expect(await createGateway(refused, stored).currentUser()).toBeNull()
   })
 
@@ -241,16 +248,25 @@ describe('createGateway', () => {
   })
 })
 
-describe('storedEmail', () => {
+describe('readStoredUser', () => {
   it('reads the email of a stored session', () => {
-    expect(storedEmail(JSON.stringify({ user: { email: 'ana@mail.com' } }))).toEqual({
-      email: 'ana@mail.com'
+    expect(readStoredUser(JSON.stringify({ user: { email: 'ana@mail.com', id: 'u1' } }))).toEqual({
+      email: 'ana@mail.com',
+      id: 'u1'
     })
   })
 
   it('is null when there is no session or it cannot be read', () => {
-    for (const raw of [null, '', 'not json', '{}', '{"user":{}}', '{"user":{"email":3}}']) {
-      expect(storedEmail(raw)).toBeNull()
+    for (const raw of [
+      null,
+      '',
+      'not json',
+      '{}',
+      '{"user":{}}',
+      '{"user":{"email":3}}',
+      '{"user":{"email":"a@b.co"}}'
+    ]) {
+      expect(readStoredUser(raw)).toBeNull()
     }
   })
 })

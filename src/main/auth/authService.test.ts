@@ -10,7 +10,7 @@ function fakeServer(overrides: Partial<AuthGateway> = {}): AuthGateway {
   const accounts = new Map<string, { password: string; confirmed: boolean }>()
   let signedIn: { email: string } | null = null
   return {
-    currentUser: async () => signedIn,
+    currentUser: async () => (signedIn ? { ...signedIn, id: `id-${signedIn.email}` } : null),
     signInWithPassword: async (email, password) => {
       const account = accounts.get(email)
       if (!account || account.password !== password) return { error: 'invalid-credentials' }
@@ -65,6 +65,24 @@ describe('AuthService without settings', () => {
     ]) {
       expect(result).toEqual({ ok: false, error: 'unconfigured' })
     }
+  })
+})
+
+describe('AuthService.currentUserId', () => {
+  it('gives the id of the account that is signed in, only to the main process', async () => {
+    const auth = new AuthService(fakeServer())
+    expect(await auth.currentUserId()).toBeNull()
+    await auth.signUp(ANA)
+    await auth.verifyEmailCode({ email: ANA.email, code: CODE })
+    expect(await auth.currentUserId()).toBe('id-ana@mail.com')
+    expect(await new AuthService(null).currentUserId()).toBeNull()
+  })
+
+  it('is null when the server fails', async () => {
+    const boom = async (): Promise<never> => {
+      throw new Error('boom')
+    }
+    expect(await new AuthService(fakeServer({ currentUser: boom })).currentUserId()).toBeNull()
   })
 })
 

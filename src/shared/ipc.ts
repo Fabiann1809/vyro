@@ -8,6 +8,7 @@ import type {
   VerifyCodeInput
 } from './account'
 import type { AiKeyStatus } from './ai'
+import type { AdoptionCheck, AdoptionChoice } from './localData'
 import type { CustomSkillSource } from './customSkills'
 import type { GenerateSkillInput, GenerateSkillResult } from './skillGeneration'
 import type { PathSummary, PathToSave } from './paths'
@@ -26,6 +27,8 @@ import type { AppSettings, SettingsPatch } from './settings'
 import type { ErrorCount, SessionDetail, SessionQuery, SessionRow, SessionToSave } from './sessions'
 
 export const IPC = {
+  localDataCheck: 'local-data:check',
+  localDataResolve: 'local-data:resolve',
   accountStatus: 'account:status',
   accountSignIn: 'account:sign-in',
   accountSignInWithGoogle: 'account:sign-in-with-google',
@@ -76,6 +79,13 @@ export const IPC = {
 // The only API the renderer can call. Everything else stays in the main process.
 export interface VyroApi {
   platform: string
+  localData: {
+    // What to do with the data on this computer now that this account is signed in. It also claims
+    // the data for the account when there is nothing to decide, and clears another account's.
+    check: () => Promise<AdoptionCheck>
+    // The answer to "ask": keep the data from before the account, or start from zero.
+    resolve: (choice: AdoptionChoice) => Promise<void>
+  }
   account: {
     // Who is signed in; the stored session is restored first. Tokens never reach the page.
     status: () => Promise<AccountStatus>

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import type { AuthFailure } from '@shared/account'
-import type { AuthGateway } from './authService'
+import type { AuthGateway, CurrentUser } from './authService'
 import { AUTH_CALLBACK_URL } from './callback'
 import type { AuthConfig } from './config'
 import type { AuthStorage } from './sessionStorage'
@@ -17,12 +17,12 @@ type Outcome = { data: { user: UserLike }; error: AuthErrorLike | null }
 // The part of Supabase's auth client that is used, so the mapping below can be tested.
 export interface SupabaseAuth {
   getSession: () => Promise<{
-    data: { session: { user: { email?: string } } | null }
+    data: { session: { user: { email?: string; id?: string } } | null }
     error: AuthErrorLike | null
   }>
   signInWithPassword: (credentials: { email: string; password: string }) => Promise<Outcome>
   signUp: (credentials: { email: string; password: string }) => Promise<{
-    data: { session: { user: { email?: string } } | null }
+    data: { session: { user: { email?: string; id?: string } } | null }
     error: AuthErrorLike | null
   }>
   verifyOtp: (params: {
@@ -37,7 +37,7 @@ export interface SupabaseAuth {
     options: { redirectTo: string; skipBrowserRedirect: boolean }
   }) => Promise<{ data: { url: string | null }; error: AuthErrorLike | null }>
   exchangeCodeForSession: (code: string) => Promise<{
-    data: { session: { user: { email?: string } } | null }
+    data: { session: { user: { email?: string; id?: string } } | null }
     error: AuthErrorLike | null
   }>
   signOut: (options: { scope: 'local' }) => Promise<{ error: AuthErrorLike | null }>
@@ -88,13 +88,13 @@ function emailOf(user: UserLike): { email: string } | { error: AuthFailure } {
 // the app must not wait that long to open: after `patienceMs` the stored session is used.
 export function createGateway(
   auth: SupabaseAuth,
-  storedUser: () => { email: string } | null = () => null,
+  storedUser: () => CurrentUser | null = () => null,
   patienceMs = 3000
 ): AuthGateway {
-  const fromServer = async (): Promise<{ email: string } | null> => {
+  const fromServer = async (): Promise<CurrentUser | null> => {
     const { data, error } = await auth.getSession()
-    const email = data.session?.user.email
-    if (email) return { email }
+    const user = data.session?.user
+    if (user?.email && user.id) return { email: user.email, id: user.id }
     return error && failureKind(error) === 'network' ? storedUser() : null
   }
   return {
@@ -102,7 +102,7 @@ export function createGateway(
       const stored = storedUser()
       if (!stored) return fromServer()
       let timer: ReturnType<typeof setTimeout> | undefined
-      const patience = new Promise<{ email: string }>((done) => {
+      const patience = new Promise<CurrentUser>((done) => {
         timer = setTimeout(() => done(stored), patienceMs)
       })
       try {
@@ -175,15 +175,17 @@ export function createSupabaseGateway(config: AuthConfig, storage: AuthStorage):
   })
   // Supabase keeps the session under a key made from the project name.
   const sessionKey = `sb-${new URL(config.url).hostname.split('.')[0]}-auth-token`
-  return createGateway(client.auth, () => storedEmail(storage.getItem(sessionKey)))
+  return createGateway(client.auth, () => readStoredUser(storage.getItem(sessionKey)))
 }
 
-// The email of a stored session (a JSON text), or null when there is none or it cannot be read.
-export function storedEmail(raw: string | null): { email: string } | null {
+// Who a stored session (a JSON text) belongs to, or null when there is none or it cannot be read.
+export function readStoredUser(raw: string | null): CurrentUser | null {
   if (!raw) return null
   try {
-    const email: unknown = (JSON.parse(raw) as { user?: { email?: unknown } }).user?.email
-    return typeof email === 'string' && email ? { email } : null
+    const user = (JSON.parse(raw) as { user?: { email?: unknown; id?: unknown } }).user
+    return typeof user?.email === 'string' && user.email && typeof user.id === 'string' && user.id
+      ? { email: user.email, id: user.id }
+      : null
   } catch {
     return null
   }
