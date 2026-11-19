@@ -162,5 +162,15 @@ export const MIGRATIONS: readonly Migration[] = [
       ${syncColumns('path_steps', { remoteId: true, since: '(SELECT created_at FROM learning_paths WHERE learning_paths.id = path_steps.path_id)' })}
       ${syncColumns('custom_skills', { remoteId: false, since: 'created_at' })}
     `
+  },
+  {
+    version: 7,
+    // Where the download of each synced table got to: the latest `updated_at` already brought down.
+    sql: `
+      CREATE TABLE sync_state (
+        table_name TEXT PRIMARY KEY,
+        pulled_up_to INTEGER NOT NULL
+      );
+    `
   }
 ]

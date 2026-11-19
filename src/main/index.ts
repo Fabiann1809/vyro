@@ -10,7 +10,7 @@ import { setupDeepLinks } from './auth/deepLinks'
 import { ReturnInbox } from './auth/returnInbox'
 import { readAuthConfig } from './auth/config'
 import { EncryptedAuthStorage } from './auth/sessionStorage'
-import { createSupabaseGateway } from './auth/supabaseGateway'
+import { createSupabaseClient, createSupabaseGateway } from './auth/supabaseGateway'
 import { registerAccountIpc } from './ipc/account'
 import { ConfiguredLlmClient } from './ai/provider'
 import { dayOf, SpendLimitedClient } from './ai/spendGuard'
@@ -27,6 +27,10 @@ import { SettingsRepository } from './db/settingsRepository'
 import { registerAiIpc } from './ipc/ai'
 import { registerCameraIpc } from './ipc/camera'
 import { registerLocalDataIpc } from './ipc/localData'
+import type { RemoteStore } from './sync/remote'
+import { createSupabaseRemote } from './sync/supabaseRemote'
+import { SyncRunner } from './sync/syncRunner'
+import { SyncService } from './sync/syncService'
 import { registerMicrophoneIpc } from './ipc/microphone'
 import { MicrophoneGate } from './mediaPermissions'
 import { registerCoachIpc } from './ipc/coach'
@@ -38,6 +42,8 @@ import { setupSessionSecurity, setupWindowSecurity } from './security'
 import { IPC } from '@shared/ipc'
 
 let database: Database | undefined
+// Stops the background sync when the app quits.
+let stopSync: (() => void) | undefined
 
 const devUrl = is.dev ? process.env['ELECTRON_RENDERER_URL'] : undefined
 
@@ -57,7 +63,13 @@ const secretStorage: SecretStorage = {
 // packaged app ignores this, so nobody can point an installed VYRO at another server.
 const testServer = app.isPackaged ? undefined : process.env['VYRO_E2E_SUPABASE_URL']
 
-function createAuthService(): AuthService {
+interface Account {
+  auth: AuthService
+  // The cloud of the account, or null when this build has no account service or is under test.
+  remote: RemoteStore | null
+}
+
+function createAccount(): Account {
   // Written out one by one so the build can replace each value.
   const config = testServer
     ? readAuthConfig(
@@ -71,7 +83,7 @@ function createAuthService(): AuthService {
         MAIN_VITE_SUPABASE_URL: import.meta.env.MAIN_VITE_SUPABASE_URL,
         MAIN_VITE_SUPABASE_PUBLISHABLE_KEY: import.meta.env.MAIN_VITE_SUPABASE_PUBLISHABLE_KEY
       })
-  if (!config) return new AuthService(null)
+  if (!config) return { auth: new AuthService(null), remote: null }
   const openBrowser = async (url: string): Promise<boolean> => {
     if (!mayOpenInBrowser(url, testServer !== undefined)) return false
     // Under test no browser is opened: the test brings the return link itself.
@@ -82,7 +94,12 @@ function createAuthService(): AuthService {
     secretStorage,
     createKeyFile(join(app.getPath('userData'), 'account-session.bin'))
   )
-  return new AuthService(createSupabaseGateway(config, storage), openBrowser)
+  const client = createSupabaseClient(config, storage)
+  return {
+    auth: new AuthService(createSupabaseGateway(client, config, storage), openBrowser),
+    // The tests of the app have no cloud to sync with: the fake server only signs people in.
+    remote: testServer ? null : createSupabaseRemote(client)
+  }
 }
 
 function createWindow(): void {
@@ -131,10 +148,28 @@ app.whenReady().then(() => {
     return
   }
   setupSessionSecurity(devUrl, microphone)
-  const auth = createAuthService()
+  const { auth, remote } = createAccount()
   const inbox = new ReturnInbox()
   registerAccountIpc(auth, inbox)
-  registerLocalDataIpc(new LocalAdoption(new LocalData(database)), () => auth.currentUserId())
+  const localData = new LocalData(database)
+  const syncRunner = remote
+    ? new SyncRunner({
+        sync: new SyncService(database, remote),
+        // Only an account that is signed in and owns the data here may sync it.
+        canSync: async () => {
+          const id = await auth.currentUserId()
+          return id !== null && localData.owner() === id
+        }
+      })
+    : null
+  syncRunner?.start()
+  stopSync = () => syncRunner?.stop()
+  registerLocalDataIpc(
+    new LocalAdoption(localData),
+    () => auth.currentUserId(),
+    // The data is this account's now: bring it up to date without waiting for the timer.
+    () => syncRunner?.nudge()
+  )
   deepLinks.listen(async (link) => {
     const result = await auth.handleCallback(link)
     if (!result) return
@@ -190,7 +225,10 @@ app.whenReady().then(() => {
   })
 })
 
-app.on('will-quit', () => database?.close())
+app.on('will-quit', () => {
+  stopSync?.()
+  database?.close()
+})
 
 // Quit when all windows are closed, except on macOS where apps stay active until Cmd + Q.
 app.on('window-all-closed', () => {

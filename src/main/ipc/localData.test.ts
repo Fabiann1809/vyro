@@ -11,12 +11,19 @@ function setup(userId: string | null): {
   handlers: ReturnType<typeof createLocalDataHandlers>
   data: LocalData
   seed: () => void
+  claimed: { times: number }
 } {
+  const claimed = { times: 0 }
   const db = openDatabase(':memory:')
   const data = new LocalData(db)
   return {
-    handlers: createLocalDataHandlers(new LocalAdoption(data), async () => userId),
+    handlers: createLocalDataHandlers(
+      new LocalAdoption(data),
+      async () => userId,
+      () => void (claimed.times += 1)
+    ),
     data,
+    claimed,
     seed: () =>
       db.exec("INSERT INTO sessions (skill_id, started_at, duration_ms) VALUES ('squat', 1, 1)")
   }
@@ -36,6 +43,19 @@ describe('local data handlers', () => {
     await handlers.resolve({ keep: true })
     expect(data.owner()).toBe('user-1')
     expect(data.counts().sessions).toBe(1)
+  })
+
+  it('tells the sync when the data has become the property of the account, and not before', async () => {
+    const { handlers, seed, claimed } = setup('user-1')
+    seed()
+    await handlers.check()
+    expect(claimed.times).toBe(0)
+    await handlers.resolve({ keep: true })
+    expect(claimed.times).toBe(1)
+
+    const empty = setup('user-2')
+    await empty.handlers.check()
+    expect(empty.claimed.times).toBe(1)
   })
 
   it('refuses an answer that is not a clear yes or no', async () => {

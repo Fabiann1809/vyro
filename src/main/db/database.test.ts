@@ -37,6 +37,7 @@ describe('openDatabase', () => {
       'reps',
       'sessions',
       'settings',
+      'sync_state',
       'sync_tombstones'
     ])
     expect(version(db)).toBe(MIGRATIONS.length)

@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { AuthFailure } from '@shared/account'
 import type { AuthGateway, CurrentUser } from './authService'
 import { AUTH_CALLBACK_URL } from './callback'
@@ -161,9 +161,10 @@ export function createGateway(
   }
 }
 
-// The Supabase client lives only in the main process: the page never gets a token (D21).
-export function createSupabaseGateway(config: AuthConfig, storage: AuthStorage): AuthGateway {
-  const client = createClient(config.url, config.publishableKey, {
+// The Supabase client lives only in the main process: the page never gets a token (D21). The same
+// client holds the session for the account and for the sync, which goes out as the signed-in person.
+export function createSupabaseClient(config: AuthConfig, storage: AuthStorage): SupabaseClient {
+  return createClient(config.url, config.publishableKey, {
     auth: {
       storage,
       persistSession: true,
@@ -173,6 +174,13 @@ export function createSupabaseGateway(config: AuthConfig, storage: AuthStorage):
       flowType: 'pkce'
     }
   })
+}
+
+export function createSupabaseGateway(
+  client: SupabaseClient,
+  config: AuthConfig,
+  storage: AuthStorage
+): AuthGateway {
   // Supabase keeps the session under a key made from the project name.
   const sessionKey = `sb-${new URL(config.url).hostname.split('.')[0]}-auth-token`
   return createGateway(client.auth, () => readStoredUser(storage.getItem(sessionKey)))
