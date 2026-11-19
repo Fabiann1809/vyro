@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createGateway, failureKind, type SupabaseAuth } from './supabaseGateway'
+import { createGateway, failureKind, storedEmail, type SupabaseAuth } from './supabaseGateway'
 
 const OK = { data: { user: { email: 'ana@mail.com' } }, error: null }
 
@@ -33,6 +33,8 @@ describe('failureKind', () => {
     expect(failureKind({ code: 'otp_expired' })).toBe('invalid-code')
     expect(failureKind({ code: 'flow_state_not_found' })).toBe('invalid-code')
     expect(failureKind({ code: 'bad_code_verifier' })).toBe('invalid-code')
+    expect(failureKind({ name: 'AuthPKCECodeVerifierMissingError' })).toBe('invalid-code')
+    expect(failureKind({ name: 'AuthPKCEGrantCodeExchangeError' })).toBe('invalid-code')
     expect(failureKind({ code: 'over_email_send_rate_limit' })).toBe('rate-limited')
     expect(failureKind({ status: 429 })).toBe('rate-limited')
     expect(failureKind({ name: 'AuthRetryableFetchError' })).toBe('network')
@@ -53,6 +55,41 @@ describe('createGateway', () => {
       })
     )
     expect(await stored.currentUser()).toEqual({ email: 'ana@mail.com' })
+  })
+
+  it('uses the stored session when the server cannot be reached', async () => {
+    const offline = fakeAuth({
+      getSession: async () => ({
+        data: { session: null },
+        error: { name: 'AuthRetryableFetchError' }
+      })
+    })
+    const stored = (): { email: string } => ({ email: 'ana@mail.com' })
+    expect(await createGateway(offline, stored).currentUser()).toEqual({ email: 'ana@mail.com' })
+    expect(await createGateway(offline).currentUser()).toBeNull()
+  })
+
+  it('opens with the stored session when the server is slow to answer', async () => {
+    const slow = fakeAuth({ getSession: () => new Promise(() => {}) })
+    const stored = (): { email: string } => ({ email: 'ana@mail.com' })
+    expect(await createGateway(slow, stored, 20).currentUser()).toEqual({ email: 'ana@mail.com' })
+  })
+
+  it('prefers what the server says when it answers in time', async () => {
+    const refused = fakeAuth({ getSession: async () => ({ data: { session: null }, error: null }) })
+    const stored = (): { email: string } => ({ email: 'ana@mail.com' })
+    expect(await createGateway(refused, stored, 1000).currentUser()).toBeNull()
+  })
+
+  it('does not trust the stored session when the server refused it', async () => {
+    const refused = fakeAuth({
+      getSession: async () => ({
+        data: { session: null },
+        error: { code: 'refresh_token_not_found' }
+      })
+    })
+    const stored = (): { email: string } => ({ email: 'ana@mail.com' })
+    expect(await createGateway(refused, stored).currentUser()).toBeNull()
   })
 
   it('returns a kind of failure when signing in fails', async () => {
@@ -201,5 +238,19 @@ describe('createGateway', () => {
     const signOut = vi.fn(async () => ({ error: null }))
     await createGateway(fakeAuth({ signOut })).signOut()
     expect(signOut).toHaveBeenCalledWith({ scope: 'local' })
+  })
+})
+
+describe('storedEmail', () => {
+  it('reads the email of a stored session', () => {
+    expect(storedEmail(JSON.stringify({ user: { email: 'ana@mail.com' } }))).toEqual({
+      email: 'ana@mail.com'
+    })
+  })
+
+  it('is null when there is no session or it cannot be read', () => {
+    for (const raw of [null, '', 'not json', '{}', '{"user":{}}', '{"user":{"email":3}}']) {
+      expect(storedEmail(raw)).toBeNull()
+    }
   })
 })

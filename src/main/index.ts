@@ -5,7 +5,9 @@ import { APP_NAME } from '@shared/app'
 import icon from '../../resources/icon.png?asset'
 import { ApiKeyStore, createKeyFile, type SecretStorage } from './ai/keyStore'
 import { AuthService } from './auth/authService'
+import { mayOpenInBrowser } from './auth/browser'
 import { setupDeepLinks } from './auth/deepLinks'
+import { ReturnInbox } from './auth/returnInbox'
 import { readAuthConfig } from './auth/config'
 import { EncryptedAuthStorage } from './auth/sessionStorage'
 import { createSupabaseGateway } from './auth/supabaseGateway'
@@ -29,7 +31,7 @@ import { registerPathsIpc } from './ipc/paths'
 import { registerSessionsIpc } from './ipc/sessions'
 import { registerSettingsIpc } from './ipc/settings'
 import { registerSkillsIpc } from './ipc/skills'
-import { isExternalHttpsUrl, setupSessionSecurity, setupWindowSecurity } from './security'
+import { setupSessionSecurity, setupWindowSecurity } from './security'
 import { IPC } from '@shared/ipc'
 
 let database: Database | undefined
@@ -48,16 +50,30 @@ const secretStorage: SecretStorage = {
     process.platform === 'linux' && safeStorage.getSelectedStorageBackend() === 'basic_text'
 }
 
+// The tests of the app run it from source and give it a fake sign-in server on this computer. A
+// packaged app ignores this, so nobody can point an installed VYRO at another server.
+const testServer = app.isPackaged ? undefined : process.env['VYRO_E2E_SUPABASE_URL']
+
 function createAuthService(): AuthService {
   // Written out one by one so the build can replace each value.
-  const config = readAuthConfig({
-    MAIN_VITE_SUPABASE_URL: import.meta.env.MAIN_VITE_SUPABASE_URL,
-    MAIN_VITE_SUPABASE_PUBLISHABLE_KEY: import.meta.env.MAIN_VITE_SUPABASE_PUBLISHABLE_KEY
-  })
+  const config = testServer
+    ? readAuthConfig(
+        {
+          MAIN_VITE_SUPABASE_URL: testServer,
+          MAIN_VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test'
+        },
+        { allowLoopbackHttp: true }
+      )
+    : readAuthConfig({
+        MAIN_VITE_SUPABASE_URL: import.meta.env.MAIN_VITE_SUPABASE_URL,
+        MAIN_VITE_SUPABASE_PUBLISHABLE_KEY: import.meta.env.MAIN_VITE_SUPABASE_PUBLISHABLE_KEY
+      })
   if (!config) return new AuthService(null)
-  // Only a secure address may be opened in the browser.
-  const openBrowser = async (url: string): Promise<void> => {
-    if (isExternalHttpsUrl(url)) await shell.openExternal(url)
+  const openBrowser = async (url: string): Promise<boolean> => {
+    if (!mayOpenInBrowser(url, testServer !== undefined)) return false
+    // Under test no browser is opened: the test brings the return link itself.
+    if (!testServer) await shell.openExternal(url)
+    return true
   }
   const storage = new EncryptedAuthStorage(
     secretStorage,
@@ -113,10 +129,13 @@ app.whenReady().then(() => {
   }
   setupSessionSecurity(devUrl, microphone)
   const auth = createAuthService()
-  registerAccountIpc(auth)
+  const inbox = new ReturnInbox()
+  registerAccountIpc(auth, inbox)
   deepLinks.listen(async (link) => {
     const result = await auth.handleCallback(link)
     if (!result) return
+    // The page may not be listening yet (the browser can open the app with the link).
+    inbox.put(result)
     for (const window of BrowserWindow.getAllWindows()) {
       window.webContents.send(IPC.accountResult, result)
     }

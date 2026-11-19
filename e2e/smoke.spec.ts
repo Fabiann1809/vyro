@@ -11,6 +11,7 @@ import {
   type Locator,
   type Page
 } from '@playwright/test'
+import { signIn } from './auth'
 
 // There is no camera on the machines that run this: the screens that use it show their
 // "no camera" state, which is also worth seeing work.
@@ -42,7 +43,9 @@ async function launch(
       ...(process.env['CI'] ? ['--no-sandbox'] : [])
     ]
   })
-  return app.firstWindow()
+  const page = await app.firstWindow()
+  await signIn(page)
+  return page
 }
 
 const nav = (page: Page, name: string): Locator =>
@@ -912,12 +915,20 @@ test.describe('AI coach screen', () => {
     await page.getByRole('button', { name: 'Cancelar' }).click()
     await expect(page.getByRole('button', { name: 'Yoga suave' })).toBeVisible()
 
-    // Nothing was asked of any address but the fake provider.
+    // Nothing was asked of any address but the fake provider, apart from the sign-in API of the
+    // account, which is only what signing in needs.
+    const account = process.env['VYRO_E2E_SUPABASE_URL'] ?? ''
+    expect(account).not.toBe('')
     const requests = readFileSync(netLog, 'utf-8')
       .split(String.fromCharCode(10))
       .filter(Boolean)
       .map((line) => JSON.parse(line) as { via: string; url: string })
       .filter((entry) => entry.via !== 'loaded')
+      .filter((entry) => {
+        if (!entry.url.startsWith(account)) return true
+        expect(new URL(entry.url).pathname).toMatch(/^\/auth\/v1\//)
+        return false
+      })
     expect(requests.length).toBeGreaterThanOrEqual(4)
     for (const request of requests) expect(request.url.startsWith(provider.url)).toBe(true)
   })

@@ -1,6 +1,8 @@
 import { t, type MessageKey } from '@renderer/i18n'
 import { Icon } from './kit/Icon'
+import { Mark } from './kit/Mark'
 import type { IconName } from './kit/icons'
+import { signOut, useAccount } from './accountStore'
 import { navHome, NAV_SCREENS, useNavigation, type Screen } from './navigation'
 import { useSettings } from './settingsStore'
 import { useSidebar } from './sidebarStore'
@@ -32,43 +34,12 @@ function useThemeToggle(): { toLight: boolean; toggle: () => void } {
   }
 }
 
-// The mark of the app: a rounded square in the colour of the brand with a ring and a pulse that is
-// drawn once when the bar appears.
-function Mark(): React.JSX.Element {
-  return (
-    <svg
-      viewBox="0 0 40 40"
-      aria-hidden="true"
-      className="size-9.5 shrink-0 drop-shadow-[0_6px_16px_oklch(0.65_0.18_40/0.55)]"
-    >
-      <defs>
-        <linearGradient id="vy-mark" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#FFD1A0" />
-          <stop offset="0.5" stopColor="#F27A3E" />
-          <stop offset="1" stopColor="#A8326A" />
-        </linearGradient>
-      </defs>
-      <rect x="1" y="1" width="38" height="38" rx="13" fill="url(#vy-mark)" />
-      <circle cx="20" cy="20" r="10" fill="none" stroke="#2A0F1A" strokeWidth="2.6" />
-      <path
-        d="M5.5 20h6.5l2.2-4.5 3.6 10 3.4-12 3 8.5 1.6-2h8.7"
-        fill="none"
-        stroke="#FFF6EE"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeDasharray="60"
-        strokeDashoffset="60"
-        style={{ animation: 'vy-draw 1.4s 200ms cubic-bezier(0.3, 0.7, 0.2, 1) forwards' }}
-      />
-    </svg>
-  )
-}
-
 export function Sidebar(): React.JSX.Element {
   const { screen, go } = useNavigation()
   const { collapsed, toggle: toggleSidebar } = useSidebar()
   const aiEnabled = useSettings((state) => state.aiEnabled)
+  const account = useAccount((state) => state.status)
+  const email = typeof account === 'object' && account.state === 'signed-in' ? account.email : null
   const theme = useThemeToggle()
   const current = navHome(screen)
   const expanded = !collapsed
@@ -134,6 +105,28 @@ export function Sidebar(): React.JSX.Element {
             {t(aiEnabled ? 'nav.ai.on' : 'nav.ai.off')}
           </p>
           <p className="text-[0.71875rem] leading-snug text-mut">{t('nav.privacy')}</p>
+        </div>
+      )}
+
+      {email && (
+        <div className="flex items-center gap-2 px-2 py-1">
+          {expanded && (
+            <span
+              className="min-w-0 flex-1 truncate text-[0.75rem] text-mut"
+              title={t('account.signedInAs', { email })}
+            >
+              {email}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => void signOut(window.api)}
+            aria-label={t('account.signOut')}
+            title={t('account.signOut')}
+            className="flex size-8.5 shrink-0 items-center justify-center rounded-xl text-mut hover:bg-line/7 hover:text-t1"
+          >
+            <Icon name="lock" />
+          </button>
         </div>
       )}
 

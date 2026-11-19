@@ -65,6 +65,13 @@ export function failureKind(error: AuthErrorLike): AuthFailure {
     case 'over_email_send_rate_limit':
       return 'rate-limited'
   }
+  // A return link that this app did not start (no secret to match), or that Google refused.
+  if (
+    error.name === 'AuthPKCECodeVerifierMissingError' ||
+    error.name === 'AuthPKCEGrantCodeExchangeError'
+  ) {
+    return 'invalid-code'
+  }
   if (error.status === 429) return 'rate-limited'
   if (error.name === 'AuthRetryableFetchError') return 'network'
   return 'unknown'
@@ -74,12 +81,35 @@ function emailOf(user: UserLike): { email: string } | { error: AuthFailure } {
   return user?.email ? { email: user.email } : { error: 'unknown' }
 }
 
-export function createGateway(auth: SupabaseAuth): AuthGateway {
+// `storedUser` reads the session kept on disk without asking the server. It is used when the server
+// cannot be reached, so that a person who signed in before can still practise offline.
+//
+// Without a connection the client keeps retrying for about half a minute before it gives up, and
+// the app must not wait that long to open: after `patienceMs` the stored session is used.
+export function createGateway(
+  auth: SupabaseAuth,
+  storedUser: () => { email: string } | null = () => null,
+  patienceMs = 3000
+): AuthGateway {
+  const fromServer = async (): Promise<{ email: string } | null> => {
+    const { data, error } = await auth.getSession()
+    const email = data.session?.user.email
+    if (email) return { email }
+    return error && failureKind(error) === 'network' ? storedUser() : null
+  }
   return {
     currentUser: async () => {
-      const { data } = await auth.getSession()
-      const email = data.session?.user.email
-      return email ? { email } : null
+      const stored = storedUser()
+      if (!stored) return fromServer()
+      let timer: ReturnType<typeof setTimeout> | undefined
+      const patience = new Promise<{ email: string }>((done) => {
+        timer = setTimeout(() => done(stored), patienceMs)
+      })
+      try {
+        return await Promise.race([fromServer(), patience])
+      } finally {
+        clearTimeout(timer)
+      }
     },
     signInWithPassword: async (email, password) => {
       const { data, error } = await auth.signInWithPassword({ email, password })
@@ -143,5 +173,18 @@ export function createSupabaseGateway(config: AuthConfig, storage: AuthStorage):
       flowType: 'pkce'
     }
   })
-  return createGateway(client.auth)
+  // Supabase keeps the session under a key made from the project name.
+  const sessionKey = `sb-${new URL(config.url).hostname.split('.')[0]}-auth-token`
+  return createGateway(client.auth, () => storedEmail(storage.getItem(sessionKey)))
+}
+
+// The email of a stored session (a JSON text), or null when there is none or it cannot be read.
+export function storedEmail(raw: string | null): { email: string } | null {
+  if (!raw) return null
+  try {
+    const email: unknown = (JSON.parse(raw) as { user?: { email?: unknown } }).user?.email
+    return typeof email === 'string' && email ? { email } : null
+  } catch {
+    return null
+  }
 }

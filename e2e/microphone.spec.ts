@@ -8,6 +8,7 @@ import {
   type ElectronApplication,
   type Page
 } from '@playwright/test'
+import { signIn } from './auth'
 
 // The microphone is off unless a skill that listens is open. This asks for it from the page, the way
 // any code in the page could, and looks at what the app answers.
@@ -37,7 +38,9 @@ async function launch(extra: string[] = []): Promise<Page> {
       ...(process.env['CI'] ? ['--no-sandbox'] : [])
     ]
   })
-  return app.firstWindow()
+  const page = await app.firstWindow()
+  await signIn(page)
+  return page
 }
 
 // What happens when the page asks for the microphone: the name of the error, or 'opened'. A computer

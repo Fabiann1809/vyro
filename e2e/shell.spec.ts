@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { _electron as electron, expect, test, type ElectronApplication } from '@playwright/test'
+import { signIn } from './auth'
 
 // The frame of the app: the side bar takes the person to each place, folds into icons, and keeps
 // being folded while they move around.
@@ -24,6 +25,7 @@ test('the side bar goes to each place, folds and stays folded', async () => {
     args: ['.', `--user-data-dir=${userData}`, ...(process.env['CI'] ? ['--no-sandbox'] : [])]
   })
   const page = await app.firstWindow()
+  await signIn(page)
   const bar = page.getByRole('navigation', { name: 'Navegación principal' })
 
   await expect(bar.getByRole('button', { name: 'Inicio' })).toHaveAttribute('aria-current', 'page')

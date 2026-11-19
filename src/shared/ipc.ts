@@ -31,6 +31,7 @@ export const IPC = {
   accountSignInWithGoogle: 'account:sign-in-with-google',
   // Sent by the main process when the browser sends the person back to the app.
   accountResult: 'account:result',
+  accountTakeReturn: 'account:take-return',
   accountSignUp: 'account:sign-up',
   accountVerifyEmailCode: 'account:verify-email-code',
   accountRequestPasswordReset: 'account:request-password-reset',
@@ -85,6 +86,9 @@ export interface VyroApi {
     // Calls the listener with the result of a sign-in that came back from the browser; returns a
     // function that stops listening.
     onResult: (listener: (result: AuthResult) => void) => () => void
+    // The result of a sign-in that came back from the browser before the page was listening, or
+    // null. The page asks once, when it starts, right after it begins to listen.
+    takeReturn: () => Promise<AuthResult | null>
     // Same answer for an address that already has an account. If the project asks to confirm the
     // email, the result is "signed out" until the code from the message is verified.
     signUp: (input: SignUpInput) => Promise<AuthResult>

@@ -18,6 +18,8 @@ import { SummaryScreen } from './ui/screens/SummaryScreen'
 import { TrainingScreen } from './ui/screens/TrainingScreen'
 import { useSession } from './ui/sessionStore'
 import { useSettings } from './ui/settingsStore'
+import { useAccount } from './ui/accountStore'
+import { AccountScreen } from './ui/screens/AccountScreen'
 import { useAppliedAppearance } from './ui/useAppliedAppearance'
 
 function CurrentScreen({ screen }: { screen: Screen }): React.JSX.Element {
@@ -48,8 +50,17 @@ function CurrentScreen({ screen }: { screen: Screen }): React.JSX.Element {
   }
 }
 
+// Everything of the app is behind the account (D21): it is not even drawn for someone who is not
+// signed in. The first moment, while the main process says who that is, shows only the page.
 function App(): React.JSX.Element {
   useAppliedAppearance()
+  const account = useAccount((state) => state.status)
+  if (account === 'loading') return <div className="h-screen bg-bg" aria-busy="true" />
+  if (account.state !== 'signed-in') return <AccountScreen />
+  return <SignedInApp />
+}
+
+function SignedInApp(): React.JSX.Element {
   // Subscribing makes every screen draw again, with the new texts, when the language changes.
   const language = useSettings((state) => state.language)
   useEffect(() => {

@@ -3,6 +3,7 @@ import { DatabaseSync } from 'node:sqlite'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { _electron as electron, expect, test, type ElectronApplication } from '@playwright/test'
+import { signIn } from './auth'
 
 // A skill that asks to hear a flute, with the fake microphone of Chromium, which only beeps. The
 // beep is not a flute, so the calibration must say so. (That a real flute is accepted is covered by
@@ -64,6 +65,7 @@ test('says that the beep of a fake microphone is not the flute that the skill as
 
   app = await launch()
   const page = await app.firstWindow()
+  await signIn(page)
   await page.getByRole('navigation').getByRole('button', { name: 'Biblioteca' }).click()
   await page.getByRole('button', { name: 'Soplar la flauta' }).click()
 

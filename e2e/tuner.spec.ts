@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { _electron as electron, expect, test, type ElectronApplication } from '@playwright/test'
+import { signIn } from './auth'
 
 // Tuning a string with a microphone that "plays" a steady low E (82.41 Hz), made as a sound file for
 // the fake device of Chromium. It checks the tuner screen end to end: the string to tune, that the
@@ -61,6 +62,7 @@ test('tunes a string: shows which one, marks it as done and moves on to the next
     ]
   })
   const page = await app.firstWindow()
+  await signIn(page)
 
   await page.getByRole('navigation').getByRole('button', { name: 'Biblioteca' }).click()
   await page.getByRole('button', { name: 'Afinar una cuerda' }).click()

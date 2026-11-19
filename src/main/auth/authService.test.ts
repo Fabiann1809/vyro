@@ -200,7 +200,7 @@ describe('AuthService with Google', () => {
   const LINK = `vyro://auth/callback?code=${GOOGLE_CODE}`
 
   it('opens the browser and signs in when the browser comes back', async () => {
-    const openBrowser = vi.fn(async () => {})
+    const openBrowser = vi.fn(async () => true)
     const auth = new AuthService(fakeServer(), openBrowser)
 
     expect(await auth.signInWithGoogle()).toEqual({ ok: true, status: { state: 'signed-out' } })
@@ -242,14 +242,11 @@ describe('AuthService with Google', () => {
     expect(completeSignIn).not.toHaveBeenCalled()
   })
 
-  it('does not open an address that is not secure', async () => {
-    const openBrowser = vi.fn(async () => {})
-    const auth = new AuthService(
-      fakeServer({ startGoogleSignIn: async () => ({ url: 'http://insecure.example.com' }) }),
-      openBrowser
-    )
+  it('fails when the browser refuses the address', async () => {
+    const openBrowser = vi.fn(async () => false)
+    const auth = new AuthService(fakeServer(), openBrowser)
     expect(await auth.signInWithGoogle()).toEqual({ ok: false, error: 'unknown' })
-    expect(openBrowser).not.toHaveBeenCalled()
+    expect(openBrowser).toHaveBeenCalledOnce()
   })
 
   it('passes on a kind of failure when Google cannot be started', async () => {

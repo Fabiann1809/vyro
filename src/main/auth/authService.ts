@@ -44,8 +44,9 @@ const SIGNED_OUT: AccountStatus = { state: 'signed-out' }
 export class AuthService {
   constructor(
     private readonly gateway: AuthGateway | null,
-    // Opens an address in the system browser; the app never shows a provider page itself.
-    private readonly openBrowser: (url: string) => Promise<void> = async () => {}
+    // Opens an address in the system browser (the app never shows a provider page itself) and says
+    // whether it did: it refuses an address it does not trust.
+    private readonly openBrowser: (url: string) => Promise<boolean> = async () => false
   ) {}
 
   async status(): Promise<AccountStatus> {
@@ -97,8 +98,7 @@ export class AuthService {
     try {
       const started = await this.gateway.startGoogleSignIn()
       if ('error' in started) return { ok: false, error: started.error }
-      if (new URL(started.url).protocol !== 'https:') return { ok: false, error: 'unknown' }
-      await this.openBrowser(started.url)
+      if (!(await this.openBrowser(started.url))) return { ok: false, error: 'unknown' }
       return { ok: true, status: SIGNED_OUT }
     } catch {
       return { ok: false, error: 'unknown' }

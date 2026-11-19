@@ -29,6 +29,18 @@ describe('readAuthConfig', () => {
     ).toBeNull()
   })
 
+  it('accepts a plain address on this computer only under test', () => {
+    const env = {
+      MAIN_VITE_SUPABASE_URL: 'http://127.0.0.1:5000',
+      MAIN_VITE_SUPABASE_PUBLISHABLE_KEY: KEY
+    }
+    expect(readAuthConfig(env)).toBeNull()
+    expect(readAuthConfig(env, { allowLoopbackHttp: true })).toEqual({
+      url: 'http://127.0.0.1:5000',
+      publishableKey: KEY
+    })
+  })
+
   it('refuses a secret key, which must never ship in the app', () => {
     expect(
       readAuthConfig({

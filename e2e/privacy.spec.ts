@@ -3,6 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { _electron as electron, expect, test, type ElectronApplication } from '@playwright/test'
+import { signIn } from './auth'
 
 // Follows what leaves the app during a whole use of the AI coach: first with the coach off, then
 // on. Node code (where the calls to the provider are made) is watched by e2e/netLog.cjs, and the
@@ -58,7 +59,14 @@ const logged = (): Array<{ via: string; url: string; body: string | null }> =>
 const recorded = (): ReturnType<typeof logged> => {
   const [loaded, ...requests] = logged()
   expect(loaded?.via).toBe('loaded')
-  return requests
+  // Signing in talks to the account service, and only to its sign-in API. Everything else is what
+  // this test watches for.
+  const account = process.env['VYRO_E2E_SUPABASE_URL'] ?? ''
+  expect(account).not.toBe('')
+  for (const request of requests.filter((entry) => entry.url.startsWith(account))) {
+    expect(new URL(request.url).pathname).toMatch(/^\/auth\/v1\//)
+  }
+  return requests.filter((entry) => !entry.url.startsWith(account))
 }
 
 test.beforeEach(async () => {
@@ -89,6 +97,7 @@ test('nothing leaves with the AI off, and with it on only numbers and text reach
     }
   })
   const page = await app.firstWindow()
+  await signIn(page)
   const pageRequests: string[] = []
   page.context().on('request', (request) => pageRequests.push(request.url()))
 

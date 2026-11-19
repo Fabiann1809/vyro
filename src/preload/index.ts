@@ -14,6 +14,7 @@ const api: VyroApi = {
       ipcRenderer.on(IPC.accountResult, forward)
       return () => void ipcRenderer.removeListener(IPC.accountResult, forward)
     },
+    takeReturn: () => ipcRenderer.invoke(IPC.accountTakeReturn),
     signUp: (input) => ipcRenderer.invoke(IPC.accountSignUp, input),
     verifyEmailCode: (input) => ipcRenderer.invoke(IPC.accountVerifyEmailCode, input),
     requestPasswordReset: (input) => ipcRenderer.invoke(IPC.accountRequestPasswordReset, input),

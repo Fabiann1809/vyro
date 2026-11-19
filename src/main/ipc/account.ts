@@ -2,12 +2,17 @@ import { ipcMain } from 'electron'
 import type { AccountStatus, AuthResult } from '@shared/account'
 import { IPC } from '@shared/ipc'
 import type { AuthService } from '../auth/authService'
+import type { ReturnInbox } from '../auth/returnInbox'
 
 type Handler = (input: unknown) => Promise<AuthResult>
 
 // What each channel does, apart from Electron so it can be tested. The page sends an address and a
 // password or a code and gets back who is signed in or a kind of failure; tokens never reach it.
-export function createAccountHandlers(auth: AuthService): {
+export function createAccountHandlers(
+  auth: AuthService,
+  inbox: ReturnInbox
+): {
+  takeReturn: () => AuthResult | null
   status: () => Promise<AccountStatus>
   signIn: Handler
   signInWithGoogle: () => Promise<AuthResult>
@@ -18,6 +23,7 @@ export function createAccountHandlers(auth: AuthService): {
   signOut: () => Promise<AccountStatus>
 } {
   return {
+    takeReturn: () => inbox.take(),
     status: () => auth.status(),
     signIn: (input) => auth.signIn(input),
     signInWithGoogle: () => auth.signInWithGoogle(),
@@ -29,10 +35,11 @@ export function createAccountHandlers(auth: AuthService): {
   }
 }
 
-export function registerAccountIpc(auth: AuthService): void {
-  const handlers = createAccountHandlers(auth)
+export function registerAccountIpc(auth: AuthService, inbox: ReturnInbox): void {
+  const handlers = createAccountHandlers(auth, inbox)
 
   ipcMain.handle(IPC.accountStatus, () => handlers.status())
+  ipcMain.handle(IPC.accountTakeReturn, () => handlers.takeReturn())
   ipcMain.handle(IPC.accountSignIn, (_event, input: unknown) => handlers.signIn(input))
   ipcMain.handle(IPC.accountSignInWithGoogle, () => handlers.signInWithGoogle())
   ipcMain.handle(IPC.accountSignUp, (_event, input: unknown) => handlers.signUp(input))

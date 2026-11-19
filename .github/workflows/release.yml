@@ -31,6 +31,10 @@ jobs:
     env:
       # The installers are not signed (see D10 in docs/DECISIONS.md).
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      # The account service (D21). Both are public values, kept as repository variables (not secrets):
+      # the address of the project and its publishable key. Never put the secret key here.
+      MAIN_VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      MAIN_VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -43,6 +47,15 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Check the account settings
+        # An installer built without them would open on a page that says there are no accounts.
+        shell: bash
+        run: |
+          if [ -z "$MAIN_VITE_SUPABASE_URL" ] || [ -z "$MAIN_VITE_SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "Set the repository variables SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY first."
+            exit 1
+          fi
 
       - name: Build the installer
         run: pnpm package ${{ matrix.args }}
