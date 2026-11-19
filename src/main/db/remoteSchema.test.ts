@@ -47,7 +47,8 @@ beforeAll(async () => {
     'utf8'
   )
   await db.exec(sql)
-})
+  // Starting Postgres in memory is slow when the whole suite runs at once, hence the long limit.
+}, 60_000)
 
 describe('the cloud schema keeps each user apart', () => {
   it('shows a user only their own rows', async () => {

@@ -7,7 +7,11 @@ import type { AuthStorage } from './sessionStorage'
 interface AuthErrorLike {
   name?: string
   code?: string
+  status?: number
 }
+
+type UserLike = { email?: string } | null
+type Outcome = { data: { user: UserLike }; error: AuthErrorLike | null }
 
 // The part of Supabase's auth client that is used, so the mapping below can be tested.
 export interface SupabaseAuth {
@@ -15,18 +19,44 @@ export interface SupabaseAuth {
     data: { session: { user: { email?: string } } | null }
     error: AuthErrorLike | null
   }>
-  signInWithPassword: (credentials: { email: string; password: string }) => Promise<{
-    data: { user: { email?: string } | null }
+  signInWithPassword: (credentials: { email: string; password: string }) => Promise<Outcome>
+  signUp: (credentials: { email: string; password: string }) => Promise<{
+    data: { session: { user: { email?: string } } | null }
     error: AuthErrorLike | null
   }>
+  verifyOtp: (params: {
+    email: string
+    token: string
+    type: 'signup' | 'recovery'
+  }) => Promise<Outcome>
+  resetPasswordForEmail: (email: string) => Promise<{ error: AuthErrorLike | null }>
+  updateUser: (attributes: { password: string }) => Promise<{ error: AuthErrorLike | null }>
   signOut: (options: { scope: 'local' }) => Promise<{ error: AuthErrorLike | null }>
 }
 
 // Only the kind of failure is kept: the message of the server is not shown or logged.
 export function failureKind(error: AuthErrorLike): AuthFailure {
-  if (error.code === 'invalid_credentials') return 'invalid-credentials'
+  switch (error.code) {
+    case 'invalid_credentials':
+      return 'invalid-credentials'
+    case 'email_not_confirmed':
+      return 'email-not-confirmed'
+    case 'weak_password':
+    case 'same_password':
+      return 'weak-password'
+    case 'otp_expired':
+      return 'invalid-code'
+    case 'over_request_rate_limit':
+    case 'over_email_send_rate_limit':
+      return 'rate-limited'
+  }
+  if (error.status === 429) return 'rate-limited'
   if (error.name === 'AuthRetryableFetchError') return 'network'
   return 'unknown'
+}
+
+function emailOf(user: UserLike): { email: string } | { error: AuthFailure } {
+  return user?.email ? { email: user.email } : { error: 'unknown' }
 }
 
 export function createGateway(auth: SupabaseAuth): AuthGateway {
@@ -38,8 +68,33 @@ export function createGateway(auth: SupabaseAuth): AuthGateway {
     },
     signInWithPassword: async (email, password) => {
       const { data, error } = await auth.signInWithPassword({ email, password })
-      if (error) return { error: failureKind(error) }
-      return data.user?.email ? { email: data.user.email } : { error: 'unknown' }
+      return error ? { error: failureKind(error) } : emailOf(data.user)
+    },
+    signUp: async (email, password) => {
+      const { data, error } = await auth.signUp({ email, password })
+      // An address that already has an account looks like any other sign-up: nothing is told.
+      if (error) return error.code === 'user_already_exists' ? null : { error: failureKind(error) }
+      const signedIn = data.session?.user.email
+      return signedIn ? { email: signedIn } : null
+    },
+    verifyEmailCode: async (email, code) => {
+      const { data, error } = await auth.verifyOtp({ email, token: code, type: 'signup' })
+      return error ? { error: failureKind(error) } : emailOf(data.user)
+    },
+    requestPasswordReset: async (email) => {
+      const { error } = await auth.resetPasswordForEmail(email)
+      return error ? { error: failureKind(error) } : null
+    },
+    resetPassword: async (email, code, password) => {
+      const verified = await auth.verifyOtp({ email, token: code, type: 'recovery' })
+      if (verified.error) return { error: failureKind(verified.error) }
+      const { error } = await auth.updateUser({ password })
+      if (error) {
+        // The code opened a session; do not leave the person signed in with the old password.
+        await auth.signOut({ scope: 'local' })
+        return { error: failureKind(error) }
+      }
+      return emailOf(verified.data.user)
     },
     signOut: async () => {
       // `local` forgets the session on this computer, whether or not the server can be reached.

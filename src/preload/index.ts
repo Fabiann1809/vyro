@@ -7,6 +7,10 @@ const api: VyroApi = {
   account: {
     status: () => ipcRenderer.invoke(IPC.accountStatus),
     signIn: (input) => ipcRenderer.invoke(IPC.accountSignIn, input),
+    signUp: (input) => ipcRenderer.invoke(IPC.accountSignUp, input),
+    verifyEmailCode: (input) => ipcRenderer.invoke(IPC.accountVerifyEmailCode, input),
+    requestPasswordReset: (input) => ipcRenderer.invoke(IPC.accountRequestPasswordReset, input),
+    resetPassword: (input) => ipcRenderer.invoke(IPC.accountResetPassword, input),
     signOut: () => ipcRenderer.invoke(IPC.accountSignOut)
   },
   camera: {

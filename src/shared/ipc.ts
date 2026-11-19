@@ -1,4 +1,12 @@
-import type { AccountStatus, AuthResult, SignInInput } from './account'
+import type {
+  AccountStatus,
+  AuthResult,
+  RequestResetInput,
+  ResetPasswordInput,
+  SignInInput,
+  SignUpInput,
+  VerifyCodeInput
+} from './account'
 import type { AiKeyStatus } from './ai'
 import type { CustomSkillSource } from './customSkills'
 import type { GenerateSkillInput, GenerateSkillResult } from './skillGeneration'
@@ -20,6 +28,10 @@ import type { ErrorCount, SessionDetail, SessionQuery, SessionRow, SessionToSave
 export const IPC = {
   accountStatus: 'account:status',
   accountSignIn: 'account:sign-in',
+  accountSignUp: 'account:sign-up',
+  accountVerifyEmailCode: 'account:verify-email-code',
+  accountRequestPasswordReset: 'account:request-password-reset',
+  accountResetPassword: 'account:reset-password',
   accountSignOut: 'account:sign-out',
   cameraRequestAccess: 'camera:request-access',
   cameraOpenSettings: 'camera:open-settings',
@@ -64,6 +76,13 @@ export interface VyroApi {
     // Who is signed in; the stored session is restored first. Tokens never reach the page.
     status: () => Promise<AccountStatus>
     signIn: (input: SignInInput) => Promise<AuthResult>
+    // Same answer for an address that already has an account. If the project asks to confirm the
+    // email, the result is "signed out" until the code from the message is verified.
+    signUp: (input: SignUpInput) => Promise<AuthResult>
+    verifyEmailCode: (input: VerifyCodeInput) => Promise<AuthResult>
+    // Sends a code to the address, if it has an account; the answer is the same either way.
+    requestPasswordReset: (input: RequestResetInput) => Promise<AuthResult>
+    resetPassword: (input: ResetPasswordInput) => Promise<AuthResult>
     signOut: () => Promise<AccountStatus>
   }
   camera: {
