@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { describe, expect, it } from 'vitest'
 import { SyncError } from './remote'
-import { createSupabaseRemote, failureOf } from './supabaseRemote'
+import { createSupabaseAccountCloud, createSupabaseRemote, failureOf } from './supabaseRemote'
 
 interface Call {
   table: string
@@ -17,6 +17,10 @@ function fakeClient(answer: Answer = { error: null, status: 200, data: [] }): {
 } {
   const calls: Call[] = []
   const client = {
+    rpc: (name: string) => {
+      calls.push({ table: `rpc:${name}`, steps: [] })
+      return Promise.resolve(answer)
+    },
     from: (table: string) => {
       const call: Call = { table, steps: [] }
       calls.push(call)
@@ -84,6 +88,28 @@ describe('createSupabaseRemote', () => {
     await expect(
       createSupabaseRemote(denied.client).changedSince('sessions', 0, 1)
     ).rejects.toBeInstanceOf(SyncError)
+  })
+})
+
+describe('erasing what belongs to the account', () => {
+  it('erases the synced data with the function of the database', async () => {
+    const { client, calls } = fakeClient()
+    await createSupabaseRemote(client).eraseAll()
+    expect(calls.map((call) => call.table)).toEqual(['rpc:delete_my_cloud_data'])
+  })
+
+  it('deletes the account with the function of the database', async () => {
+    const { client, calls } = fakeClient()
+    await createSupabaseAccountCloud(client).deleteAccount()
+    expect(calls.map((call) => call.table)).toEqual(['rpc:delete_my_account'])
+  })
+
+  it('reports a failure as a kind', async () => {
+    const down = fakeClient({ error: { code: '' }, status: 0 })
+    await expect(createSupabaseAccountCloud(down.client).deleteAccount()).rejects.toMatchObject({
+      kind: 'network'
+    })
+    await expect(createSupabaseRemote(down.client).eraseAll()).rejects.toBeInstanceOf(SyncError)
   })
 })
 

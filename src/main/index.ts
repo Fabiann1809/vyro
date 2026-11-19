@@ -11,6 +11,7 @@ import { ReturnInbox } from './auth/returnInbox'
 import { readAuthConfig } from './auth/config'
 import { EncryptedAuthStorage } from './auth/sessionStorage'
 import { createSupabaseClient, createSupabaseGateway } from './auth/supabaseGateway'
+import { AccountActions } from './account/accountActions'
 import { registerAccountIpc } from './ipc/account'
 import { ConfiguredLlmClient } from './ai/provider'
 import { dayOf, SpendLimitedClient } from './ai/spendGuard'
@@ -27,8 +28,8 @@ import { SettingsRepository } from './db/settingsRepository'
 import { registerAiIpc } from './ipc/ai'
 import { registerCameraIpc } from './ipc/camera'
 import { registerLocalDataIpc } from './ipc/localData'
-import type { RemoteStore } from './sync/remote'
-import { createSupabaseRemote } from './sync/supabaseRemote'
+import type { AccountCloud, RemoteStore } from './sync/remote'
+import { createSupabaseAccountCloud, createSupabaseRemote } from './sync/supabaseRemote'
 import { SyncRunner } from './sync/syncRunner'
 import { SyncService } from './sync/syncService'
 import { registerMicrophoneIpc } from './ipc/microphone'
@@ -67,6 +68,9 @@ interface Account {
   auth: AuthService
   // The cloud of the account, or null when this build has no account service or is under test.
   remote: RemoteStore | null
+  // What can be done to the account itself (delete it). Also there under test, where the fake
+  // server answers it.
+  cloud: AccountCloud | null
 }
 
 function createAccount(): Account {
@@ -83,7 +87,7 @@ function createAccount(): Account {
         MAIN_VITE_SUPABASE_URL: import.meta.env.MAIN_VITE_SUPABASE_URL,
         MAIN_VITE_SUPABASE_PUBLISHABLE_KEY: import.meta.env.MAIN_VITE_SUPABASE_PUBLISHABLE_KEY
       })
-  if (!config) return { auth: new AuthService(null), remote: null }
+  if (!config) return { auth: new AuthService(null), remote: null, cloud: null }
   const openBrowser = async (url: string): Promise<boolean> => {
     if (!mayOpenInBrowser(url, testServer !== undefined)) return false
     // Under test no browser is opened: the test brings the return link itself.
@@ -98,7 +102,8 @@ function createAccount(): Account {
   return {
     auth: new AuthService(createSupabaseGateway(client, config, storage), openBrowser),
     // The tests of the app have no cloud to sync with: the fake server only signs people in.
-    remote: testServer ? null : createSupabaseRemote(client)
+    remote: testServer ? null : createSupabaseRemote(client),
+    cloud: createSupabaseAccountCloud(client)
   }
 }
 
@@ -148,13 +153,13 @@ app.whenReady().then(() => {
     return
   }
   setupSessionSecurity(devUrl, microphone)
-  const { auth, remote } = createAccount()
+  const { auth, remote, cloud } = createAccount()
   const inbox = new ReturnInbox()
-  registerAccountIpc(auth, inbox)
   const localData = new LocalData(database)
-  const syncRunner = remote
+  const syncService = remote ? new SyncService(database, remote) : null
+  const syncRunner = syncService
     ? new SyncRunner({
-        sync: new SyncService(database, remote),
+        sync: syncService,
         // Only an account that is signed in and owns the data here may sync it.
         canSync: async () => {
           const id = await auth.currentUserId()
@@ -164,6 +169,15 @@ app.whenReady().then(() => {
     : null
   syncRunner?.start()
   stopSync = () => syncRunner?.stop()
+  const accountActions = new AccountActions({
+    auth,
+    sync: syncService,
+    status: () => syncRunner?.status() ?? { running: false, lastSyncAt: null, lastError: null },
+    nudge: () => syncRunner?.nudge(),
+    cloud,
+    localData
+  })
+  registerAccountIpc(auth, inbox, accountActions)
   registerLocalDataIpc(
     new LocalAdoption(localData),
     () => auth.currentUserId(),
@@ -195,7 +209,10 @@ app.whenReady().then(() => {
   const customSkills = new CustomSkillRepository(database)
   registerPathsIpc(paths, progress)
   registerSkillsIpc(customSkills, paths)
-  registerSettingsIpc(settings, sessions, paths, customSkills, keyStore)
+  // Deleting all the data of this computer deletes the copy in the cloud too.
+  registerSettingsIpc(settings, sessions, paths, customSkills, keyStore, () =>
+    accountActions.eraseCloudCopy()
+  )
   registerCoachIpc({
     // The provider and the key are read again on every question, so a change in Settings counts at once.
     llm: new SpendLimitedClient(

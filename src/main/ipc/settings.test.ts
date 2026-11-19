@@ -101,4 +101,23 @@ describe('settings handlers', () => {
     expect(sessions.list()).toEqual([])
     expect(handlers.get()).toEqual(DEFAULT_SETTINGS)
   })
+
+  it('tells the cloud copy to go too, once everything here is deleted', () => {
+    const order: string[] = []
+    const withCloud = createSettingsHandlers(
+      new SettingsRepository(openDatabase(':memory:')),
+      {
+        ...sessions,
+        deleteAll: () => order.push('local')
+      } as unknown as SessionRepository,
+      paths,
+      customSkills,
+      keyStore,
+      () => order.push('cloud')
+    )
+
+    withCloud.deleteAllData()
+
+    expect(order).toEqual(['local', 'cloud'])
+  })
 })

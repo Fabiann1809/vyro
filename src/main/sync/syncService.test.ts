@@ -410,6 +410,84 @@ describe('what leaves the computer', () => {
   })
 })
 
+describe('erasing the copy in the cloud', () => {
+  async function everything(user: string): Promise<number> {
+    let total = 0
+    for (const table of SYNC_TABLES) total += (await cloud.rows(user, table)).length
+    return total
+  }
+
+  it('erases the rows for good, not just marks them, and leaves other accounts alone', async () => {
+    const a = computer(ANA)
+    addSession(a)
+    addPath(a)
+    await a.sync.run()
+    const other = computer(BOB)
+    addSession(other)
+    await other.sync.run()
+    expect(await everything(ANA)).toBeGreaterThan(0)
+
+    // The person deletes all their data here and asks for the cloud copy to go too.
+    a.sessions.deleteAll()
+    a.paths.deleteAll()
+    a.sync.requestErase()
+    expect(a.sync.hasPending()).toBe(true)
+    await a.sync.run()
+
+    expect(await everything(ANA)).toBe(0)
+    expect(await everything(BOB)).toBeGreaterThan(0)
+    expect(a.sync.hasPending()).toBe(false)
+    expect(count(a.db, 'sync_tombstones')).toBe(0)
+  })
+
+  it('is not forgotten when there is no connection, and is done as soon as there is one', async () => {
+    const a = computer()
+    addSession(a)
+    await a.sync.run()
+    a.sessions.deleteAll()
+    a.sync.requestErase()
+
+    const offline = new SyncService(a.db, offlineAfter(cloud.storeFor(ANA), 0))
+    await expect(offline.run()).rejects.toBeInstanceOf(SyncError)
+    expect(a.sync.hasPending()).toBe(true)
+    expect(await everything(ANA)).toBeGreaterThan(0)
+
+    await a.sync.run()
+    expect(await everything(ANA)).toBe(0)
+  })
+
+  it('sends again, as new, what is still kept here', async () => {
+    const a = computer()
+    addSession(a)
+    await a.sync.run()
+    a.sync.requestErase()
+    await a.sync.run()
+
+    // The copy was erased and the data here was not: it is uploaded again in the same round.
+    expect((await cloud.rows(ANA, 'sessions')).length).toBe(1)
+    expect(a.sync.hasPending()).toBe(false)
+  })
+
+  it('leaves the copy that another computer keeps alone, and does not bring it back on its own', async () => {
+    const a = computer()
+    addSession(a)
+    await a.sync.run()
+    const b = computer()
+    await b.sync.run()
+    expect(count(b.db, 'sessions')).toBe(1)
+
+    a.sessions.deleteAll()
+    a.sync.requestErase()
+    await a.sync.run()
+    await b.sync.run()
+
+    // The erase is for good: it leaves no mark for B to follow. B keeps what it has, considers it
+    // uploaded, and so the cloud stays empty until B changes something.
+    expect(count(b.db, 'sessions')).toBe(1)
+    expect((await cloud.rows(ANA, 'sessions')).length).toBe(0)
+  })
+})
+
 describe('what comes down is not trusted', () => {
   it('leaves out a row that is not valid and goes on with the rest', async () => {
     const a = computer()

@@ -63,6 +63,16 @@ describe('LocalAdoption.check', () => {
     expect(data.counts()).toEqual({ sessions: 0, paths: 0, skills: 0 })
   })
 
+  it('makes the next account download from the beginning, not from where the first one stopped', () => {
+    const { db, adoption } = setup()
+    adoption.resolve(ANA, true)
+    db.exec("INSERT INTO sync_state (table_name, pulled_up_to) VALUES ('sessions', 999)")
+
+    adoption.check(BOB)
+
+    expect(rows(db, 'sync_state')).toBe(0)
+  })
+
   it('does not send the first account’s deletes to the cloud of the second', () => {
     const { db, adoption } = setup()
     db.exec(

@@ -45,3 +45,25 @@ export type SignUpInput = z.infer<typeof signUpSchema>
 export type VerifyCodeInput = z.infer<typeof verifyCodeSchema>
 export type RequestResetInput = z.infer<typeof requestResetSchema>
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
+
+// Why the cloud could not be reached or refused: a fixed kind, never the words of the server.
+export type SyncFailureKind = 'network' | 'auth' | 'server'
+
+// How the sync of this computer is doing, for the settings. Nothing in it is data of the person.
+export interface SyncInfo {
+  // False when this build has no cloud to sync with.
+  enabled: boolean
+  // Changes made here that the cloud has not heard of yet.
+  pending: boolean
+  // When the last round worked, in milliseconds, or null if none has yet.
+  lastSyncAt: number | null
+  lastError: SyncFailureKind | null
+}
+
+// Signing out first sends what is waiting. If that cannot be done, the person is asked, because the
+// changes that are not sent are lost if another account signs in on this computer.
+export type SignOutResult =
+  { done: true; status: AccountStatus } | { done: false; reason: 'pending-changes' }
+
+export type DeleteAccountResult =
+  { ok: true; status: AccountStatus } | { ok: false; error: AuthFailure }

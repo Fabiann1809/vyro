@@ -2,10 +2,11 @@ import { create } from 'zustand'
 import { useNavigation } from './navigation'
 
 export type SettingsTab =
-  'general' | 'voice' | 'camera' | 'microphone' | 'ai' | 'skills' | 'privacy' | 'about'
+  'general' | 'account' | 'voice' | 'camera' | 'microphone' | 'ai' | 'skills' | 'privacy' | 'about'
 
 export const SETTINGS_TABS: readonly SettingsTab[] = [
   'general',
+  'account',
   'voice',
   'camera',
   'microphone',

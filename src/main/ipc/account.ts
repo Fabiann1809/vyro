@@ -1,6 +1,13 @@
 import { ipcMain } from 'electron'
-import type { AccountStatus, AuthResult } from '@shared/account'
+import type {
+  AccountStatus,
+  AuthResult,
+  DeleteAccountResult,
+  SignOutResult,
+  SyncInfo
+} from '@shared/account'
 import { IPC } from '@shared/ipc'
+import type { AccountActions } from '../account/accountActions'
 import type { AuthService } from '../auth/authService'
 import type { ReturnInbox } from '../auth/returnInbox'
 
@@ -10,7 +17,8 @@ type Handler = (input: unknown) => Promise<AuthResult>
 // password or a code and gets back who is signed in or a kind of failure; tokens never reach it.
 export function createAccountHandlers(
   auth: AuthService,
-  inbox: ReturnInbox
+  inbox: ReturnInbox,
+  actions: AccountActions
 ): {
   takeReturn: () => AuthResult | null
   status: () => Promise<AccountStatus>
@@ -20,7 +28,9 @@ export function createAccountHandlers(
   verifyEmailCode: Handler
   requestPasswordReset: Handler
   resetPassword: Handler
-  signOut: () => Promise<AccountStatus>
+  signOut: (force?: unknown) => Promise<SignOutResult>
+  deleteAccount: () => Promise<DeleteAccountResult>
+  syncInfo: () => SyncInfo
 } {
   return {
     takeReturn: () => inbox.take(),
@@ -31,12 +41,19 @@ export function createAccountHandlers(
     verifyEmailCode: (input) => auth.verifyEmailCode(input),
     requestPasswordReset: (input) => auth.requestPasswordReset(input),
     resetPassword: (input) => auth.resetPassword(input),
-    signOut: () => auth.signOut()
+    // Only a clear "true" skips the check of what is waiting to be sent.
+    signOut: (force) => actions.signOut(force === true),
+    deleteAccount: () => actions.deleteAccount(),
+    syncInfo: () => actions.syncInfo()
   }
 }
 
-export function registerAccountIpc(auth: AuthService, inbox: ReturnInbox): void {
-  const handlers = createAccountHandlers(auth, inbox)
+export function registerAccountIpc(
+  auth: AuthService,
+  inbox: ReturnInbox,
+  actions: AccountActions
+): void {
+  const handlers = createAccountHandlers(auth, inbox, actions)
 
   ipcMain.handle(IPC.accountStatus, () => handlers.status())
   ipcMain.handle(IPC.accountTakeReturn, () => handlers.takeReturn())
@@ -52,5 +69,7 @@ export function registerAccountIpc(auth: AuthService, inbox: ReturnInbox): void 
   ipcMain.handle(IPC.accountResetPassword, (_event, input: unknown) =>
     handlers.resetPassword(input)
   )
-  ipcMain.handle(IPC.accountSignOut, () => handlers.signOut())
+  ipcMain.handle(IPC.accountSignOut, (_event, force: unknown) => handlers.signOut(force))
+  ipcMain.handle(IPC.accountDeleteAccount, () => handlers.deleteAccount())
+  ipcMain.handle(IPC.accountSyncInfo, () => handlers.syncInfo())
 }

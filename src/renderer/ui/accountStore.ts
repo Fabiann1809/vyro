@@ -1,7 +1,8 @@
 import { create } from 'zustand'
-import type { AccountStatus, AuthFailure, AuthResult } from '@shared/account'
+import type { AccountStatus, AuthFailure, AuthResult, DeleteAccountResult } from '@shared/account'
 import type { VyroApi } from '@shared/ipc'
 import { resetLocalData } from './localDataStore'
+import { loadCustomSkills } from './skillsStore'
 
 // "loading" lasts until the main process says who is signed in (a moment after the window opens).
 export type AccountView = 'loading' | AccountStatus
@@ -10,9 +11,15 @@ interface AccountState {
   status: AccountView
   // The browser sent the person back from Google with a failure, for the sign-in screen to show.
   returnError: AuthFailure | null
+  // Signing out was stopped because changes are waiting to be sent: the person has to choose.
+  signOutPending: boolean
 }
 
-export const useAccount = create<AccountState>(() => ({ status: 'loading', returnError: null }))
+export const useAccount = create<AccountState>(() => ({
+  status: 'loading',
+  returnError: null,
+  signOutPending: false
+}))
 
 type AccountApi = Pick<VyroApi, 'account'>
 
@@ -40,10 +47,35 @@ export async function startAccount(api: AccountApi): Promise<() => void> {
   return stop
 }
 
-export async function signOut(api: AccountApi): Promise<void> {
-  useAccount.setState({ status: await api.account.signOut() })
+// Signs out. If changes are waiting that could not be sent, it does not, and asks the person (see
+// `signOutPending`); `force` is the answer "sign out anyway".
+export async function requestSignOut(api: AccountApi, force = false): Promise<void> {
+  const result = await api.account.signOut(force)
+  if (!result.done) {
+    useAccount.setState({ signOutPending: true })
+    return
+  }
+  useAccount.setState({ status: result.status, signOutPending: false })
   // The next person to sign in is checked again.
   resetLocalData()
+}
+
+export function cancelSignOut(): void {
+  useAccount.setState({ signOutPending: false })
+}
+
+// Erases the account and what it kept, here and in the cloud. The result says if it was not possible.
+export async function deleteAccount(
+  api: Pick<VyroApi, 'account' | 'skills'>
+): Promise<DeleteAccountResult> {
+  const result = await api.account.deleteAccount()
+  if (result.ok) {
+    useAccount.setState({ status: result.status, signOutPending: false })
+    resetLocalData()
+    // The skills that were made went with the account.
+    await loadCustomSkills(api)
+  }
+  return result
 }
 
 export function clearReturnError(): void {

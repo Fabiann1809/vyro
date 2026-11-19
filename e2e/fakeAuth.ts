@@ -17,6 +17,8 @@ export const GOOGLE_CODE_PREFIX = 'good-'
 export const RATE_LIMITED_EMAIL = 'limit@vyro.test'
 // This person's sessions last one second, to test what happens when the stored one has expired.
 export const SHORT_LIVED_EMAIL = 'short@vyro.test'
+// This person's account cannot be deleted: the service fails, as when it is broken.
+export const UNDELETABLE_EMAIL = 'stuck@vyro.test'
 
 interface Account {
   id: string
@@ -67,6 +69,19 @@ function send(response: ServerResponse, body: unknown, status = 200): void {
   response.end(JSON.stringify(body))
 }
 
+// The email in the access token that came with a request, or null.
+function emailOfToken(request: IncomingMessage): string | null {
+  const token = (request.headers['authorization'] ?? '').replace('Bearer ', '')
+  try {
+    const claims = JSON.parse(
+      Buffer.from(token.split('.')[1] ?? 'e30', 'base64url').toString()
+    ) as { email?: string }
+    return claims.email ?? null
+  } catch {
+    return null
+  }
+}
+
 async function readBody(request: IncomingMessage): Promise<Record<string, unknown>> {
   let raw = ''
   for await (const chunk of request) raw += (chunk as Buffer).toString()
@@ -81,7 +96,8 @@ export interface FakeAuth {
 export async function startFakeAuth(): Promise<FakeAuth> {
   const accounts = new Map<string, Account>([
     [TEST_USER.email, { id: randomUUID(), password: TEST_USER.password, confirmed: true }],
-    [SHORT_LIVED_EMAIL, { id: randomUUID(), password: TEST_USER.password, confirmed: true }]
+    [SHORT_LIVED_EMAIL, { id: randomUUID(), password: TEST_USER.password, confirmed: true }],
+    [UNDELETABLE_EMAIL, { id: randomUUID(), password: TEST_USER.password, confirmed: true }]
   ])
   // Who each refresh token belongs to, so that a stored session can be renewed.
   const refreshTokens = new Map<string, string>()
@@ -161,13 +177,22 @@ export async function startFakeAuth(): Promise<FakeAuth> {
       return send(response, {})
     }
 
+    // The functions of the database that erase what belongs to the person who calls them.
+    if (
+      route === 'POST /rest/v1/rpc/delete_my_account' ||
+      route === 'POST /rest/v1/rpc/delete_my_cloud_data'
+    ) {
+      const caller = emailOfToken(request)
+      if (!caller || !accounts.has(caller)) return fail(response, 401, 'bad_jwt')
+      if (caller === UNDELETABLE_EMAIL) return fail(response, 500, 'unexpected_failure')
+      if (route.endsWith('delete_my_account')) accounts.delete(caller)
+      response.writeHead(204)
+      return void response.end()
+    }
+
     if (route === 'PUT /auth/v1/user') {
-      const token = (request.headers['authorization'] ?? '').replace('Bearer ', '')
-      const claims = JSON.parse(
-        Buffer.from(token.split('.')[1] ?? 'e30', 'base64url').toString()
-      ) as {
-        email?: string
-      }
+      const claimed = emailOfToken(request)
+      const claims = { email: claimed }
       const account = claims.email ? accounts.get(claims.email) : undefined
       if (!account || !claims.email) return fail(response, 401, 'bad_jwt')
       if (body['password'] === 'password') return fail(response, 422, 'weak_password')

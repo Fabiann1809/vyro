@@ -1,6 +1,9 @@
 import type {
   AccountStatus,
   AuthResult,
+  DeleteAccountResult,
+  SignOutResult,
+  SyncInfo,
   RequestResetInput,
   ResetPasswordInput,
   SignInInput,
@@ -40,6 +43,8 @@ export const IPC = {
   accountRequestPasswordReset: 'account:request-password-reset',
   accountResetPassword: 'account:reset-password',
   accountSignOut: 'account:sign-out',
+  accountDeleteAccount: 'account:delete-account',
+  accountSyncInfo: 'account:sync-info',
   cameraRequestAccess: 'camera:request-access',
   cameraOpenSettings: 'camera:open-settings',
   microphoneSetOpen: 'microphone:set-open',
@@ -106,7 +111,12 @@ export interface VyroApi {
     // Sends a code to the address, if it has an account; the answer is the same either way.
     requestPasswordReset: (input: RequestResetInput) => Promise<AuthResult>
     resetPassword: (input: ResetPasswordInput) => Promise<AuthResult>
-    signOut: () => Promise<AccountStatus>
+    // Sends what is waiting first. When that cannot be done it does not sign out, and says so, unless
+    // `force` is true.
+    signOut: (force?: boolean) => Promise<SignOutResult>
+    // Erases the account and everything of it, in the cloud and here. Needs a connection.
+    deleteAccount: () => Promise<DeleteAccountResult>
+    syncInfo: () => Promise<SyncInfo>
   }
   camera: {
     requestAccess: () => Promise<CameraAccessStatus>

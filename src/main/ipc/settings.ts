@@ -13,7 +13,9 @@ export function createSettingsHandlers(
   sessions: SessionRepository,
   paths: PathRepository,
   customSkills: CustomSkillRepository,
-  keyStore: ApiKeyStore
+  keyStore: ApiKeyStore,
+  // Called after all the data has been deleted, so that the copy in the cloud can go too.
+  onDeleteAll: () => void = () => {}
 ): {
   get: () => AppSettings
   set: (patch: unknown) => void
@@ -29,6 +31,7 @@ export function createSettingsHandlers(
       customSkills.deleteAll()
       settings.deleteAll()
       keyStore.clear()
+      onDeleteAll()
     }
   }
 }
@@ -38,9 +41,17 @@ export function registerSettingsIpc(
   sessions: SessionRepository,
   paths: PathRepository,
   customSkills: CustomSkillRepository,
-  keyStore: ApiKeyStore
+  keyStore: ApiKeyStore,
+  onDeleteAll: () => void
 ): void {
-  const handlers = createSettingsHandlers(settings, sessions, paths, customSkills, keyStore)
+  const handlers = createSettingsHandlers(
+    settings,
+    sessions,
+    paths,
+    customSkills,
+    keyStore,
+    onDeleteAll
+  )
 
   ipcMain.handle(IPC.settingsGet, () => handlers.get())
   ipcMain.handle(IPC.settingsSet, (_event, patch: unknown) => handlers.set(patch))

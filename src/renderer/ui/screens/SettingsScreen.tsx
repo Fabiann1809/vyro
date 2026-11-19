@@ -7,6 +7,7 @@ import { AiSettings } from '../AiSettings'
 import { AudioInputPicker } from '../AudioInputPicker'
 import { CameraStage } from '../CameraStage'
 import { GeneratedSkillsSettings } from '../GeneratedSkillsSettings'
+import { AccountSettings } from '../settings/AccountSettings'
 import { Button } from '../kit/Button'
 import { Card } from '../kit/Card'
 import { FIELD } from '../kit/fields'
@@ -20,6 +21,7 @@ import { changeTheme } from '../themeTransition'
 
 const TAB_LABEL: Record<SettingsTab, MessageKey> = {
   general: 'settings.tab.general',
+  account: 'settings.tab.account',
   voice: 'settings.voice',
   camera: 'settings.camera',
   microphone: 'settings.microphone',
@@ -228,6 +230,7 @@ function Camera(): React.JSX.Element {
 
 const PANEL: Record<SettingsTab, () => React.JSX.Element> = {
   general: General,
+  account: AccountSettings,
   voice: Voice,
   camera: Camera,
   microphone: () => (

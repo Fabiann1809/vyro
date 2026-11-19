@@ -17,6 +17,10 @@ const OVERLAP_MS = 5 * 60_000
 // Moves a step out of the way while the positions of a whole path are being rewritten.
 const SHIFT = 10_000_000
 
+// Kept in `sync_state` like the download cursors: a request to erase the cloud copy has to survive
+// a restart and a lack of connection, and be remembered until the cloud has done it.
+const ERASE_FLAG = '__erase_cloud__'
+
 export interface SyncReport {
   uploaded: number
   downloaded: number
@@ -48,8 +52,23 @@ export class SyncService {
     private readonly remote: RemoteStore
   ) {}
 
+  // Asks for the copy in the cloud to be erased for good (not marked: erased). The next round does
+  // it, as soon as there is a connection, and the request is not forgotten until then.
+  requestErase(): void {
+    this.db
+      .prepare('INSERT OR IGNORE INTO sync_state (table_name, pulled_up_to) VALUES (?, 1)')
+      .run(ERASE_FLAG)
+  }
+
+  private eraseRequested(): boolean {
+    return (
+      this.db.prepare('SELECT 1 FROM sync_state WHERE table_name = ?').get(ERASE_FLAG) !== undefined
+    )
+  }
+
   // Whether anything here is waiting to go up. Cheap: the runner asks it often.
   hasPending(): boolean {
+    if (this.eraseRequested()) return true
     const tombstones = this.db.prepare('SELECT 1 FROM sync_tombstones LIMIT 1').get()
     if (tombstones) return true
     return TABLE_SPECS.some((spec) => {
@@ -71,12 +90,32 @@ export class SyncService {
 
   private async round(): Promise<SyncReport> {
     const report: SyncReport = { uploaded: 0, downloaded: 0, deleted: 0, skipped: 0 }
+    if (this.eraseRequested()) await this.eraseCloud()
     // Deletes first, so that nothing deleted here comes back. Then what the cloud has, so that a
     // change that is older than the one in the cloud never overwrites it. Then what is new here.
     await this.pushDeletes(report)
     for (const spec of TABLE_SPECS) await this.pull(spec, report)
     for (const spec of TABLE_SPECS) await this.pushRows(spec, report)
     return report
+  }
+
+  // Erases the copy in the cloud. What is still kept here (if anything) stops counting as uploaded, so
+  // the same round sends it again as new; deletes that were waiting are no longer news.
+  private async eraseCloud(): Promise<void> {
+    await this.remote.eraseAll()
+    this.db.exec('BEGIN')
+    try {
+      this.db.exec('DELETE FROM sync_tombstones')
+      this.db.exec('DELETE FROM sync_state')
+      for (const spec of TABLE_SPECS) {
+        const forget = spec.key === 'remote_id' ? 'remote_id = NULL, ' : ''
+        this.db.exec(`UPDATE ${spec.name} SET ${forget}synced_at = NULL`)
+      }
+      this.db.exec('COMMIT')
+    } catch (error) {
+      this.db.exec('ROLLBACK')
+      throw error
+    }
   }
 
   // --- going up -----------------------------------------------------------------------------

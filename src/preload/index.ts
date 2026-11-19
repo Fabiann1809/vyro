@@ -23,7 +23,9 @@ const api: VyroApi = {
     verifyEmailCode: (input) => ipcRenderer.invoke(IPC.accountVerifyEmailCode, input),
     requestPasswordReset: (input) => ipcRenderer.invoke(IPC.accountRequestPasswordReset, input),
     resetPassword: (input) => ipcRenderer.invoke(IPC.accountResetPassword, input),
-    signOut: () => ipcRenderer.invoke(IPC.accountSignOut)
+    signOut: (force) => ipcRenderer.invoke(IPC.accountSignOut, force),
+    deleteAccount: () => ipcRenderer.invoke(IPC.accountDeleteAccount),
+    syncInfo: () => ipcRenderer.invoke(IPC.accountSyncInfo)
   },
   camera: {
     requestAccess: () => ipcRenderer.invoke(IPC.cameraRequestAccess),

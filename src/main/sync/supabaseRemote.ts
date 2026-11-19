@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { SyncError, type RemoteStore, type SyncFailure } from './remote'
+import { SyncError, type AccountCloud, type RemoteStore, type SyncFailure } from './remote'
 
 interface Answer {
   error: { code?: string } | null
@@ -43,6 +43,15 @@ export function createSupabaseRemote(client: SupabaseClient): RemoteStore {
     remove: async (table, ids, at) => {
       // The row stays, marked, so that the other computers learn about the delete.
       check(await client.from(table).update({ deleted_at: at, updated_at: at }).in('id', ids))
-    }
+    },
+
+    // A function of the database that only ever touches the rows of the one who calls it.
+    eraseAll: async () => check(await client.rpc('delete_my_cloud_data'))
+  }
+}
+
+export function createSupabaseAccountCloud(client: SupabaseClient): AccountCloud {
+  return {
+    deleteAccount: async () => check(await client.rpc('delete_my_account'))
   }
 }

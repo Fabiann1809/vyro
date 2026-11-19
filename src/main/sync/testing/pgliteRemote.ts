@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { PGlite } from '@electric-sql/pglite'
 import { SyncError, type RemoteStore } from '../remote'
@@ -20,15 +20,12 @@ const SUPABASE_STUB = `
   grant select on auth.users to authenticated;
 `
 
-const MIGRATION = resolve(
-  __dirname,
-  '../../../../supabase/migrations/20261118000000_sync_schema.sql'
-)
+const MIGRATIONS = resolve(__dirname, '../../../../supabase/migrations')
 
 // What a call of the sync sent, as the cloud received it.
 export interface Received {
   table: SyncTable
-  operation: 'upsert' | 'remove' | 'read'
+  operation: 'upsert' | 'remove' | 'read' | 'erase'
   rows: RemoteRow[]
 }
 
@@ -39,7 +36,9 @@ export class Cloud {
     const db = new PGlite()
     await db.exec(SUPABASE_STUB)
     for (const user of users) await db.exec(`insert into auth.users (id) values ('${user}')`)
-    await db.exec(readFileSync(MIGRATION, 'utf8'))
+    for (const file of readdirSync(MIGRATIONS).sort()) {
+      await db.exec(readFileSync(resolve(MIGRATIONS, file), 'utf8'))
+    }
     return new Cloud(db)
   }
 
@@ -108,6 +107,11 @@ export class Cloud {
            where id = any($1::${isText(table) ? 'text' : 'uuid'}[])`,
           [ids, at]
         )
+      },
+      eraseAll: async () => {
+        log.push({ table: 'sessions', operation: 'erase', rows: [] })
+        await this.actAs(userId)
+        await this.db.query('select public.delete_my_cloud_data()')
       }
     }
   }
@@ -142,6 +146,10 @@ export function offlineAfter(store: RemoteStore, after: number): RemoteStore {
     remove: async (table, ids, at) => {
       await gate()
       return store.remove(table, ids, at)
+    },
+    eraseAll: async () => {
+      await gate()
+      return store.eraseAll()
     }
   }
 }

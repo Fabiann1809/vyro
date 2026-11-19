@@ -1,7 +1,8 @@
+import type { SyncFailureKind } from '@shared/account'
 import type { RemoteRow, SyncTable } from './tables'
 
 // A failure of the cloud, as a fixed kind: what the server says is never kept, shown or logged.
-export type SyncFailure = 'network' | 'auth' | 'server'
+export type SyncFailure = SyncFailureKind
 
 export class SyncError extends Error {
   constructor(readonly kind: SyncFailure) {
@@ -20,4 +21,12 @@ export interface RemoteStore {
   // Marks the rows with these ids as deleted at `at` (milliseconds). They are not erased: the other
   // computers learn about the delete when they download them. Ids that are not there are not an error.
   remove: (table: SyncTable, ids: string[], at: number) => Promise<void>
+  // Erases, for good, everything that the account has synced. The account itself stays.
+  eraseAll: () => Promise<void>
+}
+
+// What can be done to the account itself, apart from syncing.
+export interface AccountCloud {
+  // Erases the account and everything of it. Needs a connection and cannot be undone.
+  deleteAccount: () => Promise<void>
 }

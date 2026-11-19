@@ -6,6 +6,7 @@ import { Button } from './ui/kit/Button'
 import { Ambient } from './ui/kit/Ambient'
 import { BrandOpening } from './ui/kit/BrandOpening'
 import { ExpandOverlay } from './ui/ExpandOverlay'
+import { SignOutConfirm } from './ui/SignOutConfirm'
 import { focusComposer } from './ui/focusComposer'
 import { Sidebar } from './ui/Sidebar'
 import { isImmersive, useNavigation, type Screen } from './ui/navigation'
@@ -125,6 +126,7 @@ function SignedInApp(): React.JSX.Element {
         </div>
       </main>
       <ExpandOverlay />
+      <SignOutConfirm />
       <BrandOpening />
     </div>
   )

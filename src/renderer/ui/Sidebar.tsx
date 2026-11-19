@@ -2,7 +2,7 @@ import { t, type MessageKey } from '@renderer/i18n'
 import { Icon } from './kit/Icon'
 import { Mark } from './kit/Mark'
 import type { IconName } from './kit/icons'
-import { signOut, useAccount } from './accountStore'
+import { requestSignOut, useAccount } from './accountStore'
 import { navHome, NAV_SCREENS, useNavigation, type Screen } from './navigation'
 import { useSettings } from './settingsStore'
 import { useSidebar } from './sidebarStore'
@@ -120,7 +120,7 @@ export function Sidebar(): React.JSX.Element {
           )}
           <button
             type="button"
-            onClick={() => void signOut(window.api)}
+            onClick={() => void requestSignOut(window.api)}
             aria-label={t('account.signOut')}
             title={t('account.signOut')}
             className="flex size-8.5 shrink-0 items-center justify-center rounded-xl text-mut hover:bg-line/7 hover:text-t1"

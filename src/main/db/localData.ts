@@ -24,6 +24,11 @@ export class LocalData {
       .run(userId, now)
   }
 
+  // Nobody owns the data any more (the account was deleted).
+  release(): void {
+    this.db.exec('DELETE FROM account_owner')
+  }
+
   counts(): LocalCounts {
     return {
       sessions: count(this.db, 'sessions'),
@@ -47,6 +52,8 @@ export class LocalData {
       this.db.exec('DELETE FROM custom_skills')
       // The deletes above were noted for the cloud: they must not be sent for another account.
       this.db.exec('DELETE FROM sync_tombstones')
+      // How far each table was downloaded is the old account's: a new one starts from the beginning.
+      this.db.exec('DELETE FROM sync_state')
       this.db.exec('COMMIT')
     } catch (error) {
       this.db.exec('ROLLBACK')

@@ -15,7 +15,8 @@ import {
   RATE_LIMITED_EMAIL,
   RESET_CODE,
   SHORT_LIVED_EMAIL,
-  TEST_USER
+  TEST_USER,
+  UNDELETABLE_EMAIL
 } from './fakeAuth'
 
 // The app is closed to anyone who has not signed in. These tests walk through the sign-in page
@@ -340,4 +341,87 @@ test('clears the data of the first account when a different one signs in', async
   await app!.close()
 
   expect(readDatabase<{ n: number }>('SELECT count(*) AS n FROM sessions').n).toBe(0)
+})
+
+async function openAccountSettings(page: Page): Promise<void> {
+  await bar(page).getByRole('button', { name: 'Ajustes' }).click()
+  await page.getByRole('tab', { name: 'Cuenta' }).click()
+}
+
+test('the settings show who is signed in, what is synced and sign out from there', async () => {
+  const page = await launch()
+  await fillSignIn(page, TEST_USER.email, TEST_USER.password)
+  await openAccountSettings(page)
+
+  await expect(page.getByRole('main').getByText(TEST_USER.email, { exact: true })).toBeVisible()
+  // Under test there is no cloud to sync with, and the page says so.
+  await expect(
+    page.getByText('La sincronización no está disponible en esta versión.')
+  ).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Qué se sincroniza' })).toBeVisible()
+  await expect(
+    page.getByText(/Nunca se guardan ni se envían video, imágenes ni audio/)
+  ).toBeVisible()
+
+  await page.getByRole('button', { name: 'Cerrar sesión' }).first().click()
+  await expect(page.getByRole('heading', { name: 'Inicia sesión' })).toBeVisible()
+})
+
+test('deletes the account: it stops working and what was kept here is gone', async () => {
+  const page = await launch()
+  const email = freshEmail()
+  await page.getByRole('button', { name: '¿No tienes cuenta? Créala' }).click()
+  await page.getByLabel('Correo', { exact: true }).fill(email)
+  await page.getByLabel('Contraseña', { exact: true }).fill('a-long-enough-pass')
+  await page.getByRole('button', { name: 'Crear cuenta' }).click()
+  await page.getByLabel('Código del correo').fill(EMAIL_CODE)
+  await page.getByRole('button', { name: 'Confirmar correo' }).click()
+  await expect(bar(page)).toBeVisible()
+  await app!.close()
+
+  // Something was practised here.
+  seedSession()
+  const second = await launch()
+  await expect(bar(second)).toBeVisible()
+  await openAccountSettings(second)
+
+  await second.getByRole('button', { name: 'Borrar mi cuenta' }).click()
+  await expect(second.getByRole('alertdialog')).toContainText(
+    'Se borrarán tu cuenta y todos tus datos'
+  )
+  // Changing their mind leaves everything as it was.
+  await second.getByRole('button', { name: 'Cancelar' }).click()
+  await expect(second.getByRole('button', { name: 'Borrar mi cuenta' })).toBeVisible()
+
+  await second.getByRole('button', { name: 'Borrar mi cuenta' }).click()
+  await second.getByRole('button', { name: 'Sí, borrar mi cuenta' }).click()
+  await expect(second.getByRole('heading', { name: 'Inicia sesión' })).toBeVisible()
+  await app!.close()
+
+  expect(readDatabase<{ n: number }>('SELECT count(*) AS n FROM sessions').n).toBe(0)
+  expect(readDatabase<{ n: number }>('SELECT count(*) AS n FROM account_owner').n).toBe(0)
+
+  // The account no longer exists.
+  const third = await launch()
+  await fillSignIn(third, email, 'a-long-enough-pass')
+  await expect(third.getByRole('alert')).toContainText('no son correctos')
+})
+
+test('keeps the account and the data when the service fails to delete it', async () => {
+  await createDatabase()
+  seedSession()
+  const page = await launch()
+  await fillSignIn(page, UNDELETABLE_EMAIL, TEST_USER.password)
+  await page.getByRole('button', { name: 'Conservar en mi cuenta' }).click()
+  await openAccountSettings(page)
+
+  await page.getByRole('button', { name: 'Borrar mi cuenta' }).click()
+  await page.getByRole('button', { name: 'Sí, borrar mi cuenta' }).click()
+
+  await expect(page.getByRole('alert')).toContainText(
+    'No se pudo borrar la cuenta. No se borró nada.'
+  )
+  await expect(bar(page)).toBeVisible()
+  await app!.close()
+  expect(readDatabase<{ n: number }>('SELECT count(*) AS n FROM sessions').n).toBe(1)
 })
