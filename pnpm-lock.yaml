@@ -200,6 +200,9 @@ importers:
       '@commitlint/config-conventional':
         specifier: 21.2.3
         version: 21.2.3
+      '@electric-sql/pglite':
+        specifier: 0.5.16
+        version: 0.5.16
       '@electron-toolkit/eslint-config-prettier':
         specifier: 3.0.1
         version: 3.0.1(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))(prettier@3.9.10)
@@ -455,6 +458,9 @@ packages:
 
   '@dual-bundle/import-meta-resolve@4.2.1':
     resolution: {integrity: sha512-id+7YRUgoUX6CgV0DtuhirQWodeeA7Lf4i2x71JS/vtA5pRb/hIGWlw+G6MeXvsM+MXrz0VAydTGElX1rAfgPg==}
+
+  '@electric-sql/pglite@0.5.16':
+    resolution: {integrity: sha512-Nj8KcIsJL748W408U2N8q4+9IlONdpRIU8MJypIAAINMJ5nqKyqpX7Mgg/5XKkXiAib3AoZGR6hnJFlrlLBrcg==}
 
   '@electron-internal/extract-zip@1.0.5':
     resolution: {integrity: sha512-+bqFCP98pLI0Tt0XQo1TmlXtwjWchISndDOxCkEcIuUgXWpBnLyRI+2DU+mesvnMMX6L1XDqYNA0lXNDHd/yiA==}
@@ -3402,6 +3408,8 @@ snapshots:
   '@conventional-changelog/template@1.4.0': {}
 
   '@dual-bundle/import-meta-resolve@4.2.1': {}
+
+  '@electric-sql/pglite@0.5.16': {}
 
   '@electron-internal/extract-zip@1.0.5': {}
 
