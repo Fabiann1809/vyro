@@ -1,3 +1,4 @@
+import type { AccountStatus, AuthResult, SignInInput } from './account'
 import type { AiKeyStatus } from './ai'
 import type { CustomSkillSource } from './customSkills'
 import type { GenerateSkillInput, GenerateSkillResult } from './skillGeneration'
@@ -17,6 +18,9 @@ import type { AppSettings, SettingsPatch } from './settings'
 import type { ErrorCount, SessionDetail, SessionQuery, SessionRow, SessionToSave } from './sessions'
 
 export const IPC = {
+  accountStatus: 'account:status',
+  accountSignIn: 'account:sign-in',
+  accountSignOut: 'account:sign-out',
   cameraRequestAccess: 'camera:request-access',
   cameraOpenSettings: 'camera:open-settings',
   microphoneSetOpen: 'microphone:set-open',
@@ -56,6 +60,12 @@ export const IPC = {
 // The only API the renderer can call. Everything else stays in the main process.
 export interface VyroApi {
   platform: string
+  account: {
+    // Who is signed in; the stored session is restored first. Tokens never reach the page.
+    status: () => Promise<AccountStatus>
+    signIn: (input: SignInInput) => Promise<AuthResult>
+    signOut: () => Promise<AccountStatus>
+  }
   camera: {
     requestAccess: () => Promise<CameraAccessStatus>
     openSystemSettings: () => Promise<void>

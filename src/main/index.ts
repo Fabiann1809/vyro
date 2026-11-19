@@ -3,7 +3,12 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { APP_NAME } from '@shared/app'
 import icon from '../../resources/icon.png?asset'
-import { ApiKeyStore, createKeyFile } from './ai/keyStore'
+import { ApiKeyStore, createKeyFile, type SecretStorage } from './ai/keyStore'
+import { AuthService } from './auth/authService'
+import { readAuthConfig } from './auth/config'
+import { EncryptedAuthStorage } from './auth/sessionStorage'
+import { createSupabaseGateway } from './auth/supabaseGateway'
+import { registerAccountIpc } from './ipc/account'
 import { ConfiguredLlmClient } from './ai/provider'
 import { dayOf, SpendLimitedClient } from './ai/spendGuard'
 import { AiUsageRepository } from './db/aiUsageRepository'
@@ -31,6 +36,29 @@ const devUrl = is.dev ? process.env['ELECTRON_RENDERER_URL'] : undefined
 
 // Shared by the window and the permission handlers: whether a skill that listens is open.
 const microphone = new MicrophoneGate()
+
+const secretStorage: SecretStorage = {
+  isEncryptionAvailable: () => safeStorage.isEncryptionAvailable(),
+  encryptString: (plain) => safeStorage.encryptString(plain),
+  decryptString: (encrypted) => safeStorage.decryptString(encrypted),
+  // Linux without a keyring falls back to a fixed key: that is not protection.
+  isWeakBackend: () =>
+    process.platform === 'linux' && safeStorage.getSelectedStorageBackend() === 'basic_text'
+}
+
+function createAuthService(): AuthService {
+  // Written out one by one so the build can replace each value.
+  const config = readAuthConfig({
+    MAIN_VITE_SUPABASE_URL: import.meta.env.MAIN_VITE_SUPABASE_URL,
+    MAIN_VITE_SUPABASE_PUBLISHABLE_KEY: import.meta.env.MAIN_VITE_SUPABASE_PUBLISHABLE_KEY
+  })
+  if (!config) return new AuthService(null)
+  const storage = new EncryptedAuthStorage(
+    secretStorage,
+    createKeyFile(join(app.getPath('userData'), 'account-session.bin'))
+  )
+  return new AuthService(createSupabaseGateway(config, storage))
+}
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -73,19 +101,13 @@ app.whenReady().then(() => {
     return
   }
   setupSessionSecurity(devUrl, microphone)
+  registerAccountIpc(createAuthService())
   registerCameraIpc()
   registerMicrophoneIpc(microphone)
   const sessions = new SessionRepository(database)
   registerSessionsIpc(sessions)
   const keyStore = new ApiKeyStore(
-    {
-      isEncryptionAvailable: () => safeStorage.isEncryptionAvailable(),
-      encryptString: (plain) => safeStorage.encryptString(plain),
-      decryptString: (encrypted) => safeStorage.decryptString(encrypted),
-      // Linux without a keyring falls back to a fixed key: that is not protection.
-      isWeakBackend: () =>
-        process.platform === 'linux' && safeStorage.getSelectedStorageBackend() === 'basic_text'
-    },
+    secretStorage,
     createKeyFile(join(app.getPath('userData'), 'ai-key.bin'))
   )
   const aiUsage = new AiUsageRepository(database)

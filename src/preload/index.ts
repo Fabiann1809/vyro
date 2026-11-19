@@ -4,6 +4,11 @@ import { IPC, type VyroApi } from '@shared/ipc'
 // The only surface exposed to the renderer. Typed methods are added here as features need them.
 const api: VyroApi = {
   platform: process.platform,
+  account: {
+    status: () => ipcRenderer.invoke(IPC.accountStatus),
+    signIn: (input) => ipcRenderer.invoke(IPC.accountSignIn, input),
+    signOut: () => ipcRenderer.invoke(IPC.accountSignOut)
+  },
   camera: {
     requestAccess: () => ipcRenderer.invoke(IPC.cameraRequestAccess),
     openSystemSettings: () => ipcRenderer.invoke(IPC.cameraOpenSettings)
