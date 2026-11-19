@@ -9,6 +9,7 @@ import {
   type ElectronApplication,
   type Page
 } from '@playwright/test'
+import { signInAs } from './auth'
 import {
   EMAIL_CODE,
   GOOGLE_CODE_PREFIX,
@@ -382,7 +383,8 @@ test('deletes the account: it stops working and what was kept here is gone', asy
   // Something was practised here.
   seedSession()
   const second = await launch()
-  await expect(bar(second)).toBeVisible()
+  // The session comes back where it can be kept; where it cannot (no keyring), the person signs in.
+  await signInAs(second, email, 'a-long-enough-pass')
   await openAccountSettings(second)
 
   await second.getByRole('button', { name: 'Borrar mi cuenta' }).click()
