@@ -1,4 +1,5 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
+import type { AuthResult } from '@shared/account'
 import { IPC, type VyroApi } from '@shared/ipc'
 
 // The only surface exposed to the renderer. Typed methods are added here as features need them.
@@ -7,6 +8,12 @@ const api: VyroApi = {
   account: {
     status: () => ipcRenderer.invoke(IPC.accountStatus),
     signIn: (input) => ipcRenderer.invoke(IPC.accountSignIn, input),
+    signInWithGoogle: () => ipcRenderer.invoke(IPC.accountSignInWithGoogle),
+    onResult: (listener) => {
+      const forward = (_event: IpcRendererEvent, result: AuthResult): void => listener(result)
+      ipcRenderer.on(IPC.accountResult, forward)
+      return () => void ipcRenderer.removeListener(IPC.accountResult, forward)
+    },
     signUp: (input) => ipcRenderer.invoke(IPC.accountSignUp, input),
     verifyEmailCode: (input) => ipcRenderer.invoke(IPC.accountVerifyEmailCode, input),
     requestPasswordReset: (input) => ipcRenderer.invoke(IPC.accountRequestPasswordReset, input),

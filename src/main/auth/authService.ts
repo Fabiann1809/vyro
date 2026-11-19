@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { parseAuthCallback } from './callback'
 import {
   requestResetSchema,
   resetPasswordSchema,
@@ -30,6 +31,10 @@ export interface AuthGateway {
     code: string,
     password: string
   ) => Promise<{ email: string } | Failed>
+  // The address where the person signs in with Google, in the browser (never in the app window).
+  startGoogleSignIn: () => Promise<{ url: string } | Failed>
+  // Trades the one-time code of the return link for a session.
+  completeSignIn: (code: string) => Promise<{ email: string } | Failed>
   signOut: () => Promise<void>
 }
 
@@ -37,7 +42,11 @@ const SIGNED_OUT: AccountStatus = { state: 'signed-out' }
 
 // The account in the main process. A null gateway means this build has no Supabase settings.
 export class AuthService {
-  constructor(private readonly gateway: AuthGateway | null) {}
+  constructor(
+    private readonly gateway: AuthGateway | null,
+    // Opens an address in the system browser; the app never shows a provider page itself.
+    private readonly openBrowser: (url: string) => Promise<void> = async () => {}
+  ) {}
 
   async status(): Promise<AccountStatus> {
     if (!this.gateway) return { state: 'unconfigured' }
@@ -78,6 +87,31 @@ export class AuthService {
   resetPassword(input: unknown): Promise<AuthResult> {
     return this.run(resetPasswordSchema, input, (gateway, data) =>
       gateway.resetPassword(data.email, data.code, data.password)
+    )
+  }
+
+  // Opens Google in the browser. The answer only says it was opened: who signed in arrives later,
+  // through handleCallback, when the browser sends the person back to the app.
+  async signInWithGoogle(): Promise<AuthResult> {
+    if (!this.gateway) return { ok: false, error: 'unconfigured' }
+    try {
+      const started = await this.gateway.startGoogleSignIn()
+      if ('error' in started) return { ok: false, error: started.error }
+      if (new URL(started.url).protocol !== 'https:') return { ok: false, error: 'unknown' }
+      await this.openBrowser(started.url)
+      return { ok: true, status: SIGNED_OUT }
+    } catch {
+      return { ok: false, error: 'unknown' }
+    }
+  }
+
+  // A link that opened the app. Null when it is not a sign-in link, so nothing else can use it.
+  async handleCallback(link: string): Promise<AuthResult | null> {
+    const callback = parseAuthCallback(link)
+    if (!callback) return null
+    if (callback.kind === 'failed') return { ok: false, error: 'invalid-code' }
+    return this.run(z.object({ code: z.string() }), { code: callback.code }, (gateway, data) =>
+      gateway.completeSignIn(data.code)
     )
   }
 

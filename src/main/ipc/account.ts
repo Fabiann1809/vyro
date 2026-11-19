@@ -10,6 +10,7 @@ type Handler = (input: unknown) => Promise<AuthResult>
 export function createAccountHandlers(auth: AuthService): {
   status: () => Promise<AccountStatus>
   signIn: Handler
+  signInWithGoogle: () => Promise<AuthResult>
   signUp: Handler
   verifyEmailCode: Handler
   requestPasswordReset: Handler
@@ -19,6 +20,7 @@ export function createAccountHandlers(auth: AuthService): {
   return {
     status: () => auth.status(),
     signIn: (input) => auth.signIn(input),
+    signInWithGoogle: () => auth.signInWithGoogle(),
     signUp: (input) => auth.signUp(input),
     verifyEmailCode: (input) => auth.verifyEmailCode(input),
     requestPasswordReset: (input) => auth.requestPasswordReset(input),
@@ -32,6 +34,7 @@ export function registerAccountIpc(auth: AuthService): void {
 
   ipcMain.handle(IPC.accountStatus, () => handlers.status())
   ipcMain.handle(IPC.accountSignIn, (_event, input: unknown) => handlers.signIn(input))
+  ipcMain.handle(IPC.accountSignInWithGoogle, () => handlers.signInWithGoogle())
   ipcMain.handle(IPC.accountSignUp, (_event, input: unknown) => handlers.signUp(input))
   ipcMain.handle(IPC.accountVerifyEmailCode, (_event, input: unknown) =>
     handlers.verifyEmailCode(input)

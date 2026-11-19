@@ -1,10 +1,11 @@
-import { app, BrowserWindow, dialog, safeStorage } from 'electron'
+import { app, BrowserWindow, dialog, safeStorage, shell } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { APP_NAME } from '@shared/app'
 import icon from '../../resources/icon.png?asset'
 import { ApiKeyStore, createKeyFile, type SecretStorage } from './ai/keyStore'
 import { AuthService } from './auth/authService'
+import { setupDeepLinks } from './auth/deepLinks'
 import { readAuthConfig } from './auth/config'
 import { EncryptedAuthStorage } from './auth/sessionStorage'
 import { createSupabaseGateway } from './auth/supabaseGateway'
@@ -28,7 +29,8 @@ import { registerPathsIpc } from './ipc/paths'
 import { registerSessionsIpc } from './ipc/sessions'
 import { registerSettingsIpc } from './ipc/settings'
 import { registerSkillsIpc } from './ipc/skills'
-import { setupSessionSecurity, setupWindowSecurity } from './security'
+import { isExternalHttpsUrl, setupSessionSecurity, setupWindowSecurity } from './security'
+import { IPC } from '@shared/ipc'
 
 let database: Database | undefined
 
@@ -53,11 +55,15 @@ function createAuthService(): AuthService {
     MAIN_VITE_SUPABASE_PUBLISHABLE_KEY: import.meta.env.MAIN_VITE_SUPABASE_PUBLISHABLE_KEY
   })
   if (!config) return new AuthService(null)
+  // Only a secure address may be opened in the browser.
+  const openBrowser = async (url: string): Promise<void> => {
+    if (isExternalHttpsUrl(url)) await shell.openExternal(url)
+  }
   const storage = new EncryptedAuthStorage(
     secretStorage,
     createKeyFile(join(app.getPath('userData'), 'account-session.bin'))
   )
-  return new AuthService(createSupabaseGateway(config, storage))
+  return new AuthService(createSupabaseGateway(config, storage), openBrowser)
 }
 
 function createWindow(): void {
@@ -89,7 +95,12 @@ function createWindow(): void {
   }
 }
 
+// Before the app is ready: macOS can deliver the return link of a sign-in before that.
+const deepLinks = setupDeepLinks()
+if (!deepLinks) app.quit()
+
 app.whenReady().then(() => {
+  if (!deepLinks) return
   electronApp.setAppUserModelId('io.github.fabiann1809.vyro')
 
   try {
@@ -101,7 +112,15 @@ app.whenReady().then(() => {
     return
   }
   setupSessionSecurity(devUrl, microphone)
-  registerAccountIpc(createAuthService())
+  const auth = createAuthService()
+  registerAccountIpc(auth)
+  deepLinks.listen(async (link) => {
+    const result = await auth.handleCallback(link)
+    if (!result) return
+    for (const window of BrowserWindow.getAllWindows()) {
+      window.webContents.send(IPC.accountResult, result)
+    }
+  })
   registerCameraIpc()
   registerMicrophoneIpc(microphone)
   const sessions = new SessionRepository(database)

@@ -28,6 +28,9 @@ import type { ErrorCount, SessionDetail, SessionQuery, SessionRow, SessionToSave
 export const IPC = {
   accountStatus: 'account:status',
   accountSignIn: 'account:sign-in',
+  accountSignInWithGoogle: 'account:sign-in-with-google',
+  // Sent by the main process when the browser sends the person back to the app.
+  accountResult: 'account:result',
   accountSignUp: 'account:sign-up',
   accountVerifyEmailCode: 'account:verify-email-code',
   accountRequestPasswordReset: 'account:request-password-reset',
@@ -76,6 +79,12 @@ export interface VyroApi {
     // Who is signed in; the stored session is restored first. Tokens never reach the page.
     status: () => Promise<AccountStatus>
     signIn: (input: SignInInput) => Promise<AuthResult>
+    // Opens Google in the system browser. The answer only says it was opened: who signed in
+    // arrives through `onResult` when the browser sends the person back to the app.
+    signInWithGoogle: () => Promise<AuthResult>
+    // Calls the listener with the result of a sign-in that came back from the browser; returns a
+    // function that stops listening.
+    onResult: (listener: (result: AuthResult) => void) => () => void
     // Same answer for an address that already has an account. If the project asks to confirm the
     // email, the result is "signed out" until the code from the message is verified.
     signUp: (input: SignUpInput) => Promise<AuthResult>

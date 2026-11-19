@@ -11,6 +11,14 @@ function fakeAuth(overrides: Partial<SupabaseAuth> = {}): SupabaseAuth {
     verifyOtp: async () => OK,
     resetPasswordForEmail: async () => ({ error: null }),
     updateUser: async () => ({ error: null }),
+    signInWithOAuth: async () => ({
+      data: { url: 'https://accounts.example.com/start' },
+      error: null
+    }),
+    exchangeCodeForSession: async () => ({
+      data: { session: { user: { email: 'ana@gmail.com' } } },
+      error: null
+    }),
     signOut: async () => ({ error: null }),
     ...overrides
   }
@@ -23,6 +31,8 @@ describe('failureKind', () => {
     expect(failureKind({ code: 'weak_password' })).toBe('weak-password')
     expect(failureKind({ code: 'same_password' })).toBe('weak-password')
     expect(failureKind({ code: 'otp_expired' })).toBe('invalid-code')
+    expect(failureKind({ code: 'flow_state_not_found' })).toBe('invalid-code')
+    expect(failureKind({ code: 'bad_code_verifier' })).toBe('invalid-code')
     expect(failureKind({ code: 'over_email_send_rate_limit' })).toBe('rate-limited')
     expect(failureKind({ status: 429 })).toBe('rate-limited')
     expect(failureKind({ name: 'AuthRetryableFetchError' })).toBe('network')
@@ -143,6 +153,48 @@ describe('createGateway', () => {
       error: 'weak-password'
     })
     expect(signOut).toHaveBeenCalledWith({ scope: 'local' })
+  })
+
+  it('starts Google in the browser and comes back to the app by vyro://', async () => {
+    const signInWithOAuth = vi.fn(async () => ({
+      data: { url: 'https://accounts.example.com/start' },
+      error: null
+    }))
+    const gateway = createGateway(fakeAuth({ signInWithOAuth }))
+    expect(await gateway.startGoogleSignIn()).toEqual({ url: 'https://accounts.example.com/start' })
+    expect(signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'google',
+      options: { redirectTo: 'vyro://auth/callback', skipBrowserRedirect: true }
+    })
+  })
+
+  it('fails when Google gives no address', async () => {
+    const gateway = createGateway(
+      fakeAuth({ signInWithOAuth: async () => ({ data: { url: null }, error: null }) })
+    )
+    expect(await gateway.startGoogleSignIn()).toEqual({ error: 'unknown' })
+  })
+
+  it('trades the code of the return link for a session', async () => {
+    const exchangeCodeForSession = vi.fn(async () => ({
+      data: { session: { user: { email: 'ana@gmail.com' } } },
+      error: null
+    }))
+    const gateway = createGateway(fakeAuth({ exchangeCodeForSession }))
+    expect(await gateway.completeSignIn('google-code-1234')).toEqual({ email: 'ana@gmail.com' })
+    expect(exchangeCodeForSession).toHaveBeenCalledWith('google-code-1234')
+  })
+
+  it('reports a code that was used or expired', async () => {
+    const gateway = createGateway(
+      fakeAuth({
+        exchangeCodeForSession: async () => ({
+          data: { session: null },
+          error: { code: 'flow_state_not_found' }
+        })
+      })
+    )
+    expect(await gateway.completeSignIn('google-code-1234')).toEqual({ error: 'invalid-code' })
   })
 
   it('signs out only on this computer, so it works without a connection', async () => {

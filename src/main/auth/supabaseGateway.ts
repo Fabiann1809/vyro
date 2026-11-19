@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import type { AuthFailure } from '@shared/account'
 import type { AuthGateway } from './authService'
+import { AUTH_CALLBACK_URL } from './callback'
 import type { AuthConfig } from './config'
 import type { AuthStorage } from './sessionStorage'
 
@@ -31,6 +32,14 @@ export interface SupabaseAuth {
   }) => Promise<Outcome>
   resetPasswordForEmail: (email: string) => Promise<{ error: AuthErrorLike | null }>
   updateUser: (attributes: { password: string }) => Promise<{ error: AuthErrorLike | null }>
+  signInWithOAuth: (params: {
+    provider: 'google'
+    options: { redirectTo: string; skipBrowserRedirect: boolean }
+  }) => Promise<{ data: { url: string | null }; error: AuthErrorLike | null }>
+  exchangeCodeForSession: (code: string) => Promise<{
+    data: { session: { user: { email?: string } } | null }
+    error: AuthErrorLike | null
+  }>
   signOut: (options: { scope: 'local' }) => Promise<{ error: AuthErrorLike | null }>
 }
 
@@ -44,7 +53,13 @@ export function failureKind(error: AuthErrorLike): AuthFailure {
     case 'weak_password':
     case 'same_password':
       return 'weak-password'
+    // A wrong or old email code, or a return link that was used already or did not start here.
     case 'otp_expired':
+    case 'flow_state_not_found':
+    case 'flow_state_expired':
+    case 'bad_code_verifier':
+    case 'bad_oauth_callback':
+    case 'bad_oauth_state':
       return 'invalid-code'
     case 'over_request_rate_limit':
     case 'over_email_send_rate_limit':
@@ -95,6 +110,19 @@ export function createGateway(auth: SupabaseAuth): AuthGateway {
         return { error: failureKind(error) }
       }
       return emailOf(verified.data.user)
+    },
+    startGoogleSignIn: async () => {
+      const { data, error } = await auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: AUTH_CALLBACK_URL, skipBrowserRedirect: true }
+      })
+      if (error) return { error: failureKind(error) }
+      return data.url ? { url: data.url } : { error: 'unknown' }
+    },
+    completeSignIn: async (code) => {
+      const { data, error } = await auth.exchangeCodeForSession(code)
+      if (error) return { error: failureKind(error) }
+      return emailOf(data.session?.user ?? null)
     },
     signOut: async () => {
       // `local` forgets the session on this computer, whether or not the server can be reached.

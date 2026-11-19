@@ -3,6 +3,7 @@ import { AuthService, type AuthGateway } from './authService'
 
 const SECRET = 'tok_secret_123'
 const CODE = '123456'
+const GOOGLE_CODE = 'google-code-1234'
 
 // A small stand-in for the server: accounts that must confirm their email, and codes that work once.
 function fakeServer(overrides: Partial<AuthGateway> = {}): AuthGateway {
@@ -35,6 +36,12 @@ function fakeServer(overrides: Partial<AuthGateway> = {}): AuthGateway {
       if (!account || code !== CODE) return { error: 'invalid-code' }
       account.password = password
       signedIn = { email }
+      return signedIn
+    },
+    startGoogleSignIn: async () => ({ url: 'https://accounts.example.com/start' }),
+    completeSignIn: async (code) => {
+      if (code !== GOOGLE_CODE) return { error: 'invalid-code' }
+      signedIn = { email: 'ana@gmail.com' }
       return signedIn
     },
     signOut: async () => void (signedIn = null),
@@ -189,6 +196,70 @@ describe('AuthService password reset', () => {
   })
 })
 
+describe('AuthService with Google', () => {
+  const LINK = `vyro://auth/callback?code=${GOOGLE_CODE}`
+
+  it('opens the browser and signs in when the browser comes back', async () => {
+    const openBrowser = vi.fn(async () => {})
+    const auth = new AuthService(fakeServer(), openBrowser)
+
+    expect(await auth.signInWithGoogle()).toEqual({ ok: true, status: { state: 'signed-out' } })
+    expect(openBrowser).toHaveBeenCalledWith('https://accounts.example.com/start')
+
+    expect(await auth.handleCallback(LINK)).toEqual({
+      ok: true,
+      status: { state: 'signed-in', email: 'ana@gmail.com' }
+    })
+    expect(await auth.status()).toEqual({ state: 'signed-in', email: 'ana@gmail.com' })
+  })
+
+  it('refuses a code that is old or did not start here', async () => {
+    const auth = new AuthService(fakeServer())
+    expect(await auth.handleCallback('vyro://auth/callback?code=expired-code-99')).toEqual({
+      ok: false,
+      error: 'invalid-code'
+    })
+    expect(await auth.status()).toEqual({ state: 'signed-out' })
+  })
+
+  it('reports a link without a code, or with an error, as a failed attempt', async () => {
+    const completeSignIn = vi.fn()
+    const auth = new AuthService(fakeServer({ completeSignIn }))
+    for (const link of [
+      'vyro://auth/callback',
+      'vyro://auth/callback?error=access_denied',
+      'vyro://auth/callback?code=x'
+    ]) {
+      expect(await auth.handleCallback(link)).toEqual({ ok: false, error: 'invalid-code' })
+    }
+    expect(completeSignIn).not.toHaveBeenCalled()
+  })
+
+  it('ignores a link that is not the sign-in link', async () => {
+    const completeSignIn = vi.fn()
+    const auth = new AuthService(fakeServer({ completeSignIn }))
+    expect(await auth.handleCallback('vyro://somewhere/else?code=abcdefgh1234')).toBeNull()
+    expect(completeSignIn).not.toHaveBeenCalled()
+  })
+
+  it('does not open an address that is not secure', async () => {
+    const openBrowser = vi.fn(async () => {})
+    const auth = new AuthService(
+      fakeServer({ startGoogleSignIn: async () => ({ url: 'http://insecure.example.com' }) }),
+      openBrowser
+    )
+    expect(await auth.signInWithGoogle()).toEqual({ ok: false, error: 'unknown' })
+    expect(openBrowser).not.toHaveBeenCalled()
+  })
+
+  it('passes on a kind of failure when Google cannot be started', async () => {
+    const auth = new AuthService(
+      fakeServer({ startGoogleSignIn: async () => ({ error: 'network' }) })
+    )
+    expect(await auth.signInWithGoogle()).toEqual({ ok: false, error: 'network' })
+  })
+})
+
 describe('AuthService failures', () => {
   it('refuses malformed input without calling the server', async () => {
     const signInWithPassword = vi.fn()
@@ -211,6 +282,8 @@ describe('AuthService failures', () => {
         requestPasswordReset: boom,
         resetPassword: boom,
         currentUser: boom,
+        startGoogleSignIn: boom,
+        completeSignIn: boom,
         signOut: boom
       })
     )

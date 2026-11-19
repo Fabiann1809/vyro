@@ -13,6 +13,11 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
+# `vyro://` links bring the person back from the browser after signing in with Google (D21).
+protocols:
+  - name: VYRO
+    schemes:
+      - vyro
 win:
   executableName: vyro
   target: nsis
@@ -34,6 +39,8 @@ linux:
   target: AppImage
   maintainer: Fabiann1809
   category: Utility
+  mimeTypes:
+    - x-scheme-handler/vyro
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
