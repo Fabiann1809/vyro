@@ -60,7 +60,30 @@ describe('bicep curl skill', () => {
   })
 
   it('catches dropping the weight too fast', () => {
-    expect(failedRules(session([rep(40, 90), rep(40, 30)]))).toEqual([[], ['lowering_control']])
+    expect(failedRules(session([rep(40, 90), rep(40, 33)]))).toEqual([[], ['lowering_control']])
+  })
+
+  it('still counts the curl when the model doubts the wrist and the elbow at the top', () => {
+    const recording = recordCurlAngles(session([rep(), rep(), rep()]))
+    const doubtful = {
+      ...recording,
+      frames: recording.frames.map((frame) => ({
+        ...frame,
+        // Both wrists and both elbows, whichever side is the near one: seen at 0.35 out of 1.
+        landmarks:
+          frame.landmarks?.map((landmark, index) =>
+            [13, 14, 15, 16].includes(index) && landmark[3] > 0.5
+              ? ([landmark[0], landmark[1], landmark[2], 0.35] as typeof landmark)
+              : landmark
+          ) ?? null
+      }))
+    }
+
+    expect(replayRecording(curl, doubtful).repCount).toBe(3)
+  })
+
+  it('counts a curl that stops a little short of the old limits, as a laptop camera sees it', () => {
+    expect(replayRecording(curl, recordCurlAngles(session([rep(75), rep(75)]))).repCount).toBe(2)
   })
 
   it('does not count a person who only stands', () => {

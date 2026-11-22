@@ -100,7 +100,7 @@ describe('angle metric', () => {
     const pose = poseFromPixels(
       'left',
       { hip: [600, 200], knee: [600, 400], ankle: [600, 600] },
-      0.3
+      0.2
     )
 
     expect(computeMetrics(kneeAngle, pose, 'left', FRAME).knee).toBeNull()

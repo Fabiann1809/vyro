@@ -1,7 +1,7 @@
 import type { HandObservation } from './handFrame'
 import type { ObjectBox } from './objectFrame'
 import { HAND_LANDMARK as H, POSE_LANDMARK as P, type Landmark } from './landmarks'
-import { isVisible } from './visibility'
+import { isVisible, TRACKING_VISIBILITY } from './visibility'
 
 const LINE_COLOR = 'rgba(52, 211, 153, 0.9)'
 const POINT_COLOR = '#f8fafc'
@@ -53,7 +53,7 @@ export function drawSkeleton(
   for (const [from, to] of SKELETON_CONNECTIONS) {
     const a = landmarks[from]
     const b = landmarks[to]
-    if (!isVisible(a) || !isVisible(b)) continue
+    if (!isVisible(a, TRACKING_VISIBILITY) || !isVisible(b, TRACKING_VISIBILITY)) continue
     ctx.beginPath()
     ctx.moveTo(a.x * width, a.y * height)
     ctx.lineTo(b.x * width, b.y * height)
@@ -63,7 +63,7 @@ export function drawSkeleton(
   ctx.fillStyle = POINT_COLOR
   for (const index of POINTS) {
     const point = landmarks[index]
-    if (!isVisible(point)) continue
+    if (!isVisible(point, TRACKING_VISIBILITY)) continue
     ctx.beginPath()
     ctx.arc(point.x * width, point.y * height, lineWidth * 1.5, 0, Math.PI * 2)
     ctx.fill()

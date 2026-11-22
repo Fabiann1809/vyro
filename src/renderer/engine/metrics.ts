@@ -4,6 +4,7 @@ import { handJoint } from '@renderer/core/handJoints'
 import type { Landmark } from '@renderer/core/landmarks'
 import type { ObjectBox } from '@renderer/core/objectFrame'
 import { joint, type Side } from '@renderer/core/side'
+import { TRACKING_VISIBILITY } from '@renderer/core/visibility'
 import { isHandJoint, type AnyJointName } from '@shared/skill/joints'
 import { isAudioMetric } from '@shared/skill/skillChannels'
 import type { SkillConfig } from '@shared/skill/skillSchema'
@@ -31,7 +32,7 @@ function pointOf(
 ): Point | null {
   const landmark = isHandJoint(name)
     ? hand && handJoint(hand, name)
-    : body && joint(body.landmarks, name, body.side)
+    : body && joint(body.landmarks, name, body.side, TRACKING_VISIBILITY)
   return landmark ? toPixels(landmark, frame.width, frame.height) : null
 }
 

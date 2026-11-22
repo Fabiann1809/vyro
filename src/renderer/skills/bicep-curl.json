@@ -19,15 +19,15 @@
     "torso": { "type": "tilt", "from": "hip", "to": "shoulder" }
   },
   "phases": [
-    { "id": "extended", "when": { "elbow": { "gt": 150 } } },
-    { "id": "curled", "when": { "elbow": { "lt": 70 } } }
+    { "id": "extended", "when": { "elbow": { "gt": 145 } } },
+    { "id": "curled", "when": { "elbow": { "lt": 80 } } }
   ],
   "rep": { "sequence": ["extended", "curled", "extended"], "minDurationMs": 800 },
   "rules": [
     {
       "id": "range",
       "severity": "high",
-      "check": "min(elbow) <= 55",
+      "check": "min(elbow) <= 60",
       "message": { "es": "Sube más el antebrazo", "en": "Curl a little higher" }
     },
     {
@@ -45,7 +45,7 @@
     {
       "id": "lowering_control",
       "severity": "low",
-      "check": "ascentMs >= 600",
+      "check": "ascentMs >= 700",
       "message": { "es": "Baja más despacio", "en": "Lower the weight more slowly" }
     }
   ],
