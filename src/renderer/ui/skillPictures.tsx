@@ -1,4 +1,5 @@
 import type { JSX } from 'react'
+import type { SkillChannel } from '@shared/skill/skillChannels'
 
 // The picture of each skill that comes with the app, for the library and the dashboard. It is drawn
 // with the colours of the theme (the figure with the text colour, the rest with the colour of the
@@ -17,32 +18,37 @@ export const PICTURES: Record<string, JSX.Element> = {
         strokeOpacity="0.08"
         strokeDasharray="2 6"
       />
-
       <ellipse cx="100" cy="160" rx="54" ry="7" fill="#F08A6A" opacity="0.35" />
-      <g>
-        <circle cx="100" cy="46" r="10" fill="var(--line)" />
-        <path
-          d="M100 60 V110 M100 110 L88 152 M100 110 L112 152 M98 68 L86 112"
-          stroke="var(--line)"
-          strokeWidth="5.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-        <path
-          d="M102 68 L116 100 L110 72"
-          stroke="var(--line)"
-          strokeWidth="5.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-        <path d="M98 70 L122 74" stroke="var(--line)" strokeWidth="4" strokeLinecap="round" />
-        <circle cx="97" cy="70" r="6" fill="#F08A6A" />
-        <circle cx="123" cy="74" r="6" fill="#F08A6A" />
-        <circle cx="116" cy="100" r="4.5" fill="#F08A6A" stroke="var(--line)" strokeWidth="2" />
-        <circle cx="100" cy="110" r="4.5" fill="#F08A6A" stroke="var(--line)" strokeWidth="2" />
-      </g>
+      <path
+        d="M98 68 L94 104 L96 132"
+        stroke="var(--line)"
+        strokeOpacity="0.45"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <path
+        d="M100 60 V108 M100 108 L90 154 M100 108 L110 154"
+        stroke="var(--line)"
+        strokeWidth="5.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <circle cx="100" cy="46" r="10" fill="var(--line)" />
+      <path
+        d="M100 68 L104 102 L122 72"
+        stroke="var(--line)"
+        strokeWidth="5.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <path d="M114 67 L130 77" stroke="var(--line)" strokeWidth="7" strokeLinecap="round" />
+      <circle cx="100" cy="68" r="5" fill="#F08A6A" stroke="var(--line)" strokeWidth="2" />
+      <circle cx="104" cy="102" r="5" fill="#F08A6A" stroke="var(--line)" strokeWidth="2" />
+      <circle cx="122" cy="72" r="5" fill="#F08A6A" stroke="var(--line)" strokeWidth="2" />
     </>
   ),
   guitar_posture: (
@@ -368,4 +374,53 @@ export const PICTURES: Record<string, JSX.Element> = {
   )
 }
 
-export const hasIllustration = (skillId: string): boolean => skillId in PICTURES
+// What a skill the coach made gets when it has no picture of its own: one for its channel. The id of
+// such a skill is made from what it is about, so it cannot be known here.
+export const CHANNEL_PICTURES: Partial<Record<SkillChannel, JSX.Element>> = {
+  hands: (
+    <>
+      <circle cx="100" cy="100" r="86" fill="none" stroke="var(--line)" strokeOpacity="0.12" />
+      <circle
+        cx="100"
+        cy="100"
+        r="66"
+        fill="none"
+        stroke="var(--line)"
+        strokeOpacity="0.08"
+        strokeDasharray="2 6"
+      />
+      <ellipse cx="100" cy="160" rx="54" ry="7" fill="#B48AE0" opacity="0.35" />
+      <path
+        d="M72 148 C66 130 68 112 76 100 L126 100 C134 112 134 130 128 148 Q100 166 72 148 Z"
+        fill="var(--line)"
+        fillOpacity="0.14"
+        stroke="var(--line)"
+        strokeWidth="4"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M84 100 V58 M99 100 V44 M114 100 V52 M127 106 V74 M74 120 L52 96"
+        stroke="var(--line)"
+        strokeWidth="9"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <circle cx="84" cy="58" r="4.5" fill="#B48AE0" stroke="var(--line)" strokeWidth="2" />
+      <circle cx="99" cy="44" r="4.5" fill="#B48AE0" stroke="var(--line)" strokeWidth="2" />
+      <circle cx="114" cy="52" r="4.5" fill="#B48AE0" stroke="var(--line)" strokeWidth="2" />
+      <circle cx="127" cy="74" r="4.5" fill="#B48AE0" stroke="var(--line)" strokeWidth="2" />
+      <circle cx="52" cy="96" r="4.5" fill="#B48AE0" stroke="var(--line)" strokeWidth="2" />
+      <circle cx="100" cy="146" r="4.5" fill="#B48AE0" stroke="var(--line)" strokeWidth="2" />
+    </>
+  )
+}
+
+export function pictureOf(
+  skillId: string,
+  channels: readonly SkillChannel[] = []
+): JSX.Element | null {
+  const own = PICTURES[skillId]
+  if (own) return own
+  const channel = channels.find((candidate) => CHANNEL_PICTURES[candidate])
+  return (channel && CHANNEL_PICTURES[channel]) || null
+}

@@ -2,18 +2,23 @@ import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { bundledSkills } from '@renderer/skills'
 import { SkillIllustration } from './SkillIllustration'
-import { hasIllustration } from './skillPictures'
+import { pictureOf } from './skillPictures'
 
 describe('SkillIllustration', () => {
   it('has a picture for each skill that comes with the app', () => {
     for (const skill of bundledSkills.skills) {
-      expect(hasIllustration(skill.id), skill.id).toBe(true)
+      expect(pictureOf(skill.id), skill.id).not.toBeNull()
     }
   })
 
   it('has none for a skill it does not know, such as one the coach made', () => {
-    expect(hasIllustration('custom_flute')).toBe(false)
+    expect(pictureOf('custom_flute')).toBeNull()
+    expect(pictureOf('custom_flute', ['audio'])).toBeNull()
     expect(SkillIllustration({ skillId: 'custom_flute' })).toBeNull()
+  })
+
+  it('gives a skill made by the coach the picture of its channel, when there is one', () => {
+    expect(pictureOf('custom_sign_a', ['hands'])).not.toBeNull()
   })
 
   it('paints the figure with the colours of the theme, never a fixed light colour', () => {

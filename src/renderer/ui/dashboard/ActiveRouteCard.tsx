@@ -5,7 +5,7 @@ import { cardOf } from '../expandTransition'
 import { Button } from '../kit/Button'
 import { Card } from '../kit/Card'
 import { SkillIllustration } from '../SkillIllustration'
-import { hasIllustration } from '../skillPictures'
+import { pictureOf } from '../skillPictures'
 
 // What to do next: the path being followed, with the picture of the skill inside a ring that shows how
 // far the path has got, and the one button that goes on with it. Without a path it invites to ask
@@ -55,7 +55,7 @@ export function ActiveRouteCard({
   const counted = stepProgress?.counted ?? 0
   const percent = required ? Math.min(100, Math.round((counted / required) * 100)) : 0
   const doneCount = states.filter((state) => state?.state === 'done').length
-  const pictured = step?.kind === 'skill' && hasIllustration(step.skillId) ? step.skillId : null
+  const pictured = step?.kind === 'skill' && pictureOf(step.skillId) ? step.skillId : null
 
   return (
     <Card
