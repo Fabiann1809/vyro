@@ -79,7 +79,7 @@ letter in a sign language or the exact fingering of a chord, VYRO says so instea
 | **Piano hand**       | Hands                   | Curved fingers and a wrist at the height of the keyboard. |
 | **Tune a string**    | Sound                   | Six strings on a dial, until each one is in tune.         |
 
-You can add more by asking the coach (see _Optional AI coach_) or by writing a JSON file.
+You can add more by asking the coach (see _AI coach_) or by writing a JSON file.
 
 ## How it works
 
@@ -144,7 +144,7 @@ without one, and the changes go up when it comes back.
 
 In **Settings → Account** you see what is synced, you can sign out and you can delete your account.
 **Settings → Data and privacy → Delete all data** erases your data on this computer and the copy in
-the cloud. Nothing else is sent anywhere unless you turn on the optional AI coach (see below).
+the cloud. Nothing else is sent anywhere unless you turn on the AI coach (see below).
 
 The microphone is used only in skills that listen (such as tuning a string), and only while they
 are open. The sound is measured on the spot and forgotten: it is never recorded, saved or sent.
@@ -155,12 +155,12 @@ The database is a single file, `vyro.db`, in the app's data folder:
 - macOS: `~/Library/Application Support/vyro`
 - Linux: `~/.config/vyro`
 
-## Optional AI coach
+## AI coach
 
 On top of the networks that always run, VYRO can talk to a language model to chat about your
 training, plan a learning path, review your week and design new skills. It is **off by default** and
-needs your own API key (or a free tier, or a model on your own computer). Without it, VYRO works
-exactly as described above. Only text you type and numbers from your sessions are ever sent: never
+needs your own API key (or a free tier, or a model on your own computer). The skills in the library
+work without it; **making new paths and new skills needs it**, and so needs internet. Only text you type and numbers from your sessions are ever sent: never
 video, images, body points or sound. See the [AI guide](docs/AI_GUIDE.md).
 
 ## Development

@@ -79,7 +79,7 @@ letra en lenguaje de señas o la posición exacta de un acorde, VYRO lo dice en 
 | **Mano al piano**      | Manos               | Dedos curvos y muñeca a la altura del teclado.                 |
 | **Afinar una cuerda**  | Sonido              | Seis cuerdas en un dial, hasta que cada una quede afinada.     |
 
-Puedes añadir más pidiéndoselo al coach (mira _Coach con IA opcional_) o escribiendo un archivo
+Puedes añadir más pidiéndoselo al coach (mira _Coach con IA_) o escribiendo un archivo
 JSON.
 
 ## Cómo funciona
@@ -146,7 +146,7 @@ ella y los cambios se suben cuando vuelva.
 
 En **Ajustes → Cuenta** ves qué se sincroniza, puedes cerrar sesión y puedes borrar tu cuenta.
 **Ajustes → Datos y privacidad → Borrar todos los datos** borra tus datos en este computador y la
-copia en la nube. No se envía nada más a ningún sitio salvo que actives el coach con IA opcional
+copia en la nube. No se envía nada más a ningún sitio salvo que actives el coach con IA
 (mira abajo).
 
 El micrófono se usa solo en las habilidades que escuchan (como afinar una cuerda) y solo mientras
@@ -158,12 +158,12 @@ La base de datos es un único archivo, `vyro.db`, en la carpeta de datos de la a
 - macOS: `~/Library/Application Support/vyro`
 - Linux: `~/.config/vyro`
 
-## Coach con IA opcional
+## Coach con IA
 
 Además de las redes que siempre corren, VYRO puede hablar con un modelo de lenguaje para conversar
 sobre tu entrenamiento, armar una ruta de aprendizaje, revisar tu semana y diseñar habilidades
 nuevas. Viene **apagado** y necesita tu propia clave de API (o un plan gratuito, o un modelo en tu
-propio computador). Sin él, VYRO funciona exactamente como se describe arriba. Solo se envía el
+propio computador). Las habilidades de la biblioteca funcionan sin él; **crear rutas y habilidades nuevas sí lo necesita**, y por tanto internet. Solo se envía el
 texto que escribes y números de tus sesiones: nunca video, imágenes, puntos del cuerpo ni sonido.
 Mira la [guía de IA](docs/AI_GUIDE.md).
 
