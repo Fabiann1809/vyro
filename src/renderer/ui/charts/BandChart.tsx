@@ -23,7 +23,8 @@ export function BandChart({
   const length = pathLength(points)
   const last = points[points.length - 1]
   const top = yOf(band.max, FRAME, range)
-  const bottom = yOf(band.min, FRAME, range)
+  // The shaded zone goes down to the edge of the frame, not only to the value where it ends: a
+  // line at the very bottom (a session with no failures) is then inside it, not hanging below.
 
   return (
     <svg
@@ -36,7 +37,7 @@ export function BandChart({
         x={0}
         y={top}
         width={FRAME.width}
-        height={bottom - top}
+        height={FRAME.height - top}
         rx={6}
         className="fill-current opacity-13"
       />
