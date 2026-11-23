@@ -17,7 +17,8 @@ import {
 import { cardOf, startWithExpand } from '../expandTransition'
 import { useNavigation } from '../navigation'
 import { useSession } from '../sessionStore'
-import { illustrationOf } from '../skillIllustration'
+import { SkillIllustration } from '../SkillIllustration'
+import { hasIllustration } from '../skillPictures'
 import { useSkills } from '../skillsStore'
 
 const CATEGORY_LABEL: Record<LibraryCategory, MessageKey> = {
@@ -60,7 +61,6 @@ function SkillCard({
   const name = localize(skill.name)
   const lead = channels[0]
   const color = lead ? CHANNEL_LOOK[lead].color : 'var(--mut)'
-  const picture = illustrationOf(skill.id)
   const needs = listOf(skillNeeds(skill).map((need) => t(need)))
 
   return (
@@ -77,8 +77,8 @@ function SkillCard({
             boxShadow: `inset 0 0 40px color-mix(in oklab, ${color} 30%, transparent), 0 0 46px color-mix(in oklab, ${color} 22%, transparent)`
           }}
         >
-          {picture ? (
-            <img src={picture} alt="" className="size-full object-cover" />
+          {hasIllustration(skill.id) ? (
+            <SkillIllustration skillId={skill.id} className="size-full" />
           ) : (
             <span className="flex size-full items-center justify-center gap-2">
               {channels.map((channel) => (

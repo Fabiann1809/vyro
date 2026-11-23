@@ -4,7 +4,8 @@ import { ProgressRing } from '../charts/ProgressRing'
 import { cardOf } from '../expandTransition'
 import { Button } from '../kit/Button'
 import { Card } from '../kit/Card'
-import { illustrationOf } from '../skillIllustration'
+import { SkillIllustration } from '../SkillIllustration'
+import { hasIllustration } from '../skillPictures'
 
 // What to do next: the path being followed, with the picture of the skill inside a ring that shows how
 // far the path has got, and the one button that goes on with it. Without a path it invites to ask
@@ -54,7 +55,7 @@ export function ActiveRouteCard({
   const counted = stepProgress?.counted ?? 0
   const percent = required ? Math.min(100, Math.round((counted / required) * 100)) : 0
   const doneCount = states.filter((state) => state?.state === 'done').length
-  const picture = step?.kind === 'skill' ? illustrationOf(step.skillId) : null
+  const pictured = step?.kind === 'skill' && hasIllustration(step.skillId) ? step.skillId : null
 
   return (
     <Card
@@ -68,7 +69,7 @@ export function ActiveRouteCard({
           aria-hidden="true"
           className="absolute inset-4 overflow-hidden rounded-full border border-[rgba(255,214,180,0.25)] bg-[radial-gradient(circle_at_50%_30%,oklch(0.7_0.15_30/0.35),transparent_70%)] shadow-[inset_0_0_30px_oklch(0.7_0.17_45/0.3)]"
         >
-          {picture && <img src={picture} alt="" className="size-full object-cover" />}
+          {pictured && <SkillIllustration skillId={pictured} className="size-full" />}
         </span>
         <span className="absolute -bottom-1.5 left-1/2 flex h-7 -translate-x-1/2 items-center rounded-full bg-t1 px-3 text-[0.78rem] font-bold whitespace-nowrap text-inv">
           {t('dashboard.next.stepOf', { step: currentIndex + 1, total: steps.length })}
