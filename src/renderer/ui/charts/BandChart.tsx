@@ -23,9 +23,9 @@ export function BandChart({
   const length = pathLength(points)
   const last = points[points.length - 1]
   const top = yOf(band.max, FRAME, range)
-  // The shaded zone goes down to the edge of the frame, not only to the value where it ends: a
-  // line at the very bottom (a session with no failures) is then inside it, not hanging below.
 
+  // The aim is a dashed line with a faint tint below it that goes to the edge of the frame. A hard
+  // bar had edges for the line to run into: a session with no failures sits at its bottom.
   return (
     <svg
       viewBox={`0 0 ${FRAME.width} ${FRAME.height}`}
@@ -38,8 +38,14 @@ export function BandChart({
         y={top}
         width={FRAME.width}
         height={FRAME.height - top}
-        rx={6}
-        className="fill-current opacity-13"
+        className="fill-current opacity-6"
+      />
+      <path
+        d={`M0 ${top}H${FRAME.width}`}
+        className="fill-none stroke-current"
+        strokeWidth={1.2}
+        strokeDasharray="4 5"
+        opacity={0.55}
       />
       <path
         d={linePath(points)}
