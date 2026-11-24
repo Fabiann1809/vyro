@@ -45,6 +45,16 @@ describe('AudioFraming', () => {
     expect(report).toMatchObject({ noise: 'ok', instruction: 'makeSound' })
   })
 
+  it('accepts the own hiss of a laptop microphone in a silent room', () => {
+    const framing = new AudioFraming()
+
+    const room = hear(framing, 0, 2000, -40)
+
+    expect(room.report.noise).toBe('ok')
+    // A string close to the microphone stands out from that hiss by far more than the minimum.
+    expect(hear(framing, room.now, 1000, -20).report.instruction).toBeNull()
+  })
+
   it('does not let start in a room that is too noisy', () => {
     const framing = new AudioFraming()
 

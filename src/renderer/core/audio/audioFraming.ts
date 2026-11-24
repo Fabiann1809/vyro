@@ -20,7 +20,8 @@ export interface AudioFramingReport {
 export interface AudioFramingOptions {
   // How long the room is listened to, in silence, before its noise is judged.
   roomMs: number
-  // The noisiest the room may be, in dBFS.
+  // The noisiest the room may be, in dBFS. The sound is read raw, with no noise suppression, so it
+  // also holds the own hiss of the microphone: a laptop one sits near -40 in a silent room.
   maxNoiseDb: number
   // The sound must be at least this loud, and this much louder than the room.
   minSoundDb: number
@@ -35,7 +36,7 @@ export interface AudioFramingOptions {
 
 export const DEFAULT_AUDIO_FRAMING: AudioFramingOptions = {
   roomMs: 1500,
-  maxNoiseDb: -45,
+  maxNoiseDb: -36,
   minSoundDb: -40,
   minRiseDb: 12,
   silenceDb: -55,
