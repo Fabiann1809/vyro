@@ -18,6 +18,7 @@ import type { RepQuality, RepResult } from '@renderer/engine/repEvaluator'
 import { retarget } from '@renderer/engine/retarget'
 import type { CompletedRep } from '@renderer/engine/repCounter'
 import { buildSessionToSave } from '@renderer/engine/sessionSummary'
+import { settleTuning } from '@renderer/engine/tuningResults'
 import type { FrameInput } from '@renderer/engine/skillSession'
 import type { SkillConfig } from '@shared/skill/skillSchema'
 import type { FrameSize } from '@renderer/engine/metrics'
@@ -178,8 +179,8 @@ export function TrainingScreen(): React.JSX.Element {
   const [holdProgress, setHoldProgress] = useState(0)
   const stringRef = useRef({ index: 0, tuned: new Set<number>() })
   const holdRef = useRef(new InTuneHold())
-  // What was judged on the strings already left behind: each string is a run of its own.
-  const earlierResults = useRef<RepResult[]>([])
+  // What was judged on each string already left behind: each string is a run of its own.
+  const resultsByString = useRef(new Map<number, RepResult[]>())
 
   const bannerOf = (message: FeedbackMessage, id: number): Banner =>
     message.kind === 'praise'
@@ -203,7 +204,11 @@ export function TrainingScreen(): React.JSX.Element {
   }
 
   const pickString = (index: number): void => {
-    earlierResults.current.push(...(runRef.current?.results ?? []))
+    const left = stringRef.current.index
+    resultsByString.current.set(left, [
+      ...(resultsByString.current.get(left) ?? []),
+      ...(runRef.current?.results ?? [])
+    ])
     runRef.current = null
     stringRef.current.index = index
     holdRef.current.reset()
@@ -387,7 +392,13 @@ export function TrainingScreen(): React.JSX.Element {
 
   const end = useCallback(() => {
     if (skill) {
-      const results = [...earlierResults.current, ...(runRef.current?.results ?? [])]
+      // Everything judged in the session. A tuner counts each string once, by how it ended.
+      const byString = new Map(resultsByString.current)
+      const current = stringRef.current.index
+      byString.set(current, [...(byString.get(current) ?? []), ...(runRef.current?.results ?? [])])
+      const results = tuner
+        ? settleTuning(byString, stringRef.current.tuned)
+        : [...byString.values()].flat()
       finishSession({ skillId: skill.id, startedAt, durationMs: elapsedMs, results })
 
       const toSave = buildSessionToSave(skill.id, startedAt, elapsedMs, results)
@@ -401,7 +412,7 @@ export function TrainingScreen(): React.JSX.Element {
       }
     }
     go('summary')
-  }, [skill, startedAt, elapsedMs, finishSession, setSaveStatus, go])
+  }, [skill, tuner, startedAt, elapsedMs, finishSession, setSaveStatus, go])
 
   // The practice that has an end of its own, such as tuning every string, ends by itself a moment
   // after it is reached, so that the person sees the last string done and then the summary. The timer
