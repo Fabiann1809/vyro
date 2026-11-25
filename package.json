@@ -1,6 +1,6 @@
 {
   "name": "vyro",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Desktop skill coach: watches your technique through the camera and corrects it in real time",
   "main": "./out/main/index.js",
   "author": "Fabiann1809",

@@ -235,7 +235,7 @@ Cada tarea debe poder completarse en una sesión corta. Un commit por tarea.
 - [x] **T8.2 Release por tag.** Workflow que construye en los 3 sistemas y publica un borrador de release. *Hecho cuando:* un tag de prueba genera los tres instaladores.
 - [x] **T8.3 Accesibilidad.** Teclado, contraste AA, texto grande y reducción de movimiento. *Hecho cuando:* se puede usar toda la app sin ratón y el contraste cumple AA.
 - [x] **T8.4 Prueba e2e de humo.** Con Playwright. *Hecho cuando:* abre la app y recorre las pantallas principales en CI.
-- [ ] **T8.5 README bilingüe.** Con GIFs de demo, instalación y aviso sobre la falta de firma de código. *Hecho cuando:* un visitante puede instalar y entender la app.
+- [x] **T8.5 README bilingüe.** Con capturas, instalación y aviso sobre la falta de firma de código. *Hecho cuando:* un visitante puede instalar y entender la app. *Hecho:* README en inglés y en español con capturas; los GIFs de demo se retiraron a petición del usuario, porque la demo es un vídeo para su portafolio.
 - [ ] **T8.6 Versión 0.1.0.** *Hecho cuando:* existe el tag `v0.1.0` con sus instaladores.
 
 ## 9. Tareas posteriores al MVP
